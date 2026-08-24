@@ -1028,32 +1028,28 @@
 
   /**
    * Mobile Native Gesture Engine (手势滑动操控系统)
-   * 1. Left-to-Right Swipe: Open Navigation Hub
-   * 2. Right-to-Left Swipe: Close Navigation Hub
-   * 3. Navigation Hub Top Pull-Down Damping / Small Graph Swipe Down: Expand Graph to Fullscreen
-   * 4. Fullscreen Graph Swipe Up:
-   *    - If node focused: Enter Entity Article (上滑进入阅读页)
-   *    - If no node focused: Collapse Graph back to small window
+   * 1. Horizontal Drawer: Left-to-Right Swipe to Open, Right-to-Left to Close
+   * 2. Pull-Down in Default State: Top Pull-Down on Sidebar / Small Graph to Expand Fullscreen
+   * 3. Bottom 36% Hero Action Stage: Dedicated Touch Capture for Swipe-Up to Read & Tap to Read
    */
   function initMobileGestures() {
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
-    let isTrackingGesture = false;
+    let isTrackingGlobal = false;
 
-    // 1. Global Horizontal Swipe Navigation (Left-to-Right & Right-to-Left)
+    // 1. Global Horizontal Swipe (Main Reading Area Left -> Right)
     document.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();
-      isTrackingGesture = true;
+      isTrackingGlobal = true;
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
-      if (!isTrackingGesture || e.changedTouches.length !== 1) return;
-      isTrackingGesture = false;
+      if (!isTrackingGlobal || e.changedTouches.length !== 1) return;
+      isTrackingGlobal = false;
 
       const touch = e.changedTouches[0];
       const deltaX = touch.clientX - touchStartX;
@@ -1067,68 +1063,112 @@
       const absY = Math.abs(deltaY);
 
       // Horizontal Swipe Check
-      if (absX > 65 && absX > absY * 1.4 && elapsed < 600) {
+      if (absX > 60 && absX > absY * 1.3 && elapsed < 600) {
         const sidebar = getEl('wiki-sidebar');
         const isOpen = sidebar && sidebar.classList.contains('is-open');
 
         if (deltaX > 0 && !isOpen && !state.isGraphExpanded) {
-          // Swipe Left -> Right on Main Article: Open Sidebar
+          // Swipe Left -> Right on Main Article: Open Horizontal Drawer
           toggleMobileSidebar();
         } else if (deltaX < 0 && isOpen) {
-          // Swipe Right -> Left on Open Sidebar: Close Sidebar
+          // Swipe Right -> Left on Open Sidebar: Close Horizontal Drawer
           closeMobileSidebar();
         }
       }
     }, { passive: true });
 
-    // 2. Navigation Hub & Small Graph Pull-Down to Expand (侧边栏顶部下拉阻尼手势 / 小窗下拉展开)
+    // 2. Sidebar Pull-Down in Default State (侧边栏处于默认/顶部状态时，下拉直接展开全屏大图谱)
     const sidebar = getEl('wiki-sidebar');
-    const navHub = document.querySelector('.wiki-nav-hub');
-    const slot = getEl('sidebar-graph-slot');
-
-    const handlePullDownStart = (e) => {
-      if (e.touches.length !== 1) return;
-      e.target._touchStartY = e.touches[0].clientY;
-      e.target._touchStartX = e.touches[0].clientX;
-      e.target._touchTime = Date.now();
-    };
-
-    const handlePullDownEnd = (e) => {
-      if (e.changedTouches.length !== 1) return;
-      const startY = e.target._touchStartY || 0;
-      const startX = e.target._touchStartX || 0;
-      const startTime = e.target._touchTime || 0;
-
-      const deltaY = e.changedTouches[0].clientY - startY;
-      const deltaX = e.changedTouches[0].clientX - startX;
-      const elapsed = Date.now() - startTime;
-
-      // Check if user is at the top of the navigation list
-      const isAtTop = !navHub || navHub.scrollTop <= 0;
-
-      if (isAtTop && deltaY > 45 && deltaY > Math.abs(deltaX) * 1.2 && elapsed < 550 && !state.isGraphExpanded) {
-        closeMobileSidebar();
-        toggleGraphExpand(true);
-      }
-    };
-
-    if (slot) {
-      slot.addEventListener('touchstart', handlePullDownStart, { passive: true });
-      slot.addEventListener('touchend', handlePullDownEnd, { passive: true });
-    }
-    if (navHub) {
-      navHub.addEventListener('touchstart', handlePullDownStart, { passive: true });
-      navHub.addEventListener('touchend', handlePullDownEnd, { passive: true });
-    }
     if (sidebar) {
-      sidebar.addEventListener('touchstart', handlePullDownStart, { passive: true });
-      sidebar.addEventListener('touchend', handlePullDownEnd, { passive: true });
+      let sbTouchStartY = 0;
+      let sbTouchStartX = 0;
+      let sbTouchTime = 0;
+      let isSidebarTouching = false;
+
+      sidebar.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        sbTouchStartX = e.touches[0].clientX;
+        sbTouchStartY = e.touches[0].clientY;
+        sbTouchTime = Date.now();
+        isSidebarTouching = true;
+      }, { passive: true });
+
+      sidebar.addEventListener('touchend', (e) => {
+        if (!isSidebarTouching || e.changedTouches.length !== 1) return;
+        isSidebarTouching = false;
+
+        const deltaY = e.changedTouches[0].clientY - sbTouchStartY;
+        const deltaX = e.changedTouches[0].clientX - sbTouchStartX;
+        const elapsed = Date.now() - sbTouchTime;
+
+        const navHub = sidebar.querySelector('.wiki-nav-hub');
+        const stickyWrap = sidebar.querySelector('.wiki-sidebar-sticky');
+        const isAtTop = (!navHub || navHub.scrollTop <= 10) && (!stickyWrap || stickyWrap.scrollTop <= 10);
+
+        // Pull Down Gesture: Triggered directly in default state on the very first pull!
+        if (isAtTop && deltaY > 35 && deltaY > Math.abs(deltaX) * 1.05 && elapsed < 600 && !state.isGraphExpanded) {
+          closeMobileSidebar();
+          toggleGraphExpand(true);
+        }
+      }, { passive: true });
     }
 
-    // 3. Fullscreen Graph Gestures:
-    // - Swipe Up when Node is focused: Enter Entity Article
-    // - Swipe Up when No Node is focused: Collapse Graph
-    // - Swipe Down: Collapse Graph
+    // 3. Dedicated Bottom 36% Hero Action Stage Touch Handling (专属大窗手势底栏)
+    const boundlessInspector = getEl('boundless-node-inspector');
+    if (boundlessInspector) {
+      let inspStartY = 0;
+      let inspStartX = 0;
+      let inspStartTime = 0;
+
+      boundlessInspector.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        inspStartX = e.touches[0].clientX;
+        inspStartY = e.touches[0].clientY;
+        inspStartTime = Date.now();
+      }, { passive: true });
+
+      boundlessInspector.addEventListener('touchend', (e) => {
+        if (e.changedTouches.length !== 1) return;
+        const deltaY = e.changedTouches[0].clientY - inspStartY;
+        const deltaX = e.changedTouches[0].clientX - inspStartX;
+        const elapsed = Date.now() - inspStartTime;
+        const absY = Math.abs(deltaY);
+        const absX = Math.abs(deltaX);
+
+        if (absY > 25 && absY > absX * 1.1 && elapsed < 600) {
+          if (deltaY < 0) {
+            // Swipe UP in bottom zone: Immediately enter entity article!
+            if (graphState.focusedNode) {
+              const focusedId = graphState.focusedNode.id;
+              hideBoundlessInspector();
+              graphState.focusedNode = null;
+              toggleGraphExpand(false);
+              closeMobileSidebar();
+              clearActiveNav();
+              openEntityArticle(focusedId);
+            } else {
+              toggleGraphExpand(false);
+            }
+          } else if (deltaY > 35) {
+            // Swipe DOWN: Collapse graph
+            toggleGraphExpand(false);
+          }
+        } else if (absY < 15 && absX < 15 && elapsed < 400) {
+          // Tap anywhere in bottom zone: Enter article
+          if (graphState.focusedNode) {
+            const focusedId = graphState.focusedNode.id;
+            hideBoundlessInspector();
+            graphState.focusedNode = null;
+            toggleGraphExpand(false);
+            closeMobileSidebar();
+            clearActiveNav();
+            openEntityArticle(focusedId);
+          }
+        }
+      }, { passive: true });
+    }
+
+    // 4. Global Fullscreen Graph Swipe Collapse
     const graphContainer = getEl('sidebar-graph-container');
     if (graphContainer) {
       let graphTouchStartY = 0;
@@ -1147,28 +1187,15 @@
         const deltaY = e.changedTouches[0].clientY - graphTouchStartY;
         const deltaX = e.changedTouches[0].clientX - graphTouchStartX;
         const elapsed = Date.now() - graphTouchTime;
-
         const absY = Math.abs(deltaY);
         const absX = Math.abs(deltaX);
 
-        if (absY > 35 && absY > absX * 1.1 && elapsed < 600) {
-          if (deltaY < 0) {
-            // SWIPE UP
-            if (graphState.focusedNode) {
-              // Enter Entity Article on Swipe Up!
-              const focusedId = graphState.focusedNode.id;
-              hideBoundlessInspector();
-              graphState.focusedNode = null;
-              toggleGraphExpand(false);
-              closeMobileSidebar();
-              clearActiveNav();
-              openEntityArticle(focusedId);
-            } else {
-              // Collapse to small window
-              toggleGraphExpand(false);
-            }
-          } else if (deltaY > 45) {
-            // SWIPE DOWN
+        if (absY > 40 && absY > absX * 1.2 && elapsed < 600) {
+          if (deltaY < 0 && !graphState.focusedNode) {
+            // Swipe UP when no node focused: Collapse to small window
+            toggleGraphExpand(false);
+          } else if (deltaY > 50) {
+            // Swipe DOWN: Collapse to small window
             toggleGraphExpand(false);
           }
         }

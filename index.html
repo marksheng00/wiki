@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nineteen Eighty-Four — Readipedia</title>
+  <meta name="description" content="A pure, rectilinear, Claude-grade typographic reader edition of George Orwell's Nineteen Eighty-Four." />
+  
+  <!-- Claude-grade Serif & Modern Sans Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Vendor Engines (Non-blocking Deferred Loading) -->
+  <script src="./assets/vendor/lucide.min.js" defer></script>
+  <script src="./assets/vendor/marked.min.js" defer></script>
+  <script src="./assets/vendor/force-graph.min.js" defer></script>
+
+  <link rel="stylesheet" href="./style.css?v=16" />
+</head>
+<body>
+
+  <!-- Top Minimalist Bar -->
+  <header class="wiki-header">
+    <div class="wiki-header-left">
+      <button class="btn-sidebar-toggle" id="btn-toggle-sidebar" aria-label="Toggle Navigation">
+        <i data-lucide="menu" style="width:18px;height:18px;"></i>
+      </button>
+
+      <a href="#" id="wiki-logo" class="wiki-logo">
+        <span class="wiki-logo-text">Readipedia</span>
+      </a>
+    </div>
+
+    <!-- Center Controls: Platforms, Language & Theme -->
+    <div class="wiki-header-center">
+      <a href="#" class="wiki-icon-btn" aria-label="iOS App">
+        <i data-lucide="smartphone" style="width:18px;height:18px;"></i>
+      </a>
+      <a href="#" class="wiki-icon-btn" aria-label="Android App">
+        <i data-lucide="bot" style="width:18px;height:18px;"></i>
+      </a>
+      <a href="#" class="wiki-icon-btn" aria-label="Web App">
+        <i data-lucide="globe" style="width:18px;height:18px;"></i>
+      </a>
+      <a href="#" class="wiki-icon-btn" aria-label="Browser Extension">
+        <i data-lucide="puzzle" style="width:18px;height:18px;"></i>
+      </a>
+      
+      <div class="wiki-qr-container">
+        <button class="wiki-icon-btn" aria-label="Scan to Download">
+          <i data-lucide="qr-code" style="width:18px;height:18px;"></i>
+        </button>
+        <div class="wiki-qr-popover">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=333333&bgcolor=ffffff&data=https://app.readifyai.com" alt="QR Code" class="qr-img" />
+          <div class="qr-label">Scan to Download</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Controls: Settings (Language, Theme) -->
+    <div class="wiki-header-right">
+      <div class="wiki-lang-container" id="lang-menu-container">
+        <button id="btn-lang" class="wiki-icon-btn" aria-label="Switch Language">
+          <i data-lucide="languages" style="width:18px;height:18px;"></i>
+        </button>
+        <div class="wiki-dropdown-menu" id="lang-dropdown">
+          <div class="wiki-dropdown-item active" data-lang="en">English</div>
+          <div class="wiki-dropdown-item" data-lang="zh">中文 (Chinese)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="ja">日本語 (Japanese)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="es">Español (Spanish)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="fr">Français (French)</div>
+        </div>
+      </div>
+      <button id="btn-theme-toggle" class="wiki-icon-btn" aria-label="Toggle Theme">
+        <i data-lucide="moon" style="width:18px;height:18px;" id="icon-theme"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Wrap -->
+  <div class="wiki-body-wrap">
+    
+    <!-- Mobile Drawer Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- LEFT SIDEBAR: Pinned Stationary 100% Fixed / Mobile Full-Screen Navigation Hub -->
+    <aside class="wiki-sidebar" id="wiki-sidebar">
+      <div class="wiki-sidebar-sticky">
+        
+        <!-- Mobile-Only Fullscreen Navigation Header (Strict 52px Consistent Brand Header) -->
+        <div class="mobile-sidebar-header">
+          <span class="mobile-sidebar-title wiki-logo-text">Readipedia</span>
+          <button class="btn-sidebar-close" id="btn-sidebar-close" aria-label="Close navigation">
+            <i data-lucide="x" style="width:22px;height:22px;"></i>
+          </button>
+        </div>
+
+        <!-- 1. BALANCED TOPOLOGY CANVAS -->
+        <div class="sidebar-graph-slot" id="sidebar-graph-slot">
+          <div class="sidebar-graph-container" id="sidebar-graph-container">
+            <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 9h8V1" />
+              </svg>
+            </button>
+            <button class="btn-mobile-graph-close" id="btn-mobile-graph-close" aria-label="Close graph explorer">
+              <i data-lucide="x" style="width:20px;height:20px;"></i>
+            </button>
+            <div class="topology-pure-canvas" id="canvas-sidebar-graph"></div>
+          </div>
+        </div>
+
+        <!-- 2. NAVIGATION HUB -->
+        <nav class="wiki-nav-hub" id="wiki-nav-hub">
+          
+          <!-- Entry 1: Book Overview -->
+          <a href="#" class="nav-hub-item active" id="btn-book-home" data-view="view-book">
+            <i data-lucide="book-open" class="nav-icon"></i>
+            <span>Book Overview</span>
+          </a>
+
+          <!-- Entry 2: Entities (149) (The ONLY Hierarchical Wiki Tree) -->
+          <details class="toc-group" id="grp-entities" open>
+            <summary class="toc-header">
+              <span class="toc-title"><i data-lucide="shapes" class="nav-icon"></i> Entities (149)</span>
+            </summary>
+            <div class="toc-items" id="toc-entities-items">
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Characters (18)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-winston-smith-1910e4339629'>Winston Smith</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-julia-dd9a6077f139'>Julia</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-o-brien-abeb498acd48'>O'Brien</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-big-brother-d634b662a3fc'>Big Brother</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-emmanuel-goldstein-f4210e83c600'>Emmanuel Goldstein</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-syme-b786520f0b1e'>Syme</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-parsons-ff784c804840'>Parsons</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-mrs-parsons-0e1126915b2d'>Mrs Parsons</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-mr-charrington-fedfab22da60'>Mr Charrington</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-katharine-252d3095acf3'>Katharine</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-ampleforth-a67df3ec6b21'>Ampleforth</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-tillotson-a505016ae14f'>Tillotson</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-wilsher-0f73619360fb'>Wilsher</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-martin-f5cb6653498c'>Martin</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-jones-ee532256d0d7'>Jones</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-aaronson-79a475e992f7'>Aaronson</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-rutherford-8a36207da47f'>Rutherford</a>
+    <a class='toc-item entity-toc-link' data-id='character-recall-character-comrade-ogilvy-2f6809370799'>Comrade Ogilvy</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Locations (17)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-chestnut-tree-caf-f86ba95a289a'>Chestnut Tree Café</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-ministry-of-truth-ef6e5f31d68c'>Ministry of Truth</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-ministry-of-love-2036b8f1ea56'>Ministry of Love</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-victory-mansions-398f0df569f9'>Victory Mansions</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-ministry-of-plenty-3a7a712bc41c'>Ministry of Plenty</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-ministry-of-peace-d2f4e3b138d7'>Ministry of Peace</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-room-101-ca8f1852ffa9'>Room 101</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-london-420923d4a60a'>London</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-airstrip-one-912e1b11d71d'>Airstrip One</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-oceania-215c56fb5182'>Oceania</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-eurasia-458cc736a4be'>Eurasia</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-eastasia-a2356e498a45'>Eastasia</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-the-golden-country-16c8d8c98cd8'>The Golden Country</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-victory-square-b9d348acaf31'>Victory Square</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-mr-charrington-s-sho-80f01040c06e'>Mr Charrington's shop</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-the-room-above-mr-ch-d996dc963c72'>The room above Mr Charrington's shop</a>
+    <a class='toc-item entity-toc-link' data-id='location-recall-location-the-church-belfry-f3200ead5baa'>The church belfry</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Organizations (10)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-records-departme-73f08ca85c0e'>Records Department</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-times-50540997508d'>Times</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-spies-a16a82283445'>Spies</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-youth-league-519605e1140b'>Youth League</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-junior-anti-sex-d68352dfece3'>Junior Anti-Sex League</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-fiction-departme-934b003c4bde'>Fiction Department</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-community-centre-822f7b350e84'>Community Centre</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-lottery-dbc8b0a94f92'>Lottery</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-music-department-0239850c78f0'>Music Department</a>
+    <a class='toc-item entity-toc-link' data-id='organization-recall-organization-pornosec-5da49df5f175'>Pornosec</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Objects (15)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-19b2503b779e'>Photograph of Jones, Aaronson and Rutherford</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-bdb0674f7790'>Chocolate Ration</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-09359ad9ee30'>Glass Paperweight</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-03b8460a8170'>Diary</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-1fc4ef50a491'>The Theory and Practice of Oligarchical Collectivism</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-54f77004acff'>two-way television</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-050301a147b1'>Speakwrite</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-302702295f72'>memory hole chute</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-ad581e034f70'>Victory Gin</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-8b8ff17a25ba'>Victory Cigarettes</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-c3eb4300acdb'>Rat Cage</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-f2f727990a57'>floating sea fortress</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-0e62433dbcf6'>Newspeak Dictionary</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-e7d123b60501'>Red Sash</a>
+    <a class='toc-item entity-toc-link' data-id='object-recall-object-c6816b7887b9'>Big Brother Poster</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Events (16)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-7bf6354302f1'>Arrest of Winston and Julia</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-winston-smith-begins-wr-d27434d35a20'>Winston Smith begins writing a diary</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-6ae313e3df9f'>Two Minutes Hate Rally</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-d7a8b2bc6039'>Eye Contact Between Winston and O'Brien</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-fac8249e5894'>Winston buys a diary</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-c81928d3451f'>Encounter with a prostitute</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-5b78f02317e9'>Discovery of the photograph evidence</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-e28132a9a7de'>Julia passes Winston a love note</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-147e95a26508'>Meeting in the canteen</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-9a40472f05b1'>First love-making in the woods</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-392f470009de'>Renting the room above Mr Charrington's shop</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-7a0e7a15e62e'>Reading Goldstein's book</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-64d040314298'>Finger torture</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-101-ef1503d20653'>Betrayal in Room 101</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-59b1cd39c432'>Final meeting with Julia</a>
+    <a class='toc-item entity-toc-link' data-id='event-recall-event-c49ee49b5a01'>Winston loves Big Brother</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Actions (4)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='action-recall-action-the-arrest-5843f1f12e2f'>The arrest</a>
+    <a class='toc-item entity-toc-link' data-id='action-recall-action-first-love-making-in-t-80c85a56dcbb'>First love-making in the wood</a>
+    <a class='toc-item entity-toc-link' data-id='action-recall-action-meeting-with-o-brien-561c93b8f7ee'>Meeting with O'Brien</a>
+    <a class='toc-item entity-toc-link' data-id='action-recall-action-final-conversion-de154bfcfe5a'>Final conversion</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Concepts (17)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-the-book-722f8de768cb'>The book</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-inner-party-ca526a51b799'>Inner Party</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-reality-control-728d5aa740a3'>Reality control</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-outer-party-06cffe1e3f30'>Outer Party</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-floating-fortress-656d0fd8836a'>Floating Fortress</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-unperson-e1d96434d280'>Unperson</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-vaporized-c01766255365'>Vaporized</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-duckspeak-f755d00be5fe'>Duckspeak</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-bellyfeel-ff22830307d5'>Bellyfeel</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-prolefeed-79e6ed1ab861'>Prolefeed</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-joycamp-eb0549da9ec6'>Joycamp</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-oldthink-1eb3844b3e56'>Oldthink</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-sanity-is-statistical-97514c1e2da3'>Sanity is statistical</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-the-place-where-there-bd0ac89a163a'>The place where there is no darkness</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-oligarchical-collecti-44323d3a01a2'>Oligarchical Collectivism</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-death-worship-814332379295'>Death-Worship</a>
+    <a class='toc-item entity-toc-link' data-id='concept-recall-concept-neo-bolshevism-3b2c8883803c'>Neo-Bolshevism</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Rules (28)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-doublethink-bc170022e80a'>Doublethink</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-creates-human-19c00cbb0372'>The Party creates human nature</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c'>The Party seeks power entirely for its own sake</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-freedom-is-slavery-81a94401abac'>Freedom is Slavery</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-who-controls-the-past-co-859dd13f2001'>Who controls the past controls the future: who controls the present controls the past</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-past-is-alterable-968e8fbd7210'>The past is alterable</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-ignorance-is-strength-9abdf0dff229'>Ignorance is Strength</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-thoughtcrime-da4c4792e6d9'>Thoughtcrime</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-crimestop-3a561a93b900'>Crimestop</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-blackwhite-3862fc7ba9d1'>Blackwhite</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-facecrime-be4317332bd9'>Facecrime</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-ownlife-11feeb074065'>Ownlife</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-goodthink-36da570716ad'>Goodthink</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-sexcrime-b4879d48e593'>Sexcrime</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-war-is-peace-b1bf67ef5931'>War is Peace</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-goodsex-3abc7fdf3884'>Goodsex</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-proles-and-animals-are-f-e54a25895e6d'>Proles and animals are free</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-is-infallible-d93b516ccb7b'>The Party is infallible</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-controls-all-r-d277086906d7'>The Party controls all records and memories</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc'>The object of power is power</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-is-immortal-9a52a5d72bdc'>The Party is immortal</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-individual-is-only-a-a93b61f512d5'>The individual is only a cell</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-does-not-permi-c9db362afdc2'>The Party does not permit divorce</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-all-marriages-between-pa-d6b8a87be328'>All marriages between Party members had to be approved by a committee</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-only-recognised-purp-96d216234eb5'>The only recognised purpose of marriage was to beget children for the service of the Party</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-was-trying-to-7d237877197f'>The Party was trying to kill the sex instinct</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4'>The Party taught that the proles were natural inferiors</a>
+    <a class='toc-item entity-toc-link' data-id='rule-recall-rule-the-party-claimed-to-hav-130880c93f6e'>The Party claimed to have liberated the proles from bondage</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Time (3)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='time-recall-time-1984-db6e36e8c14e'>1984</a>
+    <a class='toc-item entity-toc-link' data-id='time-recall-time-ninth-three-year-plan-80ffb37b9938'>Ninth Three-Year Plan</a>
+    <a class='toc-item entity-toc-link' data-id='time-recall-time-2050-3863f2627d00'>2050</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>States (3)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='state-recall-state-49e18261d1ad'>Superstate of Oceania</a>
+    <a class='toc-item entity-toc-link' data-id='state-recall-state-7a89c814c991'>Superstate of Eurasia</a>
+    <a class='toc-item entity-toc-link' data-id='state-recall-state-ad61843aaf99'>Superstate of Eastasia</a>
+  </div>
+</details>
+<details class='toc-cat-details' open>
+  <summary class='toc-cat-summary'>Expressions (17)</summary>
+  <div class='toc-cat-list'>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-ingsoc-bc301edf36cc'>Ingsoc</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-newspeak-2a062a72146b'>Newspeak</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-the-telescreen-8f1d3f00e7bf'>the telescreen</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-the-two-minutes-ha-e04f1b223bd4'>the Two Minutes Hate</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-do-it-to-julia-c234ebbf6693'>Do it to Julia!</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-big-brother-is-wat-9f63b2a5916e'>Big Brother is watching you</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-2-2-5-baf1cae1cb6e'>2+2=5</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-the-memory-hole-8b1cd4e23e4a'>the memory hole</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-under-the-spreadin-f6998db97286'>Under the spreading chestnut tree</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-oranges-and-lemons-43ac705ba9ef'>Oranges and lemons</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-who-controls-the-p-e47d9985e9ad'>Who controls the past controls the future</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-freedom-is-the-fre-e38557a8e351'>Freedom is the freedom to say that two plus two make four</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-we-are-the-dead-52620919e40a'>We are the dead</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-if-there-is-hope-i-0186c6832dd0'>If there is hope, it lies in the proles</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-sanity-is-not-stat-522a2b35c8bf'>Sanity is not statistical</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-imagine-a-boot-sta-76fb8e61c598'>Imagine a boot stamping on a human face - for ever</a>
+    <a class='toc-item entity-toc-link' data-id='expression-recall-expression-he-loved-big-broth-c26cf8274fbb'>He loved Big Brother</a>
+  </div>
+</details>
+
+            </div>
+          </details>
+
+          <!-- Entry 3: Storylines (89) (Single Hub Switch to LibLib Cinematic Theater) -->
+          <a href="#" class="nav-hub-item" id="btn-storylines-hub" data-view="view-storyline">
+            <i data-lucide="git-branch" class="nav-icon"></i>
+            <span>Storylines (89)</span>
+          </a>
+
+          <!-- Entry 4: StoryFlow (3) (Single Hub Switch to TapTV Card Grid) -->
+          <a href="#" class="nav-hub-item" id="btn-storyflow-hub" data-view="view-storyflow">
+            <i data-lucide="compass" class="nav-icon"></i>
+            <span>StoryFlow (3)</span>
+          </a>
+
+        </nav>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT: Claude-Grade Pure Typographic Reading Area -->
+    <main class="wiki-main-article">
+      
+      <!-- 1. MASTER BOOK VIEW -->
+      <article id="view-book" class="wiki-article-view active">
+        
+        <header class="article-masthead" id="sec-root">
+          <h1 class="article-h1" id="article-h1">Nineteen Eighty-Four</h1>
+        </header>
+
+        <!-- Floating Infobox -->
+        <aside class="wiki-infobox">
+          <div class="infobox-media">
+            <img src="./assets/images/book-doc-books-001-1984-4b9fbb7c4955-cover.jpg" alt="Nineteen Eighty-Four original cover" fetchpriority="high" decoding="async" />
+          </div>
+          <div class="infobox-meta">
+            <div class="infobox-meta-row"><span>Author</span><strong>George Orwell</strong></div>
+            <div class="infobox-meta-row"><span>Country</span><strong>United Kingdom</strong></div>
+            <div class="infobox-meta-row"><span>Language</span><strong>English</strong></div>
+            <div class="infobox-meta-row"><span>Genre</span><strong>Dystopian, Satire</strong></div>
+            <div class="infobox-meta-row"><span>Published</span><strong>8 June 1949</strong></div>
+          </div>
+          <a href="https://app.readifyai.com" class="infobox-cta-link" target="_blank" rel="noopener"><span>Read original at Readify</span><i data-lucide="arrow-up-right" class="cta-hover-icon"></i></a>
+        </aside>
+
+        <!-- Chapter Sections -->
+        <section id="sec-overview" class="reading-section">
+          <h2>Overview</h2>
+          <div class="prose" id="text-overview"></div>
+        </section>
+
+        <section id="sec-plot" class="reading-section">
+          <h2>Plot</h2>
+          <div class="prose" id="text-plot"></div>
+        </section>
+
+        <section id="sec-themes" class="reading-section">
+          <h2>Themes</h2>
+          <div class="prose" id="text-themes"></div>
+        </section>
+
+        <section id="sec-background" class="reading-section">
+          <h2>Background and Legacy</h2>
+          <div class="prose" id="text-background"></div>
+        </section>
+
+        <section id="sec-author" class="reading-section">
+          <h2>About the Author</h2>
+          <div class="author-block">
+            <div class="author-lead-name">George Orwell (Eric Arthur Blair, 1903 – 1950)</div>
+            <div class="prose" id="text-author"></div>
+          </div>
+        </section>
+
+      </article>
+
+      <!-- 2. DYNAMIC ENTITY DOSSIER ARTICLE -->
+      <article id="view-entity" class="wiki-article-view" style="display:none;">
+        <header class="article-masthead">
+          <h1 class="article-h1" id="view-entity-title">Winston Smith</h1>
+        </header>
+
+        <!-- Floating Entity Media -->
+        <aside class="entity-floating-media" id="view-entity-media">
+          <div class="entity-media-wrap">
+            <img id="view-entity-img" src="./assets/images/character-recall-character-winston-smith-1910e4339629.jpg" alt="Entity visual still" decoding="async" loading="lazy" />
+          </div>
+          <a href="https://app.readifyai.com" class="infobox-cta-link entity-cta-link" target="_blank" rel="noopener"><span>Read original at Readify</span><i data-lucide="arrow-up-right" class="cta-hover-icon"></i></a>
+        </aside>
+
+        <div class="prose markdown-prose" id="view-entity-markdown"></div>
+      </article>
+
+      <!-- 3. STORYLINES (Fused Cinematic Media & Narrative Viewport) -->
+      <article id="view-storyline" class="wiki-article-view" style="display:none;">
+        <div class="liblib-theater-stage">
+          
+          <!-- Fused Cinema Viewport (Image + Internal Scrollable Narrative Overlay) -->
+          <div class="liblib-fused-viewport">
+            <img id="storyline-hero-img" src="./assets/images/event-timeline-doc-books-001-1984-1-2025169e6643-timeline.jpg" alt="Arrival at Victory Mansions" decoding="async" loading="lazy" />
+            
+            <div class="liblib-fused-overlay">
+              <div class="liblib-narrative-scrollbox" id="liblib-narrative-scrollbox">
+                <div class="liblib-fused-meta">
+                  <span class="liblib-date" id="storyline-hero-date">Early morning, April 4, 1984</span>
+                </div>
+                <h2 class="liblib-hero-title" id="storyline-hero-title">Arrival at Victory Mansions</h2>
+                <div class="liblib-hero-desc" id="storyline-hero-desc">
+                  <p>It was a bright cold day in April, and the clocks were striking thirteen. Winston Smith, his chin nuzzled into his breast in an effort to escape the vile wind, slipped quickly through the glass doors of Victory Mansions, though not quickly enough to prevent a swirl of gritty dust from entering along with him.</p>
+                  <p>The hallway smelt of boiled cabbage and old rag mats. At one end of it a coloured poster, too large for indoor display, had been tacked to the wall. It depicted simply an enormous face, more than a metre wide: the face of a man of about forty-five, with a heavy black moustache and ruggedly handsome features. Winston made for the stairs. It was no use trying the lift. Even at the best of times it was seldom working, and at present the electric current was cut off during daylight hours. It was part of the economy drive in preparation for Hate Week. The flat was seven flights up, and Winston, who was thirty-nine and had a varicose ulcer above his right ankle, went slowly, resting several times on the way. On each landing, opposite the lift-shaft, the poster with the enormous face gazed from the wall. It was one of those pictures which are so contrived that the eyes follow you about when you move. BIG BROTHER IS WATCHING YOU, the caption beneath it ran.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Horizontal Filmstrip Track (All 89 Scenes) -->
+          <div class="liblib-filmstrip-wrap">
+            <button class="filmstrip-arrow-btn prev" id="btn-filmstrip-prev">‹</button>
+            <div class="liblib-filmstrip-track" id="liblib-filmstrip-track">
+    <div class="filmstrip-thumb active" data-idx="0" title="Arrival at Victory Mansions">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-1-2025169e6643-timeline.jpg" alt="Arrival at Victory Mansions" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="1" title="Winston drinks Victory Gin">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-2-9bf848cb2386-timeline.jpg" alt="Winston drinks Victory Gin" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="2" title="Winston opens the diary">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-3-ad73e8f16307-timeline.jpg" alt="Winston opens the diary" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="3" title="Winston recalls buying the diary">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-4-7a9ff683a126-timeline.jpg" alt="Winston recalls buying the diary" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="4" title="Winston writes about the war film">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-5-7a1f66e8d525-timeline.jpg" alt="Winston writes about the war film" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="5" title="The Two Minutes Hate begins">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-6-a2e8f9e16a46-timeline.jpg" alt="The Two Minutes Hate begins" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="6" title="Eye contact between Winston and O'Brien">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-7-aacc9be0d19d-timeline.jpg" alt="Eye contact between Winston and O'Brien" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="7" title="Winston writes Down with Big Brother">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-8-68fe9e4c4641-timeline.jpg" alt="Winston writes Down with Big Brother" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="8" title="Mrs Parsons asks Winston to fix the sink">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-9-b9fc223e7685-timeline.jpg" alt="Mrs Parsons asks Winston to fix the sink" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="9" title="Parsons' children menace Winston">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-10-bf24c746a25b-timeline.jpg" alt="Parsons' children menace Winston" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="10" title="Winston recalls O'Brien's dream message">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-11-2cb68f2f91e7-timeline.jpg" alt="Winston recalls O'Brien's dream message" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="11" title="Chocolate ration reduced">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-12-16cb15c06713-timeline.jpg" alt="Chocolate ration reduced" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="12" title="Winston writes a greeting to the future">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-13-b0e14a7641be-timeline.jpg" alt="Winston writes a greeting to the future" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="13" title="Dream of mother and the Golden Country">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-14-5b767ef27112-timeline.jpg" alt="Dream of mother and the Golden Country" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="14" title="Physical Jerks">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-15-24449976db80-timeline.jpg" alt="Physical Jerks" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="15" title="Childhood memory of the Tube station">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-16-339653606b10-timeline.jpg" alt="Childhood memory of the Tube station" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="16" title="Winston starts work at the Ministry of Truth">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-17-ab8fc503867c-timeline.jpg" alt="Winston starts work at the Ministry of Truth" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="17" title="Winston rectifies the chocolate pledge">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-18-f7bf81ffd300-timeline.jpg" alt="Winston rectifies the chocolate pledge" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="18" title="Winston fabricates Comrade Ogilvy">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-19-f57d87d0ca63-timeline.jpg" alt="Winston fabricates Comrade Ogilvy" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="19" title="Lunch with Syme">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-20-0b140febda97-timeline.jpg" alt="Lunch with Syme" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="20" title="Syme explains Newspeak">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-21-c1ce5e84000d-timeline.jpg" alt="Syme explains Newspeak" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="21" title="Parsons collects Hate Week subscription">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-22-3fccd2e03178-timeline.jpg" alt="Parsons collects Hate Week subscription" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="22" title="Ministry of Plenty announces rising living standards">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-23-cf24d27b1f76-timeline.jpg" alt="Ministry of Plenty announces rising living standards" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="23" title="Julia watches Winston in the canteen">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-24-0edeb89cdd5a-timeline.jpg" alt="Julia watches Winston in the canteen" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="24" title="Winston writes about the prostitute">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-25-9dd7fd7e4ffa-timeline.jpg" alt="Winston writes about the prostitute" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="25" title="Winston remembers Katharine">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-26-15ab2b0c3307-timeline.jpg" alt="Winston remembers Katharine" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="26" title="Winston writes that hope lies in the proles">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-27-50fdde07e25d-timeline.jpg" alt="Winston writes that hope lies in the proles" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="27" title="Winston recalls the saucepan riot">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-28-3c8ef8c09f3a-timeline.jpg" alt="Winston recalls the saucepan riot" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="28" title="Winston copies the history textbook">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-29-9d879f254e1a-timeline.jpg" alt="Winston copies the history textbook" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="29" title="Winston recalls the photograph of Jones, Aaronson and Rutherford">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-30-7d320beead37-timeline.jpg" alt="Winston recalls the photograph of Jones, Aaronson and Rutherford" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="30" title="Winston writes about freedom and two plus two">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-31-93f252dd5bd9-timeline.jpg" alt="Winston writes about freedom and two plus two" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="31" title="Winston wanders through the prole streets">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-32-244179266b9d-timeline.jpg" alt="Winston wanders through the prole streets" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="32" title="Rocket bomb and severed hand">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-33-734f47a8edcb-timeline.jpg" alt="Rocket bomb and severed hand" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="33" title="Winston questions the old man in the pub">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-34-939b832ff05e-timeline.jpg" alt="Winston questions the old man in the pub" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="34" title="Winston buys the glass paperweight">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-35-024eb41ec29d-timeline.jpg" alt="Winston buys the glass paperweight" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="35" title="Mr Charrington shows Winston the room">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-36-97963d23b2fd-timeline.jpg" alt="Mr Charrington shows Winston the room" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="36" title="Winston sees Julia outside the junk shop">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-37-08092e837a83-timeline.jpg" alt="Winston sees Julia outside the junk shop" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="37" title="Julia slips Winston the love note">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-38-edc5505ac43a-timeline.jpg" alt="Julia slips Winston the love note" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="38" title="Winston reads I love you">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-39-8c472b6ba9a8-timeline.jpg" alt="Winston reads I love you" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="39" title="Winston arranges a meeting with Julia">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-40-6b6178da5a2f-timeline.jpg" alt="Winston arranges a meeting with Julia" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="40" title="Winston and Julia meet in Victory Square">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-41-2beaf5c35df5-timeline.jpg" alt="Winston and Julia meet in Victory Square" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="41" title="Winston and Julia meet in the wood">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-42-dc4577934d7c-timeline.jpg" alt="Winston and Julia meet in the wood" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="42" title="First lovemaking in the clearing">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-43-5f6dd1aee8ef-timeline.jpg" alt="First lovemaking in the clearing" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="43" title="Julia tells her name and nature">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-44-f3aa64c3b852-timeline.jpg" alt="Julia tells her name and nature" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="44" title="Planning future meetings">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-45-f670ce510761-timeline.jpg" alt="Planning future meetings" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="45" title="Meeting in the church belfry">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-46-3b85c7e0f611-timeline.jpg" alt="Meeting in the church belfry" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="46" title="Julia explains the Party's sexual puritanism">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-47-d99ffe37ec68-timeline.jpg" alt="Julia explains the Party's sexual puritanism" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="47" title="Winston tells Julia about Katharine">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-48-5d982773016d-timeline.jpg" alt="Winston tells Julia about Katharine" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="48" title="Winston and Julia say We are the dead">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-49-3478268aeed8-timeline.jpg" alt="Winston and Julia say We are the dead" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="49" title="Winston rents the room above the shop">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-50-0c186deaea29-timeline.jpg" alt="Winston rents the room above the shop" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="50" title="Julia brings black-market supplies">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-51-292cc719a606-timeline.jpg" alt="Julia brings black-market supplies" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="51" title="Lovemaking in the rented room">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-52-9f329437da7b-timeline.jpg" alt="Lovemaking in the rented room" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="52" title="Rat frightens Winston">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-53-d55d10bdae8b-timeline.jpg" alt="Rat frightens Winston" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="53" title="Syme disappears">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-54-b4d5028070b0-timeline.jpg" alt="Syme disappears" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="54" title="Hate Week preparations intensify">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-55-60d1473c99c1-timeline.jpg" alt="Hate Week preparations intensify" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="55" title="Julia and Winston discuss the Brotherhood and O'Brien">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-56-df615b43a531-timeline.jpg" alt="Julia and Winston discuss the Brotherhood and O'Brien" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="56" title="O'Brien gives Winston his address">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-57-3bd982b1c77c-timeline.jpg" alt="O'Brien gives Winston his address" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="57" title="Winston tells Julia about his mother">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-58-41f23cc21e20-timeline.jpg" alt="Winston tells Julia about his mother" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="58" title="Julia and Winston discuss staying human">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-59-1a15419e63e2-timeline.jpg" alt="Julia and Winston discuss staying human" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="59" title="Winston and Julia visit O'Brien's flat">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-60-15131a03f6ff-timeline.jpg" alt="Winston and Julia visit O'Brien's flat" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="60" title="O'Brien recruits them into the Brotherhood">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-61-36bf9a114273-timeline.jpg" alt="O'Brien recruits them into the Brotherhood" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="61" title="Oceania switches enemy from Eurasia to Eastasia">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-62-234b079f2844-timeline.jpg" alt="Oceania switches enemy from Eurasia to Eastasia" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="62" title="Winston receives Goldstein's book">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-63-e2b0dd6f87fc-timeline.jpg" alt="Winston receives Goldstein's book" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="63" title="Winston reads Goldstein's book">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-64-8f1ede870bfd-timeline.jpg" alt="Winston reads Goldstein's book" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="64" title="Julia falls asleep while Goldstein's book is read">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-65-f428b2230610-timeline.jpg" alt="Julia falls asleep while Goldstein's book is read" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="65" title="Winston and Julia watch the prole woman">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-66-5d3940470c22-timeline.jpg" alt="Winston and Julia watch the prole woman" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="66" title="Winston and Julia are arrested">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-67-671a95e11374-timeline.jpg" alt="Winston and Julia are arrested" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="67" title="Mr Charrington reveals himself as Thought Police">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-68-751de2c0041f-timeline.jpg" alt="Mr Charrington reveals himself as Thought Police" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="68" title="Winston is imprisoned in the Ministry of Love">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-69-180a267f1c1f-timeline.jpg" alt="Winston is imprisoned in the Ministry of Love" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="69" title="Ampleforth and Parsons appear in the cell">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-70-a7ef7b5f52e4-timeline.jpg" alt="Ampleforth and Parsons appear in the cell" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="70" title="A starving prisoner is taken to Room 101">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-71-0dd58dbec04d-timeline.jpg" alt="A starving prisoner is taken to Room 101" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="71" title="O'Brien has Winston beaten on the elbow">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-72-9909aeec8b7d-timeline.jpg" alt="O'Brien has Winston beaten on the elbow" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="72" title="O'Brien interrogates Winston about the war and the photograph">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-73-4e265e136741-timeline.jpg" alt="O'Brien interrogates Winston about the war and the photograph" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="73" title="O'Brien forces Winston to see five fingers">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-74-9118c775e341-timeline.jpg" alt="O'Brien forces Winston to see five fingers" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="74" title="O'Brien explains the Party's purpose">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-75-b59376815fae-timeline.jpg" alt="O'Brien explains the Party's purpose" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="75" title="O'Brien explains power for its own sake">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-76-eab302ebb883-timeline.jpg" alt="O'Brien explains power for its own sake" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="76" title="O'Brien plays Winston's recorded promises">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-77-17d9311c79b4-timeline.jpg" alt="O'Brien plays Winston's recorded promises" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="77" title="Winston sees his ruined body in the mirror">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-78-65cd5f167138-timeline.jpg" alt="Winston sees his ruined body in the mirror" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="78" title="Winston says he has not betrayed Julia">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-79-cc9e5af0b8e5-timeline.jpg" alt="Winston says he has not betrayed Julia" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="79" title="Winston recovers and is re-educated">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-80-a4fcb4c10c52-timeline.jpg" alt="Winston recovers and is re-educated" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="80" title="Winston cries out Julia's name">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-81-3d20d8dd754a-timeline.jpg" alt="Winston cries out Julia's name" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="81" title="O'Brien tells Winston to love Big Brother">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-82-ef5e341f2d89-timeline.jpg" alt="O'Brien tells Winston to love Big Brother" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="82" title="Winston is taken to Room 101">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-83-c60d36bf54a6-timeline.jpg" alt="Winston is taken to Room 101" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="83" title="Winston betrays Julia to save himself from rats">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-84-5b6a59a43923-timeline.jpg" alt="Winston betrays Julia to save himself from rats" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="84" title="Winston lives in the Chestnut Tree Café">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-85-2867e1aab8cb-timeline.jpg" alt="Winston lives in the Chestnut Tree Café" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="85" title="Winston and Julia meet again after betrayal">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-86-fe0f3f622581-timeline.jpg" alt="Winston and Julia meet again after betrayal" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="86" title="Victory bulletin from Africa">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-87-3930ca7f3449-timeline.jpg" alt="Victory bulletin from Africa" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="87" title="Winston loves Big Brother">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-88-95e255fc98dd-timeline.jpg" alt="Winston loves Big Brother" loading="lazy" />
+    </div>    <div class="filmstrip-thumb " data-idx="88" title="Appendix on Newspeak">
+      <img src="./assets/images/event-timeline-doc-books-001-1984-89-d5a051aa69fa-timeline.jpg" alt="Appendix on Newspeak" loading="lazy" />
+    </div>
+            </div>
+            <button class="filmstrip-arrow-btn next" id="btn-filmstrip-next">›</button>
+          </div>
+
+        </div>
+      </article>
+
+      <!-- 4. STORYFLOW (Thematic Pathways Portal) -->
+      <article id="view-storyflow" class="wiki-article-view" style="display:none;">
+        <div class="storyflow-editorial-catalog">
+          <div class="storyflow-editorial-row">
+            <div class="storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-1-87b0ec8f36ec.jpg" alt="Winston Smith's Rebellion and Fall" loading="lazy" />
+            </div>
+            <div class="storyflow-row-content">
+              <h2 class="storyflow-row-title">Winston Smith's Rebellion and Fall</h2>
+              <p class="storyflow-row-desc">Traces Winston's journey from the first illegal diary entry to his total submission in the Ministry of Love.</p>
+              <a href="#" class="infobox-cta-link"><span>Explore StoryFlow</span><i data-lucide="arrow-right" class="cta-hover-icon"></i></a>
+            </div>
+          </div>
+
+          <div class="storyflow-editorial-row">
+            <div class="storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-2-1f158cedb3a4.jpg" alt="The Brotherhood Trap" loading="lazy" />
+            </div>
+            <div class="storyflow-row-content">
+              <h2 class="storyflow-row-title">The Brotherhood Trap</h2>
+              <p class="storyflow-row-desc">Follows the thread in which O'Brien masquerades as a leader of the underground and lures Winston into a false dream of resistance.</p>
+              <a href="#" class="infobox-cta-link"><span>Explore StoryFlow</span><i data-lucide="arrow-right" class="cta-hover-icon"></i></a>
+            </div>
+          </div>
+
+          <div class="storyflow-editorial-row">
+            <div class="storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-3-c77bef829093.jpg" alt="The Ministry of Truth's Falsification Machine" loading="lazy" />
+            </div>
+            <div class="storyflow-row-content">
+              <h2 class="storyflow-row-title">The Ministry of Truth's Falsification Machine</h2>
+              <p class="storyflow-row-desc">Shows how the Records Department continuously rewrites the past and manufactures lies, and how Winston becomes both a worker and a victim of that system.</p>
+              <a href="#" class="infobox-cta-link"><span>Explore StoryFlow</span><i data-lucide="arrow-right" class="cta-hover-icon"></i></a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </main>
+
+  </div>
+
+  <button id="btn-back-to-top" class="btn-top" aria-label="Back to top">
+    <i data-lucide="arrow-up" style="width:18px;height:18px;"></i>
+  </button>
+
+  <!-- Mobile Quick Floating Graph Launcher Button -->
+  <button id="btn-mobile-graph-launcher" class="btn-mobile-graph-launcher" aria-label="Open Knowledge Graph">
+    <i data-lucide="network" style="width:20px;height:20px;"></i>
+  </button>
+
+  <!-- Boundless Typographic Node Title (100% Frameless, Pure Name Display) -->
+  <div class="boundless-node-inspector" id="boundless-node-inspector">
+    <h3 class="boundless-title" id="boundless-title">Winston Smith</h3>
+  </div>
+
+  <!-- Precompiled Store & Controller -->
+  <script src="./data/wiki_store.js?v=25" defer></script>
+  <script src="./app.js?v=25" defer></script>
+</body>
+</html>

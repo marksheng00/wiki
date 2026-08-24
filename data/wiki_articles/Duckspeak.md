@@ -1,0 +1,30 @@
+﻿# Duckspeak
+
+> **分类/标签**:   
+> **源文件**: Duckspeak.html
+
+---
+
+# Duckspeak
+
+Duckspeak is one of the most revealing words in the Newspeak vocabulary of Oceania. It means, literally, 'to quack like a duck,' and it designates speech so mechanically loyal to the Party that it flows from the throat without any intervening thought. The word is introduced early in the novel by the philologist Syme, who presents it to Winston Smith as a term with two contradictory meanings, and it is given a fuller definition in the appendix on Newspeak, where it is described as an ambivalent word of the B vocabulary and as a frank admission of the Party's ultimate linguistic ambition.
+
+## Definition and Double Meaning
+
+Syme's introduction of the word comes directly after a characteristic piece of Party speech. In the crowded canteen below the Ministry of Truth, the two men have been listening to a man at the next table hold forth in a rapid, unbroken gabble of pure orthodoxy, and Winston has the curious feeling that the man is not a real human being but a dummy, that it is not his brain speaking but his larynx. 'There is a word in Newspeak,' Syme tells him, 'I don't know whether you know it: duckspeak, to quack like a duck. It is one of those interesting words that have two contradictory meanings. Applied to an opponent, it is abuse; applied to someone you agree with, it is praise.' The word is thus both insult and compliment, depending entirely on who is quacking. The identical noise that damns an enemy as an unthinking babbler becomes, in a loyal comrade, a sign of healthy orthodoxy.
+
+## The Official Language and the B Vocabulary
+
+The appendix 'The Principles of Newspeak' places duckspeak in its full context. Newspeak is the official language of Oceania, devised to meet the ideological needs of Ingsoc, or English Socialism; in 1984 nobody yet uses it as a sole means of communication, and the leading articles of the Times can be written in it only as a tour de force, but it is expected to have finally superseded Oldspeak by about the year 2050. The language's purpose is not to extend but to diminish the range of thought, and ultimately to make heretical thought literally unthinkable, because no words would exist in which to express it. The word 'free', for instance, survives only in such uses as 'This dog is free from lice' or 'This field is free from weeds', never in the old sense of 'politically free' or 'intellectually free', since those freedoms no longer exist even as concepts. Duckspeak belongs to the B vocabulary, the deliberately political words, and the aim behind it is frankly admitted: articulate speech issuing from the larynx without involving the higher brain centres at all. The appendix adds that the word is ambivalent, so that provided the opinions quacked out are orthodox, it implies nothing but praise; when the Times refers to one of the Party's orators as a 'doubleplusgood duckspeaker', it is paying a warm and valued compliment. Syme, at work on the Eleventh Edition of the Newspeak Dictionary, has already made the same point in the canteen: every year the vocabulary grows smaller and the range of consciousness a little smaller, until thoughtcrime will be impossible. 'Newspeak is Ingsoc and Ingsoc is Newspeak,' as he tells Winston.
+
+## Duckspeak and the Machinery of Consent
+
+Duckspeak names the verbal style of an entire society, not just of official orators. The Ministry of Plenty announces that the standard of living has risen by no less than 20 per cent over the past year and that irrepressible spontaneous demonstrations have broken out in gratitude to Big Brother; the chocolate ration is reduced from thirty grammes to twenty, and twenty-four hours later the telescreen reports demonstrations thanking Big Brother for raising it to twenty. Winston watches the process with a mixture of horror and isolation: Parsons swallows it with the stupidity of an animal, the fanatical 'eyeless creature' at the next table swallows it with a furious desire to denounce anyone who remembers the old figure, and Syme too swallows it, 'in some more complex way, involving doublethink'. Duckspeak is the language of this collective swallowing. It is also the language of the Two Minutes Hate, in which the face of Emmanuel Goldstein, the Enemy of the People, appears daily as the primal traitor, the earliest defiler of the Party's purity; the hisses, the shouted abuse and the ritual frenzy are all noise produced on cue, aimed at a target the Party has already supplied. Around Goldstein circulate the rumours of the Brotherhood and of a forbidden book of which he is the author, yet neither is a subject any ordinary Party member will mention.
+
+## The Cost of the Perfect Language
+
+The ambitions embodied in duckspeak carry a price the whole society pays. Newspeak's success would mean the death of the empirical habit of thought, which, as Goldstein's book explains, could not survive in a strictly regimented society. The world of 1984 is more primitive than it was fifty years earlier: experiment and invention have largely stopped, the ravages of the atomic war of the nineteen-fifties have never been fully repaired, and the fields are cultivated with horse-ploughs while books are written by machinery. The machine that could have eliminated hunger, overwork, dirt, illiteracy and disease within a few generations has instead been harnessed to a system that depends on keeping the masses poor and ignorant. Science is tolerated only where it serves war and police espionage, because the Party's two aims are to conquer the whole surface of the earth and to extinguish once and for all the possibility of independent thought. In that second aim duckspeak is the indispensable verbal instrument, a form of speech from which thought has been so completely removed that the same word can be used to praise and to condemn. The horror of the word is that it makes the abolition of thinking sound like a technical achievement rather than a crime.
+
+## Related StoryFlow
+
+### Syme and the Death of Words

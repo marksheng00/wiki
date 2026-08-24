@@ -1,0 +1,26 @@
+﻿[
+    {
+        "id":  "story-flow-doc-books-001-1984-1-87b0ec8f36ec",
+        "description":  "Traces Winston\u0027s journey from the first illegal diary entry to his total submission in the Ministry of Love.",
+        "local_image":  "./assets/images/story-flow-doc-books-001-1984-1-87b0ec8f36ec.jpg",
+        "link":  "/books/Nineteen%20Eighty-Four/storyflow/story-flow-doc-books-001-1984-1-87b0ec8f36ec",
+        "image":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/story-flow-doc-books-001-1984-1-87b0ec8f36ec.jpg",
+        "title":  "Winston Smith\u0027s Rebellion and Fall"
+    },
+    {
+        "id":  "story-flow-doc-books-001-1984-2-1f158cedb3a4",
+        "description":  "Follows the thread in which O\u0027Brien masquerades as a leader of the underground and lures Winston into a false dream of resistance.",
+        "local_image":  "./assets/images/story-flow-doc-books-001-1984-2-1f158cedb3a4.jpg",
+        "link":  "/books/Nineteen%20Eighty-Four/storyflow/story-flow-doc-books-001-1984-2-1f158cedb3a4",
+        "image":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/story-flow-doc-books-001-1984-2-1f158cedb3a4.jpg",
+        "title":  "The Brotherhood Trap"
+    },
+    {
+        "id":  "story-flow-doc-books-001-1984-3-c77bef829093",
+        "description":  "Shows how the Records Department continuously rewrites the past and manufactures lies, and how Winston becomes both a worker and a victim of that system.",
+        "local_image":  "./assets/images/story-flow-doc-books-001-1984-3-c77bef829093.jpg",
+        "link":  "/books/Nineteen%20Eighty-Four/storyflow/story-flow-doc-books-001-1984-3-c77bef829093",
+        "image":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/story-flow-doc-books-001-1984-3-c77bef829093.jpg",
+        "title":  "The Ministry of Truth\u0027s Falsification Machine"
+    }
+]

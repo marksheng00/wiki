@@ -1,0 +1,30 @@
+﻿# Discovery of the photograph evidence
+
+> **分类/标签**:   
+> **源文件**: Discovery of the photograph evidence.html
+
+---
+
+# Discovery of the photograph evidence
+
+In 1973, while working in the Records Department of the Ministry of Truth, Winston Smith came upon a torn half-page of the Times, almost ten years old, that had been slipped among his documents and forgotten. On it was a photograph of delegates at a Party function in New York, and in the middle of the group stood Jones, Aaronson and Rutherford, three men who had been publicly confessed to treachery and executed. For the first and only time in his life, Winston held in his hands unmistakable documentary proof that the Party had falsified history. Yet within minutes, paralysed by fear, he destroyed the photograph, feeding it to the memory hole. The moment, recalled years later in his diary, becomes both his most concrete encounter with the truth and his clearest demonstration of the Party's power over the past.
+
+## Background: The Purged Three and the Erased Past
+
+Jones, Aaronson and Rutherford had been among the last survivors of the original leaders of the Revolution. Arrested around 1965, they had vanished for more than a year, then been brought forth to confess to intelligence with the enemy, embezzlement, murder, intrigue against Big Brother and sabotage causing the deaths of hundreds of thousands. After their first confessions they were pardoned and reinstated, but a little later all three were re-arrested for fresh conspiracies, confessed again at a second trial, and were executed; their fate was recorded in the Party histories as a warning to posterity. The system that made their supposed crimes possible was one of continuous alteration: any issue of the Times that conflicted with Party needs would be reprinted, the original destroyed, and the corrected copy filed in its place. Books, periodicals, photographs and sound-tracks were all subject to the same process, so that all history became a palimpsest scraped clean and re-inscribed as often as necessary. In no case, once the deed was done, could a falsification be proved.
+
+## The Discovery in the Records Department
+
+About five years after the second trial, in 1973, Winston was unrolling a wad of documents that had flopped out of the pneumatic tube onto his desk when he found a fragment of paper that had evidently been slipped in among the others and forgotten. It was the top half of a page torn from the Times of about ten years earlier, with the date intact, and it carried a photograph of the delegates at some Party function in New York. Prominent in the middle of the group were Jones, Aaronson and Rutherford; there was no mistaking them, and their names appeared in the caption below. Winston knew immediately what the photograph proved: at both trials, all three men had confessed that on that very date they had been on Eurasian soil, flown from a secret airfield in Canada to a rendezvous in Siberia, where they had betrayed military secrets to the Eurasian General Staff. The date had stuck in his memory because it chanced to be midsummer day. The only possible conclusion was that the confessions were lies.
+
+## Reaction and Destruction
+
+This was not, Winston reflected, a discovery in itself; he had never imagined that the purge victims had actually committed the crimes attributed to them. But it was concrete evidence, a fragment of the abolished past, and it would have been enough to blow the Party to atoms if it could somehow have been published to the world. As it was, he covered the photograph with another sheet of paper at once; luckily it had been upside-down from the point of view of the telescreen. He pushed his chair as far away from the screen as possible, knowing that he could control his face and even his breathing, but not the beating of his heart, which the telescreen was delicate enough to pick up. He let what he judged to be ten minutes pass, tormented by the fear that some accident would betray him. Then, without uncovering it again, he dropped the photograph into the memory hole along with other waste papers. Within a minute it had crumbled into ashes.
+
+## Aftermath: The Photograph Resurfaces
+
+Years later, strapped down in the Ministry of Love, Winston had the photograph brought before him again. O'Brien produced an oblong slip of newspaper containing the same image of Jones, Aaronson and Rutherford in New York, and for perhaps five seconds Winston saw it, crying out that it existed. O'Brien then dropped it into a memory hole, telling him that it did not exist and had never existed. When Winston protested that it existed in memory, O'Brien replied, "I do not remember it." Winston's heart sank; that, he perceived, was doublethink. If O'Brien had truly forgotten the photograph, then he would also forget his denial of remembering it, and the past would be once more in the Party's keeping. The episode fulfilled the fear Winston had felt on the day of his discovery: that even the most solid evidence could be abolished, and with it the memory of its having existed.
+
+## Significance: A Fragment of the Abolished Past
+
+The episode encapsulates the Party slogan that he who controls the present controls the past. The past, as Winston had written in his diary, was not merely altered but destroyed: if all records told the same tale, the lie passed into history and became truth. Against this, the photograph had been a fragment of the abolished past, like a fossil bone which turns up in the wrong stratum and destroys a geological theory. Its destruction left no trace, and its later denial erased it even from the record of memory. In this light, the discovery and its sequel explain why Winston later clung to such objects as the glass paperweight, which he described to Julia as "a little chunk of history that they've forgotten to alter" – a message from a hundred years ago, if one knew how to read it. The photograph, unlike the paperweight, was not forgotten by the Party, and so it was annihilated twice: once in fact, and once in memory.

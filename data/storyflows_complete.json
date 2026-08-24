@@ -1,0 +1,131 @@
+﻿[
+    {
+        "id":  "story-flow-doc-books-001-1984-1-87b0ec8f36ec",
+        "title":  "Winston Smith\u0027s Rebellion and Fall",
+        "description":  "Traces Winston\u0027s journey from the first illegal diary entry to his total submission in the Ministry of Love.",
+        "cover":  "./assets/images/story-flow-doc-books-001-1984-1-87b0ec8f36ec.jpg",
+        "nodes":  [
+                      {
+                          "title":  "First Illegal Ink",
+                          "chapter":  "April 4, 1984, early in the story",
+                          "level":  80,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-1-87b0-803a12b41cee.jpg",
+                          "detail":  "$1d"
+                      },
+                      {
+                          "title":  "A Note from the Girl",
+                          "chapter":  "mid-April 1984",
+                          "level":  75,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-1-87b0-743512ccb10b.jpg",
+                          "detail":  "# A Note from the Girl\\\n\\\n## The Encounter\\\n\\\nWinston notices a dark-haired girl from the Fiction Department staring at him in the corridor. She stumbles, and in the instant of helping her up she slips a scrap of paper into his hand. He expects a threat, a summons, or a trap, but when he reads it in his cubicle the words are simply \u0027I love you.\u0027\\\n\\\n## The Turn\\\n\\\nThe note overturns Winston\u0027s world. The girl he had once imagined as a zealous Party spy, the one who wore the scarlet sash of the Junior Anti-Sex League, has revealed herself as a fellow rebel. His fear becomes hope, and his isolation cracks open.\\\n\\\n## The Risk\\\n\\\nEvery meeting now becomes a chess game against telescreens, patrols and informers. Winston understands that this love affair is not merely personal; it is an act of war against the Party\u0027s control over the human heart."
+                      },
+                      {
+                          "title":  "The Room Above the Shop",
+                          "chapter":  "June 1984",
+                          "level":  60,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-1-87b0-d178655cd2e1.jpg",
+                          "detail":  "# The Room Above the Shop\\\n\\\n## A Pocket of the Past\\\n\\\nWinston rents a room above Mr Charrington\u0027s junk shop, a dusty chamber with a mahogany bed, a gate-leg table and no telescreen. Here Julia and he meet in stolen afternoons, drinking real coffee, eating black-market bread, and making love in a space that seems to belong to another century.\\\n\\\n## The Sanctuary\\\n\\\nFor a few weeks the room is the center of their existence. Winston looks at the glass paperweight and imagines himself inside it, safe from the stream of history. The room is a place where the Party\u0027s lies cannot reach, and where two human beings can almost believe they are free.\\\n\\\n## The Folly\\\n\\\nWinston knows that this paradise is built on a grave. The room is also a trap, and every visit brings them closer to the moment when the iron voice will speak from the wall."
+                      },
+                      {
+                          "title":  "Arrest at the Window",
+                          "chapter":  "August 1984, after Hate Week",
+                          "level":  100,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-1-87b0-f0d5917ab142.jpg",
+                          "detail":  "# Arrest at the Window\\\n\\\n## The Iron Voice\\\n\\\nStanding at the window of the hidden room, Winston watches the singing woman in the yard and tells Julia \u0027We are the dead.\u0027 An iron voice replies from behind the picture: \u0027You are the dead.\u0027 The telescreen is uncovered, and Mr Charrington stands transformed into a young Thought Police officer.\\\n\\\n## The Collapse\\\n\\\nThe room that had been their sanctuary becomes a cage. Julia is knocked to the floor and carried out, and Winston sees her face, upside down, yellow and contorted, for the last time. The paperweight is smashed, and the coral heart rolls across the mat.\\\n\\\n## The End of the Dream\\\n\\\nThe arrest completes the arc that began with the diary. Every act of rebellion has been observed, every moment of love has been used as evidence. Winston is taken into the Ministry of Love, where the Party will try to remake his mind."
+                      },
+                      {
+                          "title":  "Victory Over Himself",
+                          "chapter":  "near the ending, months after the arrest",
+                          "level":  50,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-1-87b0-17ccb37599e2.jpg",
+                          "detail":  "# Victory Over Himself\\\n\\\n## The Chestnut Tree\\\n\\\nWinston is released, a hollowed man who drinks Victory Gin at the Chestnut Tree Café and works on a meaningless sub-committee. He meets Julia once, but they can only confess that they betrayed each other, and their love has turned to contempt.\\\n\\\n## The Last Struggle\\\n\\\nThe telescreen announces a great victory in Africa, and Winston feels a surge of patriotic ecstasy. He looks up at the enormous face of Big Brother, and the smile hidden beneath the moustache finally becomes clear to him.\\\n\\\n## The Final Conversion\\\n\\\nWinston has learned to love Big Brother. The rebellion that began with a diary ends with two gin-scented tears and a heart at peace. He has won the victory over himself, and the Party has claimed another soul."
+                      }
+                  ]
+    },
+    {
+        "id":  "story-flow-doc-books-001-1984-2-1f158cedb3a4",
+        "title":  "The Brotherhood Trap",
+        "description":  "Follows the thread in which O\u0027Brien masquerades as a leader of the underground and lures Winston into a false dream of resistance.",
+        "cover":  "./assets/images/story-flow-doc-books-001-1984-2-1f158cedb3a4.jpg",
+        "nodes":  [
+                      {
+                          "title":  "A Glance Across the Hate",
+                          "chapter":  "during the Two Minutes Hate, early April 1984",
+                          "level":  85,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-2-1f15-4ffb117d6af8.jpg",
+                          "detail":  "# A Glance Across the Hate\\\n\\\n## The Signal\\\n\\\nDuring the Two Minutes Hate, Winston catches O\u0027Brien\u0027s eye and is seized by the conviction that O\u0027Brien is thinking the same heretical thoughts. The Inner Party member\u0027s gesture of resettling his spectacles seems like a sign of recognition, a message that says \u0027I am with you.\u0027\\\n\\\n## The Hope\\\n\\\nThis momentary glance becomes the seed of Winston\u0027s faith in the Brotherhood. He has no evidence, only a dream and a longing, but he begins to write his diary for O\u0027Brien, imagining him as the hidden ally who will one day receive the confession.\\\n\\\n## The Danger\\\n\\\nThe flash of hope is also a weapon. The Party uses such longings to find and destroy dissenters, and O\u0027Brien has already marked Winston as a target."
+                      },
+                      {
+                          "title":  "The Corridor Invitation",
+                          "chapter":  "several weeks later, late May or early June 1984",
+                          "level":  80,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-2-1f15-b1ff70265b14.jpg",
+                          "detail":  "# The Corridor Invitation\\\n\\\n## The Unexpected Contact\\\n\\\nWalking down a corridor in the Ministry of Truth, Winston feels a larger presence behind him. It is O\u0027Brien, who speaks with grave courtesy about a Newspeak article and offers to lend him the tenth edition of the Newspeak Dictionary. Beneath a telescreen, O\u0027Brien writes his address on a scrap of paper and hands it to Winston.\\\n\\\n## The Meaning\\\n\\\nWinston interprets the gesture as a secret summons. The mention of Syme, who has been vaporized, seems to be a code. He believes that the conspiracy he has dreamed of is real and that he has at last touched its outer edge.\\\n\\\n## The Irreversibility\\\n\\\nWinston knows that going to O\u0027Brien\u0027s flat will be a step from words to actions, and that the final step will be the Ministry of Love. But he cannot resist the pull of the place where there is no darkness."
+                      },
+                      {
+                          "title":  "Wine and Catechism",
+                          "chapter":  "an evening shortly after the corridor invitation",
+                          "level":  90,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-2-1f15-ed2cec4f05da.jpg",
+                          "detail":  "# Wine and Catechism\\\n\\\n## The Inner Party Home\\\n\\\nThe servant Martin admits Winston and Julia into O\u0027Brien\u0027s softly lit flat. O\u0027Brien turns off the telescreen, a privilege no Outer Party member has ever seen, and pours wine. He raises a glass to Emmanuel Goldstein, proving that the Brotherhood is real.\\\n\\\n## The Questions\\\n\\\nO\u0027Brien asks Winston and Julia if they are prepared to commit murder, sabotage, suicide, and even to separate forever. Julia answers \u0027No\u0027 to the last question, and Winston echoes her. O\u0027Brien tests their loyalty and then explains the dark life of the Brotherhood: they will fight in the dark, receive orders without explanation, and finally be caught and confess.\\\n\\\n## The Covenant\\\n\\\nWinston leaves with the words \u0027We shall meet in the place where there is no darkness\u0027 ringing in his ears. He has bound himself to a shadow, not knowing that his new master is the Party itself."
+                      },
+                      {
+                          "title":  "The Book and the Briefcase",
+                          "chapter":  "during Hate Week, late June or July 1984",
+                          "level":  95,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-2-1f15-5650e7862450.jpg",
+                          "detail":  "# The Book and the Briefcase\\\n\\\n## The Handoff\\\n\\\nDuring a feverish demonstration in Victory Square, Winston feels a tap on his shoulder. A stranger returns a briefcase that is not his, and inside it he finds a shabby volume titled The Theory and Practice of Oligarchical Collectivism by Emmanuel Goldstein.\\\n\\\n## The Reading\\\n\\\nIn the hidden room, Winston reads the forbidden book. It explains the structure of Oceania, the perpetual war, and the purpose of doublethink. He feels that the book is the product of a mind like his own, but far more powerful and systematic.\\\n\\\n## The Deeper Trap\\\n\\\nThe book is another thread in the net. O\u0027Brien later reveals that he collaborated in writing it, and that its promised revolution is nonsense. Winston has been given a map of the prison, but the map is only a tool of the jailer."
+                      },
+                      {
+                          "title":  "The Reunion in the Cell",
+                          "chapter":  "after the arrest, in the Ministry of Love",
+                          "level":  100,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-2-1f15-28bfa5da3f71.jpg",
+                          "detail":  "# The Reunion in the Cell\\\n\\\n## The Betrayer Revealed\\\n\\\nWinston is taken to a white cell in the Ministry of Love, and when the door opens O\u0027Brien walks in. Winston cries out, \u0027They\u0027ve got you too!\u0027 but O\u0027Brien answers, \u0027They got me a long time ago.\u0027 The truth is finally exposed: O\u0027Brien is a loyal servant of the Party, and the Brotherhood is a lie.\\\n\\\n## The Interrogation\\\n\\\nO\u0027Brien controls a dial that can send waves of pain through Winston\u0027s body. He asks about the war, the photograph, and the number of fingers he holds up. Winston tries to hold onto four, but the pain breaks him, and he screams \u0027Five!\u0027\\\n\\\n## The Descent\\\n\\\nThe dream of a hidden ally dissolves into the reality of a torturer who knows every thought. Winston understands that O\u0027Brien has always been the protector and the destroyer, and that their meeting in the place without darkness is this windowless room."
+                      }
+                  ]
+    },
+    {
+        "id":  "story-flow-doc-books-001-1984-3-c77bef829093",
+        "title":  "The Ministry of Truth\u0027s Falsification Machine",
+        "description":  "Shows how the Records Department continuously rewrites the past and manufactures lies, and how Winston becomes both a worker and a victim of that system.",
+        "cover":  "./assets/images/story-flow-doc-books-001-1984-3-c77bef829093.jpg",
+        "nodes":  [
+                      {
+                          "title":  "The Morning\u0027s Orders",
+                          "chapter":  "a working day early in the story",
+                          "level":  40,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-3-c77b-92f66c7b0ca1.jpg",
+                          "detail":  "# The Morning\u0027s Orders\\\n\\\n## The Rectification Slips\\\n\\\nWinston\u0027s desk in the Records Department receives a stream of messages that order him to \u0027rectify\u0027 past issues of the Times. A speech by Big Brother must be altered to predict an offensive that actually happened; production forecasts must be adjusted to match impossible outcomes. Winston unrolls the cylinders and feeds the corrections into the pneumatic tube.\\\n\\\n## The Memory Hole\\\n\\\nEvery original document, including the instructions themselves, is dropped into the memory hole chute and burned. Winston knows that he is part of a vast process that makes history a palimpsest, scraped clean and rewritten as often as the Party requires.\\\n\\\n## The Ordinary Work\\\n\\\nFor Winston this work is both tedious and satisfying. It gives him a sense of control, yet it also feeds his secret awareness that the world he lives in is built on lies."
+                      },
+                      {
+                          "title":  "The Birth of Comrade Ogilvy",
+                          "chapter":  "later the same morning, early in the story",
+                          "level":  55,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-3-c77b-7c2082c201ee.jpg",
+                          "detail":  "# The Birth of Comrade Ogilvy\\\n\\\n## The Assignment\\\n\\\nWinston takes on a delicate piece of forgery. The Times has reported an Order of the Day by Big Brother that now refers to a disgraced Inner Party member. Winston must rewrite it completely, inventing a heroic comrade named Ogilvy who died in battle.\\\n\\\n## The Creation\\\n\\\nHe dictates a biography: Ogilvy joined the Spies at six, denounced his uncle at eleven, designed a grenade that killed thirty-one prisoners, and perished by leaping into the sea with his despatches. Winston knows Ogilvy never existed, but he feels a strange pride in bringing him into being.\\\n\\\n## The Act of Reality\\\n\\\nOnce the forgery is filed, Comrade Ogilvy is as real as Charlemagne. Winston reflects that you can create dead men but not living ones, and that the past is a warehouse of manufactured ghosts."
+                      },
+                      {
+                          "title":  "The Great Rewriting",
+                          "chapter":  "the days after the enemy changes to Eastasia",
+                          "level":  85,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-3-c77b-45d236519892.jpg",
+                          "detail":  "# The Great Rewriting\\\n\\\n## The Sudden Switch\\\n\\\nAt the height of Hate Week, the orator at a mass demonstration changes the name of the enemy in mid-sentence. Oceania is now at war with Eastasia, not Eurasia. Winston and the entire Ministry work eighteen-hour shifts to correct every record, every book, and every photograph.\\\n\\\n## The Absurd Labour\\\n\\\nWinston\u0027s eyes ache as he renames battles, redraws maps, and shifts the geography of the war. He does not feel guilt; he is anxious only that the forgery should be perfect. On the sixth day, the work eases, and the deed is complete.\\\n\\\n## The New Truth\\\n\\\nIt is now impossible for any human being to prove by documentary evidence that the war with Eurasia ever happened. The past has been abolished, and the Party\u0027s new world is sealed."
+                      },
+                      {
+                          "title":  "The Book That Explained Everything",
+                          "chapter":  "shortly after the Great Rewriting, in the hidden room",
+                          "level":  70,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-3-c77b-446752b43de6.jpg",
+                          "detail":  "# The Book That Explained Everything\\\n\\\n## The Forbidden Text\\\n\\\nWinston reads The Theory and Practice of Oligarchical Collectivism in the room above Mr Charrington\u0027s shop. The book describes the three-level society of Oceania, the useless war, and the way the Party maintains power through doublethink and perpetual warfare.\\\n\\\n## The Reassurance\\\n\\\nWinston feels the book tells him what he already knows but cannot articulate. It is a mirror of his own mind, organizing his scattered thoughts into a system. He is not mad; there is a name for what he has endured.\\\n\\\n## The Blind Spot\\\n\\\nThe book promises a future in which the proles will rise, but Winston does not see that even this promise is a controlled illusion. The Ministry of Truth, through O\u0027Brien, has given him a sedative disguised as a diagnosis."
+                      },
+                      {
+                          "title":  "The Interim Report",
+                          "chapter":  "after Winston\u0027s release, near the ending",
+                          "level":  25,
+                          "image":  "./assets/images/flow-node-story-flow-doc-books-001-1984-3-c77b-6fc6edf6d98a.jpg",
+                          "detail":  "# The Interim Report\\\n\\\n## The Wreck of Work\\\n\\\nWinston is assigned to a sub-committee preparing an Interim Report on whether commas should be placed inside or outside brackets. The work is meaningless, and the committee members drift in and out of ghostlike sessions.\\\n\\\n## The Museum of Paper\\\n\\\nWinston\u0027s old passion for falsification is gone. He sits in the Chestnut Tree Café, drinking gin and half-listening to the telescreen. The Ministry of Truth has turned him into a harmless curator of its archives.\\\n\\\n## The Final Erasure\\\n\\\nThe man who once created heroes is now a piece of furniture. The Ministry\u0027s machine has consumed its own worker, and the sounds of war triumph play over a soul that no longer remembers why it once rebelled."
+                      }
+                  ]
+    }
+]

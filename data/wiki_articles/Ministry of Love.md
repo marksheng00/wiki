@@ -1,0 +1,34 @@
+﻿# Ministry of Love
+
+> **分类/标签**:   
+> **源文件**: Ministry of Love.html
+
+---
+
+# Ministry of Love
+
+In the world of Nineteen Eighty-Four the Ministry of Love -- Miniluv in Newspeak -- is the ministry charged with maintaining law and order in Oceania, and the one that gives the system its most terrible face. It is a windowless building, approachable only on official business through a maze of barbed-wire entanglements, steel doors and hidden machine-gun nests, its outer streets patrolled by gorilla-faced guards in black uniforms armed with jointed truncheons; Winston Smith does not enter it until the novel's final movement. Within the reversed vocabulary of the Party it is the ministry that tortures and eventually kills anybody whom it deems a threat, and inside its walls the novel's last ordeal -- the arrest, interrogation, re-education and conversion of Winston Smith -- is staged. Miniluv is the spatial embodiment of doublethink: love is terror, law is lawlessness, and the place of punishment is also the place where the Party claims to cure.
+
+## Architecture of the Four Ministries
+
+The Ministry of Love belongs to a quartet of buildings of similar appearance and size that so completely dwarf the surrounding architecture that from the roof of Victory Mansions all four can be seen at once. The Ministry of Truth concerns itself with news, entertainment, education and the fine arts; the Ministry of Peace concerns itself with war; the Ministry of Love maintains law and order; and the Ministry of Plenty is responsible for economic affairs. In Newspeak their names are Minitrue, Minipax, Miniluv and Miniplenty. Of the four, the Ministry of Love is "the really frightening one." It has no windows at all, and even the streets leading up to its outer barriers are roamed by gorilla-faced guards in black uniforms, armed with jointed truncheons; to enter it is impossible except on official business, and then only by penetrating barbed-wire entanglements, steel doors and hidden machine-gun nests. At the opening of the novel Winston has never been inside it, nor within half a kilometre of it, and its menace is the exact counterpart of the Ministry of Truth's glittering white pyramid: one rewrites the past, the other polices and extinguishes those who will not accept the rewritten version.
+
+## Law and the Thought Police
+
+The Ministry of Love's power operates in a legal void. In Oceania nothing is illegal, because there are no longer any laws, yet the act of opening a diary is reasonably certain to be punished by death, or at least by twenty-five years in a forced-labour camp. A Party member lives from birth to death under the eye of the Thought Police: even when alone he can never be sure that he is alone, and he can be inspected without warning and without knowing that he is being inspected. Not only actual misdemeanours but any eccentricity, however small, any change of habits, any nervous mannerism that could be the symptom of an inner struggle, is certain to be detected. Because there is no formulated code of behaviour, the endless purges, arrests, tortures, imprisonments and vaporisations are not inflicted as punishment for crimes actually committed but are "the wiping-out of persons who might perhaps commit a crime at some time in the future." The Ministry of Love is the terminal point of this logic: the institution that gives the surveillance of the Thought Police its ultimate sanction, and that turns the Party's demand for not only the right opinions but the right instincts into a matter of life and death.
+
+## The Place Where There Is No Darkness
+
+When Winston is finally taken there, the Ministry of Love proves to be as windowless within as without. He wakes in a high-ceilinged cell with walls of glittering white porcelain, concealed lamps flooding it with cold light, a low steady humming from the air supply, and four telescreens, one in each wall. It is "the place with no darkness," and he now understands the words O'Brien had spoken to him in a dream seven years earlier: "We shall meet in the place where there is no darkness." The building is arranged in vertical layers of horror. The cells where the guards beat him are below ground level; the room where O'Brien interrogates him is high up near the roof; and Room 101, the worst place of all, is many metres underground, as deep down as it is possible to go. There, strapped in a chair before the rat cage, Winston's resistance finally breaks, and his last cry -- "Do it to Julia! Do it to Julia! Not me!" -- is the ministry's final victory over him. The place that had once seemed unenterable becomes the place from which he is released, changed and hollowed out, at peace with the Party.
+
+## The Machine of Conversion
+
+The Ministry of Love is not merely punitive. O'Brien tells Winston that the reason he has been brought there is "To cure you! To make you sane!", and that no one whom the Party brings to this place ever leaves its hands uncured. The Party, he explains, is not interested in the overt act; the thought is all it cares about, and it does not merely destroy its enemies but changes them. Winston's re-education proceeds through the three stages of learning, understanding and acceptance, administered inside these walls by the pain dial, drugs, sound-tracks of his own confessions, the mirror in which he sees his emaciated body, and finally the rats of Room 101. In the end he is released into a sinecure at the Ministry of Truth, and the final line of the novel records that he loved Big Brother. The Ministry of Love has accomplished what no prison of the older tyrannies could: it has made its victim testify to his own conversion before destroying him.
+
+## A Name That Reverses Reality
+
+The Ministry of Love's name is the most compressed example of the Party's doublethink. It is called love, yet it tortures and kills; just as the Ministry of Peace wages war and the Ministry of Truth tells lies. Orwell, in a letter written while revising the novel, identified the root of this inversion in what he called "a sort of schizophrenic manner of thinking" among the English Left, which had accepted the Russian regime as socialist while silently recognising that its spirit and practice were alien to socialism -- a capacity to believe two contradictory truths at once. The Ministry of Love is also the culminating proof of the Party's control of memory and reality: within its walls Winston is taught that the photograph of Jones, Aaronson and Rutherford never existed, that the past is whatever the Party says it is, and that two and two can be five. It is the place where, in O'Brien's words, "We shall squeeze you empty, and then we shall fill you with ourselves" -- the architectural symbol of a power that seeks not obedience but the abolition of the self.
+
+## Related StoryFlow
+
+### Winston Smith's Rebellion and Fall

@@ -1,0 +1,32 @@
+﻿# Big Brother is watching you
+
+> **分类/标签**:   
+> **源文件**: Big Brother is watching you.html
+
+---
+
+# Big Brother is watching you
+
+"Big Brother is watching you" is the caption of the Party's most ubiquitous poster and the nearest thing Oceania has to a motto of everyday rule. It first appears in the hallway of Victory Mansions, beneath the enormous face of a man of about forty-five with a heavy black moustache and ruggedly handsome features, a picture so contrived that the eyes follow the passer-by. The same face gazes down from every commanding corner, from coins, stamps, book covers, banners and the wrapping of cigarette packets, so that the caption becomes not information but the permanent condition of life. In five words it fuses the face, the voice and the gaze of the Party into a single promise and threat.
+
+## The Caption and the Face
+
+The poster that carries the words is, from its first appearance, a physical fact of Winston Smith's world. It is too large for indoor display, tacked to the wall of the Victory Mansions hallway; on each landing, opposite the lift shaft, the same enormous face waits, and from the window Winston can see the black-moustachio'd face on the house-front immediately opposite, with the caption running beneath it. At street level a torn poster flaps in the wind, alternately covering and uncovering the single word INGSOC, binding the slogan to the Party's ideology. The eyes pursue Winston even onto the twenty-five cent piece in his pocket, where the same slogans are inscribed in tiny clear lettering and the head of Big Brother returns his gaze. This repetition makes "BIG BROTHER IS WATCHING YOU" a self-evident description of the visible world before it is a command.
+
+## The Apparatus of Surveillance
+
+The slogan names a genuine mechanism, not a metaphor. The telescreen receives and transmits simultaneously: any sound above a low whisper is picked up, and so long as a person remains within its field of vision he can be seen as well as heard. There is no way of knowing whether one is being watched at any given moment; how often, or on what system, the Thought Police plug in is guesswork, and it is even conceivable that they watch everybody all the time. Winston has to live — and does live, from habit that becomes instinct — in the assumption that every sound is overheard and, except in darkness, every movement scrutinised. The caption advertises exactly this uncertainty: the watcher may be present or absent, but the watched can never be sure which.
+
+Beyond the telescreen, the watching is total. A Party member lives from birth to death under the eye of the Thought Police; even when he is alone he can never be sure that he is alone, and he can be inspected without warning and without knowing that he is being inspected. His friendships, his behaviour towards his wife and children, the expression of his face when alone, the words he mutters in sleep, even the characteristic movements of his body are jealously scrutinised. In Oceania there is no law, and the watcher's suspicion takes the place of statute. Winston's first act of rebellion, opening the diary, is not illegal — nothing is illegal, because no laws remain — but if detected it is reasonably certain to be punished by death, or at least by twenty-five years in a forced-labour camp. The slogan thus substitutes an unlimited gaze for a legal code, making the crime exist in the eye of the watcher rather than in any written prohibition.
+
+## Watching and Self-Discipline
+
+The caption's real work is done inside the subject. Winston sets his features into the expression of quiet optimism it is advisable to wear when facing the telescreen; during the Physical Jerks he wears the look of grim enjoyment considered proper, performing the rhythmic exercises for an invisible audience of one or of millions. The telescreen's ear-splitting whistle at nought seven fifteen begins the day for office workers, and the instructress on the screen drives the thirty-to-forty age group through arms bending and stretching, ordering them to put a bit of life into it. The watcher does not need to intervene at every moment, because the watched have learned to supervise themselves; the caption is the lesson by which the gaze is internalised.
+
+Behind the slogan stand the institutions that make watching terrifying. The Ministry of Love is the really frightening one: no windows at all, impossible to enter except on official business, through barbed-wire entanglements, steel doors and hidden machine-gun nests, with gorilla-faced guards in black uniforms patrolling the approaches. The Ministry of Truth, meanwhile, rewrites the past so that memory itself cannot be trusted; there is always some agency to deny the memories of others and annihilate the past on a daily basis. "Watching" in Oceania therefore means the power to alter what has happened as well as to observe what is happening, and the power to remove the watched person from existence entirely. The caption is the friendly face of this apparatus, the mask that the machinery wears.
+
+## Ideological and Literary Significance
+
+The phrase condenses the novel's diagnosis of totalitarianism. In the introduction, Thomas Pynchon stresses that Orwell wrote against totalitarianism and for democratic socialism, and that Orwell was disturbed by a "schizophrenic manner of thinking" among the English Left, in which words like "democracy" could bear two irreconcilable meanings. "Big Brother is watching you" works in the same double register: it is at once a reassurance that the protector sees everything and a threat that the spy sees everything. Pynchon also observes how easily the prophecy slipped into the post-war world — the telescreen resembling the flat plasma screens of a later era, surveillance entering the mainstream of police activity, news becoming whatever the government says it is. The slogan has become the common shorthand for that condition, usually detached from Orwell's specific hope that ordinary people might still resist it.
+
+The caption's final power is that the watcher never has to prove he is there. The face on the poster is the only body Big Brother is ever given, and the eyes follow the viewer from wall, coin and stamp; the rest is silence and assumption. Winston's last state — "He loved Big Brother" — is the completed work of that unseen gaze, the moment when the watched subject finally becomes the watcher's image of himself. The sentence that began as a caption on a hallway wall ends as the whole of a life.

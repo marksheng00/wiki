@@ -1,0 +1,34 @@
+﻿# The Party was trying to kill the sex instinct
+
+> **分类/标签**:   
+> **源文件**: The Party was trying to kill the sex instinct.html
+
+---
+
+# The Party was trying to kill the sex instinct
+
+In the world of Nineteen Eighty-Four, the Party's war on the sex instinct is not a by-product of puritan morality but a calculated instrument of rule. Its real, undeclared purpose was to remove all pleasure from the sexual act, and where the instinct could not be killed outright the Party meant to distort it and dirty it. The campaign runs from the marriage committee to the torture cell, and its logical terminus is the abolition of the orgasm itself.
+
+## Doctrine and Instruments
+
+The Party's policy was never spelled out as law - nothing was illegal, since there were no longer any laws - but it was rubbed into every Party member from childhood onwards, in indirect ways that were never put into plain words. All marriages between Party members had to be approved by a committee, and permission was always refused, though the principle was never clearly stated, if the couple gave the impression of being physically attracted to one another. The only recognised purpose of marriage was to beget children for the service of the Party, and sexual intercourse was to be looked on as a slightly disgusting minor operation, like having an enema. Organisations such as the Junior Anti-Sex League advocated complete celibacy for both sexes, while the Party's longer-term programme imagined all children begotten by artificial insemination (artsem, in Newspeak) and brought up in public institutions. Winston was aware that this was not meant altogether seriously, yet it fitted the general ideology: the object was to kill the sex instinct, or, if it could not be killed, to distort it and dirty it. Memory, the novel's introduction observes, is relatively easy for a totalitarian regime to deal with; controlling desire is more problematic, and the Party therefore has no choice but to adopt, as an ultimate goal, the abolition of the orgasm.
+
+## Human Cost: Winston and Katharine
+
+The policy's success is measured most painfully in Winston's marriage. Katharine, his wife, seemed to him to have the most stupid, vulgar, empty mind he had ever encountered - a "human sound-track" whose every thought was a slogan. As soon as he touched her she seemed to wince and stiffen; to embrace her was like embracing a jointed wooden image, and even when she clasped him against her he had the feeling that she was simultaneously pushing him away with all her strength. She lay with shut eyes, neither resisting nor co-operating, but submitting. The performance continued once a week, quite regularly, and she reminded him of it in the morning as something that had to be done that evening and must not be forgotten; she called it "making a baby" and "our duty to the Party". No child appeared, and in the end she agreed to give up trying, and soon afterwards they parted. In Winston's judgment the Party's efforts were largely successful so far as the women were concerned: chastity was ingrained in them as deeply as Party loyalty, and the natural feeling had been driven out by careful early conditioning, by games and cold water, by the rubbish dinned into them at school and in the Spies and the Youth League, by lectures, parades, songs, slogans and martial music.
+
+## Resistance: Julia's Counter-Revolt
+
+Julia is the exception that tests the rule. A bold-looking girl of about twenty-seven who wears the narrow scarlet sash of the Junior Anti-Sex League, she has spent hours pasting up the League's propaganda and always yells with the crowd, because it is the only way to be safe. Yet she is the character through whom the novel insists that sexual desire, taken on its own terms, is inherently subversive. Their first love-making, Winston reflects, was a battle, and the climax a victory: a blow struck against the Party, a political act. She explains the Party's sexual puritanism in brutally physical terms: when you make love you are using up energy, and afterwards you feel happy and don't give a damn for anything; all the marching and cheering and waving of flags is simply sex gone sour. Winston tells her she is only a "rebel from the waist downwards", a verdict she finds brilliant. Her revolt, however, is a private one - she has no interest in the Brotherhood and no belief in organised resistance, only in breaking the rules and staying alive.
+
+## The Inner Logic: Power and the Abolition of the Orgasm
+
+O'Brien's interrogation in the Ministry of Love exposes the real motive behind the policy. The Party, he tells Winston, seeks power entirely for its own sake - not wealth or luxury or long life or happiness, only power, pure power. Power is power over human beings: "Power is in inflicting pain and humiliation. Power is in tearing human minds to pieces and putting them together again in new shapes of your own choosing." In the world the Party is creating there will be no emotions except fear, rage, triumph and self-abasement; everything else will be destroyed. "We shall abolish the orgasm," he declares, alongside the future abolition of wives and friends, the removal of children from their mothers at birth, and the reduction of procreation to an annual formality like the renewal of a ration card. The Ministry of Love - windowless, guarded by barbed-wire entanglements and hidden machine-gun nests - is the institutional face of this logic: the place where the assault on the individual, including the individual body, is carried to its conclusion.
+
+## Ending and Significance
+
+The full consequence of the policy appears in the novel's closing pages. Broken in the Ministry of Love, Winston has learned to write FREEDOM IS SLAVERY and TWO AND TWO MAKE FIVE, and has trained himself in crimestop; the last step O'Brien demands is that he must love Big Brother. In the Chestnut Tree Café, with two gin-scented tears trickling down his nose, he gazes up at the enormous face and feels that he has won the victory over himself: he loved Big Brother. The desire the Party could not kill outright has been turned inward and transferred to the leader. The proles, by contrast, have stayed human: they are loyal to one another rather than to a party, and Winston comes to see that they have held on to the primitive emotions which he himself had to re-learn by conscious effort. The same spirit that lets him doctor production statistics - marking down the boot output so the quota can be overfulfilled - governs the Party's whole relation to reality, sexual reality included: everything is material to be adjusted. Orwell's purpose, as the novel's introduction insists, was never simply to produce an anti-communist tract; he was writing against totalitarianism from the left, and the war on the sex instinct is part of a larger hatred of every loyalty the Party cannot control.
+
+## Related StoryFlow
+
+### Katharine's Emotional Sterility

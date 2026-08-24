@@ -1,0 +1,26 @@
+﻿# Under the spreading chestnut tree
+
+> **分类/标签**:   
+> **源文件**: Under the spreading chestnut tree.html
+
+---
+
+# Under the spreading chestnut tree
+
+"Under the spreading chestnut tree" is the opening line of a jeering verse broadcast by the Party's telescreen at two decisive moments in Nineteen Eighty-Four. In both appearances the tune arrives with what Winston Smith privately calls "a yellow note", and its central phrase -- "I sold you and you sold me" -- turns a plainly spoken lyric into a mockery of mutual betrayal. The verse brackets Winston's whole story: he first hears it while watching the disgraced leaders Jones, Aaronson and Rutherford in the Chestnut Tree Café, and he hears it again, in the same café, after his own mind has been broken and he has betrayed Julia.
+
+## The Verse at the Chestnut Tree Café
+
+The first full sounding of the verse is part of Winston's memory of an afternoon, at "the lonely hour of fifteen", when the three one-time Party leaders Jones, Aaronson and Rutherford sat in the Chestnut Tree Café. These were men who had confessed to invented crimes, been pardoned and re-instated, and were, as Winston felt, "corpses waiting to be sent back to the grave"; they were later to be re-arrested and executed. They sat almost motionless before glasses of the gin flavoured with cloves, a chessboard on the table beside them, no game started. Then the telescreen's music changed, taking on "a peculiar, cracked, braying, jeering note", and a voice sang, beginning with the words "Under the spreading chestnut tree" and continuing with "I sold you and you sold me" and "There lie they, and here lie we". The three men never stirred, but Rutherford's eyes were full of tears, and Winston noticed for the first time that both Aaronson and Rutherford had broken noses. The verse works here as official mockery: it describes, in their hearing, exactly what the Party has made them do to one another.
+
+## The Sound of the New Order
+
+The verse is never sung by a named human being. It issues from the telescreen, the same instrument that watches and listens in every room, and its taunting tone belongs to the apparatus itself. The Chestnut Tree Café is the natural home for such a broadcast. Winston knows it as an ill-omened place: a haunt of painters and musicians, a meeting-place of the old, discredited leaders of the Party before their final purges, and a spot where, it was said, Emmanuel Goldstein himself had sometimes been seen in earlier decades. "Under the spreading chestnut tree" turns the café's name into a sentence of its own. The line that follows, "There lie they, and here lie we", makes the living and the dead share one position: those who sit in the café and those who have been destroyed by the Party are equally enclosed in the same system of selling-out.
+
+## Return in the Ruined Present
+
+The verse sounds again in the last chapter, after Winston's release from the Ministry of Love. He is now a daily fixture of the Chestnut Tree Café, his corner table always reserved, his glass refilled without an order, a chess problem in front of him; he has grown fat, his features thickened and red, his mind unable to fix on any subject for more than a few moments. The return of the tune is placed with exact psychological timing. Winston has just been remembering Julia's explanation that at the moment of betrayal "you do mean it", and his own admission that he had meant it -- that he had wished she, not he, should be delivered over to the rats. At that instant the music changes into "a cracked and jeering note, a yellow note", and a voice sings "Under the spreading chestnut tree" and "I sold you and you sold me". The narration immediately blurs the sound with memory: "perhaps it was not happening, perhaps it was only a memory taking on the semblance of sound." Then the tears well up in his eyes. The verse has come round full circle: the man who once watched the three broken figures in the corner is now himself a broken figure in the corner, and the song that mocked them now mocks him, with the words "I sold you and you sold me" turned into the literal history of his love for Julia. Under torture in Room 101 he had screamed "Do it to Julia!" and so made the song's accusation true.
+
+## Motif and Meaning
+
+The two soundings of "Under the spreading chestnut tree" give the novel an audible shape. The first belongs to the survivors of an earlier purge, three men whose confessions Winston had once known to be lies because he had held in his hands a photograph that proved them so; the second belongs to Winston himself, who has been broken and released and now sits among the living dead. In both scenes the "yellow note" is the Party's signature: a jeering, parodic colour that drains the tune of innocence and makes even a refrain serve the totalitarian state. Because the voice that sings it comes from no one, it also shows how completely the apparatus has taken over the field of sound, able to place its mockery inside a man's head as though it were his own memory. By the end Winston weeps at the song, and the narration offers no explanation; the verse has become one more piece of the past that the Party has captured and turned against him.

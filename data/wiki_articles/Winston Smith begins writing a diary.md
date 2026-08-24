@@ -1,0 +1,26 @@
+﻿# Winston Smith begins writing a diary
+
+> **分类/标签**:   
+> **源文件**: Winston Smith begins writing a diary.html
+
+---
+
+# Winston Smith begins writing a diary
+
+On April 4th, 1984, Winston Smith, alone in his flat at Victory Mansions during the lunch interval, opened a thick quarto-sized blank book with a red back and a marbled cover and began to write a diary. "To mark the paper was the decisive act." Though nothing was illegal in Oceania, because there were no longer any laws, he knew that detection of the diary would mean death, or at least twenty-five years in a forced-labour camp; the pen itself was an archaic instrument, procured furtively because the beautiful creamy paper deserved a real nib. In small clumsy letters he wrote the date, April 4th, 1984, and the first stroke of the pen turned a guilty secret into a document that could be found.
+
+## The Room and the Book
+
+Winston had come home at midday, sacrificing his lunch in the Ministry canteen; the only food in the kitchen was a hunk of dark bread that had to be saved for tomorrow's breakfast. In the living room the telescreen could be dimmed but never shut off, and it received and transmitted simultaneously, so any sound above a low whisper could be picked up and any movement within its field could be seen. The room's unusual geography made the diary possible: the telescreen was on the longer wall, and the shallow alcove where Winston sat lay just outside its range of sight. He could be heard, but he could not be seen. The blank book itself was a relic—smooth creamy paper, a little yellowed, of a kind not manufactured for at least forty years—and he had bought it for two dollars fifty in a frowzy junk-shop, carrying it guiltily home in his briefcase, a compromising possession even with nothing written in it.
+
+## A Diary for the Future
+
+After he had written "April 4th, 1984", a sense of complete helplessness descended on Winston. He could not be certain that the year really was 1984: it must be round about that date, since he was fairly sure that he was thirty-nine and believed that he had been born in 1944 or 1945, but it was never possible nowadays to pin down any date within a year or two. For whom, he suddenly wondered, was he writing? For the future, for the unborn. The question carried him to the Newspeak word doublethink and to the magnitude of what he had undertaken: communication with the future was impossible by its nature, since a future that resembled the present would not listen to him, and a future that differed from it would make his predicament meaningless. For weeks past he had been making ready for this moment, never doubting that courage was all that would be needed; now the interminable restless monologue that had run in his head for years dried up, and he sat conscious of nothing except the blankness of the page, the unbearable itching of his varicose ulcer, the strident military music from the telescreen, and a slight booziness caused by the Victory Gin he had swallowed like a dose of medicine.
+
+## The First Entry and Its Hidden Cause
+
+Then, suddenly, Winston began to write in sheer panic, only imperfectly aware of what he was setting down; his small but childish handwriting straggled up and down the page, shedding its capital letters and finally its full stops. The entry described the previous night's visit to the flicks: all war films, one of them showing a ship full of refugees being bombed somewhere in the Mediterranean, a fat man trying to swim away while a helicopter gunsight filled him with holes, a lifeboat full of children, and a middle-aged woman who might have been a Jewess sheltering a small boy while a helicopter dropped a twenty-kilo bomb among them, until a woman in the prole part of the house protested that it was not right to show such things in front of children and was turned out by the police. He stopped writing partly because of cramp, and he did not know why he had poured out this stream of rubbish; but while he was writing, a totally different memory had clarified itself in his mind. It was because of that other incident, he now realized, that he had suddenly decided to come home and begin the diary today—something that had happened that morning at the Ministry, if anything so nebulous could be said to happen.
+
+## The Cost of the Decisive Act
+
+The diary was not illegal, since nothing was illegal and no laws remained, but it carried a predictable penalty: death, or at least twenty-five years in a forced-labour camp, if it were detected. Under the conditions in which a Party member lived, detection was almost inseparable from the act itself. From birth to death the Party member lived under the eye of the Thought Police; even alone he could never be sure that he was alone, and every eccentricity, every change of habits, every nervous mannerism that could be the symptom of an inner struggle was certain to be detected. There was no law in Oceania, and the endless purges, arrests, tortures and vaporisations were not punishments for crimes actually committed but the wiping-out of persons who might perhaps commit a crime at some time in the future. Winston's diary was therefore not a record of a crime but the visible proof of a mind that had already become criminal—and the whole apparatus existed to detect exactly that.

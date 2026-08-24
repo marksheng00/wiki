@@ -598,8 +598,8 @@
           graphState.focusedNode = node;
           graphState.hoverNode = node;
           if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-            // Offset camera slightly down so node renders gracefully in upper half, leaving spacious room for title below
-            const offsetY = state.isGraphExpanded ? 28 : 0;
+            // Offset camera down so node stays in upper half, leaving spacious room for title below
+            const offsetY = state.isGraphExpanded ? 32 : 0;
             state.sidebarGraph.centerAt(node.x, node.y - offsetY, 350);
           }
           showBoundlessInspector(node);
@@ -1000,7 +1000,20 @@
 
     const title = getEl('boundless-title');
     if (title) {
-      title.textContent = node.label || node.id;
+      const label = node.label || node.id;
+      title.textContent = label;
+
+      // Intelligent Dynamic Auto-Fit: dynamically downscales for long or multi-line entity titles
+      if (label.length > 36) {
+        title.style.fontSize = '1.15rem';
+        title.style.lineHeight = '1.25';
+      } else if (label.length > 20) {
+        title.style.fontSize = '1.45rem';
+        title.style.lineHeight = '1.2';
+      } else {
+        title.style.fontSize = '';
+        title.style.lineHeight = '';
+      }
     }
 
     const enterArticle = (e) => {

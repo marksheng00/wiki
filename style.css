@@ -1176,13 +1176,12 @@ details.toc-cat-details:not([open]) > summary::after {
   left: 0;
   right: 0;
   width: 100vw;
-  height: 36vh;
-  min-height: 200px;
+  max-height: 25vh;
   z-index: 600;
-  background: linear-gradient(to top, rgba(var(--bg-page-rgb), 0.96) 0%, rgba(var(--bg-page-rgb), 0.72) 48%, transparent 100%);
+  background: linear-gradient(to top, rgba(var(--bg-page-rgb), 0.98) 0%, rgba(var(--bg-page-rgb), 0.72) 48%, transparent 100%);
   border: none;
   box-shadow: none;
-  padding: 0 1.5rem calc(2.4rem + env(safe-area-inset-bottom)) 1.5rem;
+  padding: 0 1.5rem calc(1.8rem + env(safe-area-inset-bottom)) 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1204,19 +1203,25 @@ details.toc-cat-details:not([open]) > summary::after {
 
 .boundless-title {
   font-family: var(--font-serif);
-  font-size: 2.3rem;
-  font-weight: 500;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.2rem, 3.5vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
-  line-height: 1.15;
+  line-height: 1.2;
   margin: 0;
+  max-width: min(88vw, 640px);
   cursor: pointer;
   text-shadow: 0 2px 24px var(--bg-page), 0 0 40px var(--bg-page);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: opacity 160ms ease, transform 160ms ease;
 }
 .boundless-title:hover {
   opacity: 0.85;
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 /* Whisper-Light Swipe-Up Indicator (Pure, delicate, weightless) */
@@ -1224,7 +1229,7 @@ details.toc-cat-details:not([open]) > summary::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
   color: var(--text-muted);
   opacity: 0.38;
   animation: boundlessFloatUp 2.2s ease-in-out infinite;

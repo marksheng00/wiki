@@ -30,6 +30,7 @@
     initHeaderControls();
     initIcons();
     initDetailsAnimation();
+    initMobileGestures();
   }
 
   function initIcons() {
@@ -998,24 +999,179 @@
     const title = getEl('boundless-title');
     if (title) {
       title.textContent = node.label || node.id;
-      title.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideBoundlessInspector();
-        graphState.focusedNode = null;
-        if (state.isGraphExpanded) toggleGraphExpand(false);
-        closeMobileSidebar();
-        clearActiveNav();
-        openEntityArticle(node.id);
-      };
     }
 
+    // Look up image for peek media
+    const images = (window.WIKI_STORE && window.WIKI_STORE.images) || {};
+    const imgPath = images[node.label] || images[node.id];
+    const peekMedia = getEl('boundless-peek-media');
+    const peekImg = getEl('boundless-peek-img');
+
+    if (peekMedia && peekImg) {
+      if (imgPath) {
+        peekImg.src = imgPath;
+        peekImg.alt = node.label || node.id;
+        peekMedia.style.display = 'block';
+      } else {
+        peekMedia.style.display = 'none';
+      }
+    }
+
+    const enterArticle = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      hideBoundlessInspector();
+      graphState.focusedNode = null;
+      if (state.isGraphExpanded) toggleGraphExpand(false);
+      closeMobileSidebar();
+      clearActiveNav();
+      openEntityArticle(node.id);
+    };
+
+    inspector.onclick = enterArticle;
     inspector.classList.add('is-active');
+    initIcons();
   }
 
   function hideBoundlessInspector() {
     const inspector = getEl('boundless-node-inspector');
     if (inspector) inspector.classList.remove('is-active');
+  }
+
+  /**
+   * Mobile Native Gesture Engine (手势滑动操控系统)
+   * 1. Left-to-Right Swipe: Open Navigation Hub
+   * 2. Right-to-Left Swipe: Close Navigation Hub
+   * 3. Small Graph Swipe Down: Expand Graph to Fullscreen Explorer
+   * 4. Fullscreen Graph Swipe Up:
+   *    - If node focused: Enter Entity Article (随着露头图片与标题上滑进入阅读页)
+   *    - If no node focused: Collapse Graph back to small window
+   */
+  function initMobileGestures() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isTrackingGesture = false;
+
+    // 1. Global Horizontal Swipe Navigation (Left-to-Right & Right-to-Left)
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+      isTrackingGesture = true;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (!isTrackingGesture || e.changedTouches.length !== 1) return;
+      isTrackingGesture = false;
+
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const elapsed = Date.now() - touchStartTime;
+
+      const isMobile = window.innerWidth <= 1080;
+      if (!isMobile) return;
+
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      // Horizontal Swipe Check (Predominantly horizontal)
+      if (absX > 65 && absX > absY * 1.4 && elapsed < 600) {
+        const sidebar = getEl('wiki-sidebar');
+        const isOpen = sidebar && sidebar.classList.contains('is-open');
+
+        if (deltaX > 0 && !isOpen && !state.isGraphExpanded) {
+          // Swipe Left -> Right on Main Article: Open Sidebar
+          toggleMobileSidebar();
+        } else if (deltaX < 0 && isOpen) {
+          // Swipe Right -> Left on Open Sidebar: Close Sidebar
+          closeMobileSidebar();
+        }
+      }
+    }, { passive: true });
+
+    // 2. Small Graph Swipe Down to Expand (小窗从上往下滑成大窗)
+    const slot = getEl('sidebar-graph-slot');
+    if (slot) {
+      let slotTouchStartY = 0;
+      let slotTouchStartX = 0;
+      let slotTouchTime = 0;
+
+      slot.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        slotTouchStartX = e.touches[0].clientX;
+        slotTouchStartY = e.touches[0].clientY;
+        slotTouchTime = Date.now();
+      }, { passive: true });
+
+      slot.addEventListener('touchend', (e) => {
+        if (e.changedTouches.length !== 1) return;
+        const deltaY = e.changedTouches[0].clientY - slotTouchStartY;
+        const deltaX = e.changedTouches[0].clientX - slotTouchStartX;
+        const elapsed = Date.now() - slotTouchTime;
+
+        // Downward swipe gesture on small graph slot
+        if (deltaY > 35 && deltaY > Math.abs(deltaX) && elapsed < 500 && !state.isGraphExpanded) {
+          closeMobileSidebar();
+          toggleGraphExpand(true);
+        }
+      }, { passive: true });
+    }
+
+    // 3. Fullscreen Graph Gestures:
+    // - Swipe Up when Node is focused: Enter Entity Article
+    // - Swipe Up when No Node is focused: Collapse Graph
+    // - Swipe Down: Collapse Graph
+    const graphContainer = getEl('sidebar-graph-container');
+    if (graphContainer) {
+      let graphTouchStartY = 0;
+      let graphTouchStartX = 0;
+      let graphTouchTime = 0;
+
+      graphContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        graphTouchStartX = e.touches[0].clientX;
+        graphTouchStartY = e.touches[0].clientY;
+        graphTouchTime = Date.now();
+      }, { passive: true });
+
+      graphContainer.addEventListener('touchend', (e) => {
+        if (!state.isGraphExpanded || e.changedTouches.length !== 1) return;
+        const deltaY = e.changedTouches[0].clientY - graphTouchStartY;
+        const deltaX = e.changedTouches[0].clientX - graphTouchStartX;
+        const elapsed = Date.now() - graphTouchTime;
+
+        const absY = Math.abs(deltaY);
+        const absX = Math.abs(deltaX);
+
+        if (absY > 40 && absY > absX * 1.2 && elapsed < 600) {
+          if (deltaY < 0) {
+            // SWIPE UP
+            if (graphState.focusedNode) {
+              // Enter Entity Article on Swipe Up!
+              const focusedId = graphState.focusedNode.id;
+              hideBoundlessInspector();
+              graphState.focusedNode = null;
+              toggleGraphExpand(false);
+              closeMobileSidebar();
+              clearActiveNav();
+              openEntityArticle(focusedId);
+            } else {
+              // Collapse to small window
+              toggleGraphExpand(false);
+            }
+          } else if (deltaY > 50) {
+            // SWIPE DOWN
+            toggleGraphExpand(false);
+          }
+        }
+      }, { passive: true });
+    }
   }
 
   function initGraphControls() {

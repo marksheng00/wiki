@@ -598,7 +598,9 @@
           graphState.focusedNode = node;
           graphState.hoverNode = node;
           if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-            state.sidebarGraph.centerAt(node.x, node.y, 350);
+            // Offset camera slightly down so node renders gracefully in upper half, leaving spacious room for title below
+            const offsetY = state.isGraphExpanded ? 28 : 0;
+            state.sidebarGraph.centerAt(node.x, node.y - offsetY, 350);
           }
           showBoundlessInspector(node);
         })
@@ -1001,22 +1003,6 @@
       title.textContent = node.label || node.id;
     }
 
-    // Look up image for peek media
-    const images = (window.WIKI_STORE && window.WIKI_STORE.images) || {};
-    const imgPath = images[node.label] || images[node.id];
-    const peekMedia = getEl('boundless-peek-media');
-    const peekImg = getEl('boundless-peek-img');
-
-    if (peekMedia && peekImg) {
-      if (imgPath) {
-        peekImg.src = imgPath;
-        peekImg.alt = node.label || node.id;
-        peekMedia.style.display = 'block';
-      } else {
-        peekMedia.style.display = 'none';
-      }
-    }
-
     const enterArticle = (e) => {
       if (e) {
         e.preventDefault();
@@ -1044,9 +1030,9 @@
    * Mobile Native Gesture Engine (手势滑动操控系统)
    * 1. Left-to-Right Swipe: Open Navigation Hub
    * 2. Right-to-Left Swipe: Close Navigation Hub
-   * 3. Small Graph Swipe Down: Expand Graph to Fullscreen Explorer
+   * 3. Navigation Hub Top Pull-Down Damping / Small Graph Swipe Down: Expand Graph to Fullscreen
    * 4. Fullscreen Graph Swipe Up:
-   *    - If node focused: Enter Entity Article (随着露头图片与标题上滑进入阅读页)
+   *    - If node focused: Enter Entity Article (上滑进入阅读页)
    *    - If no node focused: Collapse Graph back to small window
    */
   function initMobileGestures() {
@@ -1080,7 +1066,7 @@
       const absX = Math.abs(deltaX);
       const absY = Math.abs(deltaY);
 
-      // Horizontal Swipe Check (Predominantly horizontal)
+      // Horizontal Swipe Check
       if (absX > 65 && absX > absY * 1.4 && elapsed < 600) {
         const sidebar = getEl('wiki-sidebar');
         const isOpen = sidebar && sidebar.classList.contains('is-open');
@@ -1095,32 +1081,48 @@
       }
     }, { passive: true });
 
-    // 2. Small Graph Swipe Down to Expand (小窗从上往下滑成大窗)
+    // 2. Navigation Hub & Small Graph Pull-Down to Expand (侧边栏顶部下拉阻尼手势 / 小窗下拉展开)
+    const sidebar = getEl('wiki-sidebar');
+    const navHub = document.querySelector('.wiki-nav-hub');
     const slot = getEl('sidebar-graph-slot');
+
+    const handlePullDownStart = (e) => {
+      if (e.touches.length !== 1) return;
+      e.target._touchStartY = e.touches[0].clientY;
+      e.target._touchStartX = e.touches[0].clientX;
+      e.target._touchTime = Date.now();
+    };
+
+    const handlePullDownEnd = (e) => {
+      if (e.changedTouches.length !== 1) return;
+      const startY = e.target._touchStartY || 0;
+      const startX = e.target._touchStartX || 0;
+      const startTime = e.target._touchTime || 0;
+
+      const deltaY = e.changedTouches[0].clientY - startY;
+      const deltaX = e.changedTouches[0].clientX - startX;
+      const elapsed = Date.now() - startTime;
+
+      // Check if user is at the top of the navigation list
+      const isAtTop = !navHub || navHub.scrollTop <= 0;
+
+      if (isAtTop && deltaY > 45 && deltaY > Math.abs(deltaX) * 1.2 && elapsed < 550 && !state.isGraphExpanded) {
+        closeMobileSidebar();
+        toggleGraphExpand(true);
+      }
+    };
+
     if (slot) {
-      let slotTouchStartY = 0;
-      let slotTouchStartX = 0;
-      let slotTouchTime = 0;
-
-      slot.addEventListener('touchstart', (e) => {
-        if (e.touches.length !== 1) return;
-        slotTouchStartX = e.touches[0].clientX;
-        slotTouchStartY = e.touches[0].clientY;
-        slotTouchTime = Date.now();
-      }, { passive: true });
-
-      slot.addEventListener('touchend', (e) => {
-        if (e.changedTouches.length !== 1) return;
-        const deltaY = e.changedTouches[0].clientY - slotTouchStartY;
-        const deltaX = e.changedTouches[0].clientX - slotTouchStartX;
-        const elapsed = Date.now() - slotTouchTime;
-
-        // Downward swipe gesture on small graph slot
-        if (deltaY > 35 && deltaY > Math.abs(deltaX) && elapsed < 500 && !state.isGraphExpanded) {
-          closeMobileSidebar();
-          toggleGraphExpand(true);
-        }
-      }, { passive: true });
+      slot.addEventListener('touchstart', handlePullDownStart, { passive: true });
+      slot.addEventListener('touchend', handlePullDownEnd, { passive: true });
+    }
+    if (navHub) {
+      navHub.addEventListener('touchstart', handlePullDownStart, { passive: true });
+      navHub.addEventListener('touchend', handlePullDownEnd, { passive: true });
+    }
+    if (sidebar) {
+      sidebar.addEventListener('touchstart', handlePullDownStart, { passive: true });
+      sidebar.addEventListener('touchend', handlePullDownEnd, { passive: true });
     }
 
     // 3. Fullscreen Graph Gestures:
@@ -1149,7 +1151,7 @@
         const absY = Math.abs(deltaY);
         const absX = Math.abs(deltaX);
 
-        if (absY > 40 && absY > absX * 1.2 && elapsed < 600) {
+        if (absY > 35 && absY > absX * 1.1 && elapsed < 600) {
           if (deltaY < 0) {
             // SWIPE UP
             if (graphState.focusedNode) {
@@ -1165,7 +1167,7 @@
               // Collapse to small window
               toggleGraphExpand(false);
             }
-          } else if (deltaY > 50) {
+          } else if (deltaY > 45) {
             // SWIPE DOWN
             toggleGraphExpand(false);
           }

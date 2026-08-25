@@ -701,7 +701,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-infobox {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 -0.65rem 2.5rem;
+  margin: 0.5rem 0 1.25rem 2.5rem;
   background: transparent;
   padding: 0;
   border: none;
@@ -752,7 +752,7 @@ details.toc-cat-details:not([open]) > summary::after {
   color: var(--text-primary);
   text-decoration: none;
   line-height: 1;
-  margin-top: 0.5rem;
+  margin-top: 0.85rem;
   margin-bottom: 0;
   transition: opacity 160ms ease;
 }
@@ -775,7 +775,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .entity-floating-media {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 -0.65rem 2.5rem;
+  margin: 0.5rem 0 1.25rem 2.5rem;
   background: transparent;
   display: block;
   clear: right;
@@ -801,7 +801,14 @@ details.toc-cat-details:not([open]) > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-decoration: none;
+  line-height: 1;
+  margin-top: 0.85rem;
   margin-bottom: 0;
 }
 
@@ -1375,7 +1382,7 @@ details.toc-cat-details:not([open]) > summary::after {
     float: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 auto 0.45rem auto !important;
+    margin: 0 auto 1.25rem auto !important;
     text-align: center;
     display: flex;
     flex-direction: column;

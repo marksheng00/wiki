@@ -521,8 +521,8 @@
     const targetZoom = Math.min(zoomW, zoomH);
     
     if (graph.zoom && graph.centerAt) {
-      graph.centerAt(0, 0, duration); 
       graph.zoom(targetZoom, duration);     
+      graph.centerAt(0, 0, duration); 
     }
   }
 
@@ -868,26 +868,8 @@
           state.sidebarGraph.d3Force('charge').strength(-160);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-
-        if (currentSmallData && currentSmallData.nodes) {
-          const pMap = new Map();
-          currentSmallData.nodes.forEach((n) => {
-            if (typeof n.x === 'number') pMap.set(n.id, { x: n.x, y: n.y });
-          });
-          nodes.forEach((n) => {
-            if (pMap.has(n.id)) {
-              const p = pMap.get(n.id);
-              n.x = p.x;
-              n.y = p.y;
-            }
-          });
-        }
-
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
-
-        // Use duration 0 to avoid D3 zoom matrix race condition during WAAPI animation
-        applyDynamicGeometry(state.sidebarGraph, true, expSize.width, expSize.height, 0, !state.currentEntityId);
 
         const anim = container.animate([
           {
@@ -914,6 +896,8 @@
           container.style.width = `${bigRect.width}px`;
           container.style.height = `${bigRect.height}px`;
           anim.cancel();
+          state.sidebarGraph.width(bigRect.width).height(bigRect.height);
+          applyDynamicGeometry(state.sidebarGraph, true, bigRect.width, bigRect.height, 0, !state.currentEntityId);
           isGraphAnimating = false;
         };
       }
@@ -1006,6 +990,8 @@
             launcher.style.opacity = '';
             launcher.style.pointerEvents = '';
           }
+          state.sidebarGraph.width(smallWidth).height(smallHeight);
+          applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
           hideBoundlessInspector();
           isGraphAnimating = false;
         };

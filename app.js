@@ -520,7 +520,7 @@
     }
     
     // Generous padding to prevent label clipping and physics jiggle
-    const padding = isExp ? 45 : 38; 
+    const padding = isExp ? 45 : 28; 
     
     const internalW = predictedR * 2 + padding * 2; 
     const internalH = predictedR * 2 + padding * 2;
@@ -528,11 +528,11 @@
     const zoomW = canvasW / internalW;
     const zoomH = canvasH / internalH;
     
-    // In compact small slot, scale framing slightly so nodes comfortably float within the viewport
-    const targetZoom = Math.min(zoomW, zoomH) * (isExp ? 1.0 : 0.88);
+    // Maintain full, lush, prominent node network sizing in compact small slot
+    const targetZoom = Math.min(zoomW, zoomH) * (isExp ? 1.0 : 0.98);
     
     if (graph.zoom && graph.centerAt) {
-      const centerY = isExp ? 0 : -4;
+      const centerY = isExp ? 0 : -6;
       graph.centerAt(0, centerY, duration); 
       graph.zoom(targetZoom, duration);     
     }

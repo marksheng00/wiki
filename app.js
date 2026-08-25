@@ -926,25 +926,14 @@
         hideBoundlessInspector();
         isGraphAnimating = false;
       } else {
-        // Desktop WAAPI 2D Morph
+        // Desktop WAAPI 2D Morph (Seamless Single-Stage Collapse)
         const currentRect = container.getBoundingClientRect();
         const targetSlotRect = slot.getBoundingClientRect();
 
         const smallWidth = targetSlotRect.width || (slot && slot.clientWidth) || 268;
         const smallHeight = targetSlotRect.height || 145;
 
-        if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-60);
-        }
-        const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-        restoreSmallLayout(state.currentEntityId, nodes);
-        state.sidebarGraph.width(smallWidth).height(smallHeight);
-        state.sidebarGraph.graphData({ nodes, links });
-        state.graphNodeMap = nodeMap;
-
-        // Use duration 0 to avoid D3 zoom matrix race condition during WAAPI animation
-        applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
-
+        // 1. Smoothly animate container from current expanded size down to slot size
         const anim = container.animate([
           {
             left: `${currentRect.left}px`,
@@ -964,6 +953,7 @@
           fill: 'forwards'
         });
 
+        // 2. Only resize canvas and restore small layout when the shrinking animation completes
         anim.onfinish = () => {
           anim.cancel();
           container.classList.remove('is-expanded');
@@ -979,7 +969,14 @@
             launcher.style.opacity = '';
             launcher.style.pointerEvents = '';
           }
+          if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
+            state.sidebarGraph.d3Force('charge').strength(-60);
+          }
+          const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
+          restoreSmallLayout(state.currentEntityId, nodes);
           state.sidebarGraph.width(smallWidth).height(smallHeight);
+          state.sidebarGraph.graphData({ nodes, links });
+          state.graphNodeMap = nodeMap;
           applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
           hideBoundlessInspector();
           isGraphAnimating = false;

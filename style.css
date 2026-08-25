@@ -660,7 +660,6 @@ details.toc-cat-details:not([open]) > summary::after {
   padding: 2.5rem 2rem 6rem;
   position: relative;
   z-index: 10;
-  transition: padding 320ms cubic-bezier(0.16, 1, 0.3, 1), max-width 200ms ease;
 }
 
 .wiki-main-article.wide-stage {

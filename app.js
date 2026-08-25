@@ -6,6 +6,10 @@
 (function () {
   'use strict';
 
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
   const state = {
     theme: 'light',
     font: 'sans',
@@ -1344,7 +1348,7 @@
       }
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
     initIcons();
     closeMobileSidebar();
   }

@@ -772,30 +772,28 @@ details.toc-cat-details:not([open]) > summary::after {
   transform: translateX(2px);
 }
 
-/* Entity Editorial Hero Media (Centered, Symmetrical, Zero-Skew) */
+/* Entity Editorial Hero Media (Right-Floating on Desktop, Same as Book Overview) */
 .entity-floating-media {
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto 2.5rem auto;
+  float: right;
+  width: 320px;
+  margin: 0.5rem 0 0 2rem;
   background: transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  display: block;
+  clear: right;
 }
 .entity-media-wrap {
   width: 100%;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   margin-bottom: 0.5rem;
   background: transparent;
-  display: flex;
-  justify-content: center;
+  display: block;
 }
 .entity-floating-media img {
   width: 100%;
-  max-width: 100%;
+  height: 100%;
   aspect-ratio: 3 / 4;
-  max-height: 520px;
+  max-height: 420px;
   object-fit: cover;
   object-position: center 20%;
   display: block;
@@ -804,7 +802,7 @@ details.toc-cat-details:not([open]) > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  margin-top: 0.4rem;
+  margin-top: 0.85rem;
 }
 
 /* Reading Sections */

@@ -392,8 +392,6 @@ svg.lucide, i[data-lucide] {
   background: var(--bg-subtle);
   overflow: hidden;
   cursor: grab;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
 }
 .topology-pure-canvas canvas {
   width: 100% !important;

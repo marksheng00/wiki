@@ -511,7 +511,8 @@
     
     // D3 link distance is 30. Spring force creates a stiff boundary.
     // Slightly relaxed baseline to add a perfect "breathing room" margin and guarantee no clipping.
-    let predictedR = isExp ? 60 * Math.pow(N / 16, 0.36) : 45 * Math.pow(N / 16, 0.36);
+    // 1. Relaxed Physics: Distance matches our new relaxed link configuration
+    let predictedR = isExp ? 65 * Math.pow(N / 16, 0.36) : 45 * Math.pow(N / 16, 0.36);
     
     // BookOverview uses an arbitrary web topology (not a star graph).
     // It naturally stretches out much wider. We apply a 1.7x safety multiplier.
@@ -566,20 +567,20 @@
         .nodeId('id')
         .nodeVal('val')
         .nodeLabel(() => '')
-        .linkCurvature(0.28)
-        .linkWidth((link) => (link.source === state.currentEntityId || link.target === state.currentEntityId || graphState.hoverNode || graphState.focusedNode ? 1.5 : 0.65))
+        .linkCurvature(0.18)
+        .linkWidth((link) => (link.source === state.currentEntityId || link.target === state.currentEntityId || graphState.hoverNode || graphState.focusedNode ? 1.8 : 0.8))
         .linkColor((link) => {
           if (graphState.focusedNode) {
             const fId = graphState.focusedNode.id;
             const isConnected = link.source === fId || link.target === fId || link.source.id === fId || link.target.id === fId;
             if (isConnected) {
-              return isDark ? 'rgba(255,255,255,0.40)' : (isSepia ? 'rgba(45,38,30,0.40)' : 'rgba(0,0,0,0.30)');
+              return isDark ? 'rgba(255,255,255,0.45)' : (isSepia ? 'rgba(45,38,30,0.45)' : 'rgba(0,0,0,0.35)');
             }
             return isDark ? 'rgba(255,255,255,0.02)' : (isSepia ? 'rgba(45,38,30,0.02)' : 'rgba(0,0,0,0.015)');
           }
-          return isDark ? 'rgba(255,255,255,0.12)' : (isSepia ? 'rgba(45,38,30,0.12)' : 'rgba(0,0,0,0.08)');
+          return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
         })
-        .d3VelocityDecay(0.42)
+        .d3VelocityDecay(0.35)
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
@@ -716,11 +717,9 @@
           ctx.restore();
         });
 
-      // Relaxed charge and soft link spring forces for a floaty, relaxed constellation aesthetic
-      Graph.d3Force('charge').strength(isExp ? -130 : -45);
-      if (Graph.d3Force('link')) {
-        Graph.d3Force('link').distance(isExp ? 48 : 36).strength(0.35);
-      }
+      // Keep charge constant so large graphs can expand beautifully and spaciously!
+      Graph.d3Force('charge').strength(isExp ? -140 : -50);
+      Graph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35); // Relax spring tension so it feels less tight
 
       Graph.graphData({ nodes, links });
 
@@ -741,11 +740,9 @@
       // Re-feed strictly 1-degree scoped data into existing instance
       state.sidebarGraph.graphData({ nodes, links });
       
-      // Update charge and link strength for existing graph
-      state.sidebarGraph.d3Force('charge').strength(isExp ? -130 : -45);
-      if (state.sidebarGraph.d3Force('link')) {
-        state.sidebarGraph.d3Force('link').distance(isExp ? 48 : 36).strength(0.35);
-      }
+      // Update charge and relaxed link tension for existing graph
+      state.sidebarGraph.d3Force('charge').strength(isExp ? -140 : -50);
+      state.sidebarGraph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35);
       
       const cvsW = isExp ? expSize.width : (container.clientWidth || 300);
       const cvsH = isExp ? expSize.height : 145;
@@ -842,7 +839,8 @@
 
         state.sidebarGraph.width(window.innerWidth).height(window.innerHeight);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-160);
+          state.sidebarGraph.d3Force('charge').strength(-140);
+          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         state.sidebarGraph.graphData({ nodes, links });
@@ -871,7 +869,8 @@
 
         state.sidebarGraph.width(bigRect.width).height(bigRect.height);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-160);
+          state.sidebarGraph.d3Force('charge').strength(-140);
+          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
 
@@ -941,7 +940,8 @@
         const smallWidth = slot.clientWidth || 268;
         const smallHeight = 145;
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-60);
+          state.sidebarGraph.d3Force('charge').strength(-50);
+          state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         restoreSmallLayout(state.currentEntityId, nodes);
@@ -966,7 +966,8 @@
         const smallHeight = targetSlotRect.height || 145;
 
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-60);
+          state.sidebarGraph.d3Force('charge').strength(-50);
+          state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         restoreSmallLayout(state.currentEntityId, nodes);

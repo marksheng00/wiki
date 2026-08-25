@@ -704,7 +704,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-infobox {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 -0.55rem 2rem;
+  margin: 0.5rem 0 -0.65rem 2rem;
   background: transparent;
   padding: 0;
   border: none;
@@ -714,7 +714,7 @@ details.toc-cat-details:not([open]) > summary::after {
   width: 100%;
   aspect-ratio: 3 / 4.2;
   overflow: hidden;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   background: transparent;
 }
 .infobox-media img {
@@ -754,7 +754,8 @@ details.toc-cat-details:not([open]) > summary::after {
   color: var(--text-primary);
   text-decoration: none;
   line-height: 1;
-  margin-top: 1rem;
+  margin-top: 0.95rem;
+  margin-bottom: 0;
   transition: opacity 160ms ease;
 }
 .infobox-cta-link:hover {
@@ -776,7 +777,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .entity-floating-media {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 -0.55rem 2rem;
+  margin: 0.5rem 0 -0.65rem 2rem;
   background: transparent;
   display: block;
   clear: right;
@@ -785,7 +786,7 @@ details.toc-cat-details:not([open]) > summary::after {
   width: 100%;
   aspect-ratio: 3 / 4.2;
   overflow: hidden;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
   background: transparent;
   display: block;
 }
@@ -808,9 +809,8 @@ details.toc-cat-details:not([open]) > summary::after {
   color: var(--text-primary);
   text-decoration: none;
   line-height: 1;
-  margin-top: 1rem;
+  margin-top: 0.95rem;
   margin-bottom: 0;
-  transition: opacity 160ms ease;
 }
 
 /* Reading Sections */

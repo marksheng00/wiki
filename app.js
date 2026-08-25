@@ -530,12 +530,20 @@
     const container = getEl('canvas-sidebar-graph');
     if (!window.ForceGraph || !container) return;
 
+    const isMobile = window.innerWidth <= 768;
     const isExp = state.isGraphExpanded;
     const expSize = getExpandedGraphSize();
-    const isMobile = window.innerWidth <= 768;
     const slot = getEl('sidebar-graph-slot');
-    const width = isExp ? expSize.width : ((container && container.clientWidth) || (slot ? slot.clientWidth - (isMobile ? 40 : 0) : 268) || 268);
-    const height = isExp ? expSize.height : 145;
+
+    let width, height;
+    if (isMobile) {
+      width = isExp ? window.innerWidth : ((slot ? slot.clientWidth - 40 : 0) || (container && container.clientWidth) || 268);
+      height = isExp ? window.innerHeight : 145;
+    } else {
+      // Desktop
+      width = isExp ? expSize.width : ((slot && slot.clientWidth) || 268);
+      height = isExp ? expSize.height : 145;
+    }
 
     const isDark = state.theme === 'dark';
     const isSepia = state.theme === 'sepia';
@@ -579,11 +587,11 @@
         })
         .onNodeClick((node) => {
           if (!node || !node.id) return;
-          const isMobile = window.innerWidth <= 768;
+          const isMobileDevice = window.innerWidth <= 768;
 
           // Desktop PC Interaction Protocol:
           // Single click on any node opens the article dossier directly!
-          if (!isMobile) {
+          if (!isMobileDevice) {
             if (state.isGraphExpanded) toggleGraphExpand(false);
             clearActiveNav();
             openEntityArticle(node.id);
@@ -613,11 +621,11 @@
           showBoundlessInspector(node);
         })
         .onBackgroundClick(() => {
-          const isMobile = window.innerWidth <= 768;
+          const isMobileDevice = window.innerWidth <= 768;
           if (graphState.focusedNode) {
             graphState.focusedNode = null;
             graphState.hoverNode = null;
-            if (isMobile) hideBoundlessInspector();
+            if (isMobileDevice) hideBoundlessInspector();
             if (state.sidebarGraph && state.sidebarGraph.centerAt) {
               state.sidebarGraph.centerAt(0, 0, 350);
             }
@@ -878,7 +886,8 @@
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
 
-        applyDynamicGeometry(state.sidebarGraph, true, expSize.width, expSize.height, 300, !state.currentEntityId);
+        // Use duration 0 to avoid D3 zoom matrix race condition during WAAPI animation
+        applyDynamicGeometry(state.sidebarGraph, true, expSize.width, expSize.height, 0, !state.currentEntityId);
 
         const anim = container.animate([
           {
@@ -948,7 +957,7 @@
         const currentRect = container.getBoundingClientRect();
         const targetSlotRect = slot.getBoundingClientRect();
 
-        const smallWidth = targetSlotRect.width || 268;
+        const smallWidth = targetSlotRect.width || (slot && slot.clientWidth) || 268;
         const smallHeight = targetSlotRect.height || 145;
 
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
@@ -960,8 +969,8 @@
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
 
-        const containerW = slot.clientWidth || 300;
-        applyDynamicGeometry(state.sidebarGraph, false, containerW, 145, 300, !state.currentEntityId);
+        // Use duration 0 to avoid D3 zoom matrix race condition during WAAPI animation
+        applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
 
         const anim = container.animate([
           {
@@ -1293,8 +1302,9 @@
           state.sidebarGraph.width(expSize.width).height(expSize.height);
           applyDynamicGeometry(state.sidebarGraph, true, expSize.width, expSize.height, 0, !state.currentEntityId);
         } else {
+          const isMobile = window.innerWidth <= 768;
           const slot = getEl('sidebar-graph-slot');
-          const smallW = (slot && slot.clientWidth) || getEl('canvas-sidebar-graph')?.clientWidth || 268;
+          const smallW = isMobile ? ((slot ? slot.clientWidth - 40 : 0) || 268) : ((slot && slot.clientWidth) || 268);
           state.sidebarGraph.width(smallW).height(145);
           applyDynamicGeometry(state.sidebarGraph, false, smallW, 145, 0, !state.currentEntityId);
         }

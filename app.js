@@ -600,6 +600,14 @@
           return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
         })
         .d3VelocityDecay(0.35)
+        .enableZoomInteraction(isExp)
+        .enablePanInteraction(isExp)
+        .onNodeDragEnd((node) => {
+          if (!node.isPrimary) {
+            node.fx = undefined;
+            node.fy = undefined;
+          }
+        })
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
@@ -723,6 +731,39 @@
             ctx.fill();
           }
 
+          // Draw crisp floating label pill below hovered/focused node
+          if ((isHovered || isFocused) && node.label) {
+            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+            const fontSize = Math.max(9, Math.min(13, 11 / scale));
+            ctx.font = `500 ${fontSize}px var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)`;
+            const text = node.label;
+            const textWidth = ctx.measureText(text).width;
+            const padX = 6 / scale;
+            const padY = 3 / scale;
+            const pillW = textWidth + padX * 2;
+            const pillH = fontSize + padY * 2;
+            const pillX = node.x - pillW / 2;
+            const pillY = node.y + radius + 5 / scale;
+
+            ctx.save();
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = isDark ? 'rgba(24, 26, 32, 0.94)' : (isSepia ? 'rgba(238, 230, 215, 0.94)' : 'rgba(255, 255, 255, 0.96)');
+            ctx.beginPath();
+            const r = 3 / scale;
+            if (ctx.roundRect) {
+              ctx.roundRect(pillX, pillY, pillW, pillH, r);
+            } else {
+              ctx.rect(pillX, pillY, pillW, pillH);
+            }
+            ctx.fill();
+
+            ctx.fillStyle = isDark ? '#f4f4f8' : (isSepia ? '#2c251c' : '#111827');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, node.x, pillY + pillH / 2);
+            ctx.restore();
+          }
+
           ctx.restore();
         });
 
@@ -745,6 +786,7 @@
     } else {
       // Synchronize canvas dimensions to prevent stale height/width math
       state.sidebarGraph.width(width).height(height);
+      state.sidebarGraph.enableZoomInteraction(isExp).enablePanInteraction(isExp);
 
       // Re-feed strictly 1-degree scoped data into existing instance
       state.sidebarGraph.graphData({ nodes, links });
@@ -845,6 +887,7 @@
 
         const curW = window.innerWidth;
         const curH = window.innerHeight;
+        state.sidebarGraph.enableZoomInteraction(true).enablePanInteraction(true);
         state.sidebarGraph.width(curW).height(curH);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
           state.sidebarGraph.d3Force('charge').strength(-160);
@@ -878,6 +921,7 @@
         container.style.zIndex = '100';
         container.classList.add('is-expanded');
 
+        state.sidebarGraph.enableZoomInteraction(true).enablePanInteraction(true);
         state.sidebarGraph.width(bigRect.width).height(bigRect.height);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
           state.sidebarGraph.d3Force('charge').strength(-160);
@@ -932,6 +976,7 @@
 
         const smallWidth = (container && container.clientWidth) || (slot ? slot.clientWidth - 40 : 268) || 268;
         const smallHeight = 145;
+        state.sidebarGraph.enableZoomInteraction(false).enablePanInteraction(false);
         state.sidebarGraph.width(smallWidth).height(smallHeight);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
           state.sidebarGraph.d3Force('charge').strength(-60);
@@ -997,6 +1042,7 @@
           if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
             state.sidebarGraph.d3Force('charge').strength(-60);
           }
+          state.sidebarGraph.enableZoomInteraction(false).enablePanInteraction(false);
           state.sidebarGraph.width(smallWidth).height(smallHeight);
           applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
           hideBoundlessInspector();

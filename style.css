@@ -704,7 +704,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-infobox {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 0 2rem;
+  margin: 0.5rem 0 -0.55rem 2rem;
   background: transparent;
   padding: 0;
   border: none;

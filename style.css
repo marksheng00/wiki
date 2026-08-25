@@ -650,15 +650,16 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-main-article {
   margin-left: 320px;
   width: calc(100% - 320px);
+  min-height: calc(100vh - 52px);
   box-sizing: border-box;
-  padding: 2.5rem calc(max(2.5rem, (100% - 880px) / 2)) 6rem;
+  padding: 2.5rem 3rem 6rem 3rem;
   transition: margin-left 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .wiki-sidebar.collapsed ~ .wiki-main-article {
   margin-left: 0;
   width: 100%;
-  padding: 2.5rem calc(max(3.5rem, (100% - 880px) / 2)) 6rem;
+  padding: 2.5rem 3rem 6rem 3rem;
 }
 
 .wiki-main-article.wide-stage {
@@ -666,12 +667,13 @@ details.toc-cat-details:not([open]) > summary::after {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 1.5rem calc(max(2rem, (100% - 980px) / 2));
+  padding: 1.5rem 2.5rem;
 }
 
 .wiki-article-view {
   display: none;
-  max-width: 880px;
+  width: 100%;
+  max-width: 840px;
   margin: 0 auto;
 }
 .wiki-article-view.active {
@@ -1185,6 +1187,7 @@ details.toc-cat-details:not([open]) > summary::after {
   }
   .wiki-main-article {
     margin-left: 300px;
+    width: calc(100% - 300px);
     padding: 2rem 2.5rem 8rem;
   }
 }

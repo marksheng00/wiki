@@ -547,7 +547,9 @@
 
     const isExp = state.isGraphExpanded;
     const expSize = getExpandedGraphSize();
-    const width = isExp ? expSize.width : (container.clientWidth || 300);
+    const isMobile = window.innerWidth <= 768;
+    const slot = getEl('sidebar-graph-slot');
+    const width = isExp ? expSize.width : ((container && container.clientWidth) || (slot ? slot.clientWidth - (isMobile ? 40 : 0) : 268) || 268);
     const height = isExp ? expSize.height : 145;
 
     const isDark = state.theme === 'dark';
@@ -619,9 +621,9 @@
           graphState.focusedNode = node;
           graphState.hoverNode = node;
           if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-            // Offset camera down so node stays in upper half, leaving spacious room for title below
-            const offsetY = state.isGraphExpanded ? 32 : 0;
-            state.sidebarGraph.centerAt(node.x, node.y - offsetY, 350);
+            // Offset camera so node stays safely in upper half, leaving spacious room for title below
+            const offsetY = state.isGraphExpanded ? 36 : 0;
+            state.sidebarGraph.centerAt(node.x, node.y + offsetY, 350);
           }
           showBoundlessInspector(node);
         })
@@ -725,10 +727,7 @@
 
       Graph.graphData({ nodes, links });
 
-      const slot = getEl('sidebar-graph-slot');
-      const cvsW = isExp ? expSize.width : ((slot && slot.clientWidth) || container.clientWidth || 300);
-      const cvsH = isExp ? expSize.height : 145;
-      applyDynamicGeometry(Graph, isExp, cvsW, cvsH, 0, !state.currentEntityId);
+      applyDynamicGeometry(Graph, isExp, width, height, 0, !state.currentEntityId);
 
       if (!isExp) {
         setTimeout(() => {
@@ -740,16 +739,16 @@
       state.sidebarGraph = Graph;
       state.graphNodeMap = nodeMap;
     } else {
+      // Synchronize canvas dimensions to prevent stale height/width math
+      state.sidebarGraph.width(width).height(height);
+
       // Re-feed strictly 1-degree scoped data into existing instance
       state.sidebarGraph.graphData({ nodes, links });
       
       // Update charge for existing graph
       state.sidebarGraph.d3Force('charge').strength(isExp ? -160 : -60);
       
-      const slot = getEl('sidebar-graph-slot');
-      const cvsW = isExp ? expSize.width : ((slot && slot.clientWidth) || container.clientWidth || 300);
-      const cvsH = isExp ? expSize.height : 145;
-      applyDynamicGeometry(state.sidebarGraph, isExp, cvsW, cvsH, 0, !state.currentEntityId);
+      applyDynamicGeometry(state.sidebarGraph, isExp, width, height, 0, !state.currentEntityId);
 
       state.graphNodeMap = nodeMap;
       if (!isExp) {
@@ -835,19 +834,21 @@
         container.style.top = '0';
         container.style.left = '0';
         container.style.width = '100vw';
-        container.style.height = '100vh';
+        container.style.height = '100dvh';
         container.style.zIndex = '500';
         container.style.margin = '0';
         container.style.background = 'var(--bg-page)';
 
-        state.sidebarGraph.width(window.innerWidth).height(window.innerHeight);
+        const curW = window.innerWidth;
+        const curH = window.innerHeight;
+        state.sidebarGraph.width(curW).height(curH);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
           state.sidebarGraph.d3Force('charge').strength(-160);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
-        applyDynamicGeometry(state.sidebarGraph, true, window.innerWidth, window.innerHeight, 0, !state.currentEntityId);
+        applyDynamicGeometry(state.sidebarGraph, true, curW, curH, 0, !state.currentEntityId);
 
         isGraphAnimating = false;
       } else {
@@ -938,14 +939,14 @@
         container.style.zIndex = '';
         container.style.background = '';
 
-        const smallWidth = slot.clientWidth || 268;
+        const smallWidth = (container && container.clientWidth) || (slot ? slot.clientWidth - 40 : 268) || 268;
         const smallHeight = 145;
+        state.sidebarGraph.width(smallWidth).height(smallHeight);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
           state.sidebarGraph.d3Force('charge').strength(-60);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         restoreSmallLayout(state.currentEntityId, nodes);
-        state.sidebarGraph.width(smallWidth).height(smallHeight);
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
         applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
@@ -1375,6 +1376,10 @@
       activeTitle.classList.remove('is-graph-hovering');
     }
 
+    // Reset sidebar scroll top to strictly prevent slot from shifting upwards
+    const stickyWrap = document.querySelector('.wiki-sidebar-sticky');
+    if (stickyWrap) stickyWrap.scrollTop = 0;
+
     // Highlight and scroll matching TOC link
     document.querySelectorAll('.toc-item').forEach((i) => i.classList.remove('active'));
     const tocLink = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
@@ -1382,7 +1387,10 @@
       tocLink.classList.add('active');
       const parentDetails = tocLink.closest('details');
       if (parentDetails) parentDetails.open = true;
-      tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const sidebar = getEl('wiki-sidebar');
+      if (sidebar && sidebar.classList.contains('is-open')) {
+        tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
 
     initBalancedTopologyGraph(entityId);

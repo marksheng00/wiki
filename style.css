@@ -1344,17 +1344,16 @@ details.toc-cat-details:not([open]) > summary::after {
     z-index: 80;
     width: 42px;
     height: 42px;
-    border-radius: 50%;
-    background: var(--bg-surface);
+    background: transparent !important;
     color: var(--text-primary);
-    border: none;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0.9;
+    opacity: 0.85;
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
   }
   .btn-mobile-graph-launcher:active {
@@ -1416,7 +1415,7 @@ details.toc-cat-details:not([open]) > summary::after {
     background: var(--bg-page);
   }
 
-  /* Close Button for Expanded Fullscreen Graph: Positioned at Bottom-Right matching Quick Graph Launcher */
+  /* Close Button for Expanded Fullscreen Graph: 100% Zero-Border Pure Icon matching Launcher */
   .sidebar-graph-container.is-expanded .btn-mobile-graph-close {
     display: flex;
     position: fixed;
@@ -1425,17 +1424,16 @@ details.toc-cat-details:not([open]) > summary::after {
     z-index: 900;
     width: 42px;
     height: 42px;
-    border-radius: 50%;
-    background: var(--bg-surface);
+    background: transparent !important;
     color: var(--text-primary);
-    border: none;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0.9;
+    opacity: 0.85;
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
   }
   .sidebar-graph-container.is-expanded .btn-mobile-graph-close:active {

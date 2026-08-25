@@ -498,18 +498,12 @@
     const nodes = graph.graphData().nodes;
     const N = (nodes && nodes.length) || 1;
     
-    // D3 link distance is 30. Spring force creates a stiff boundary.
-    // Slightly relaxed baseline to add a perfect "breathing room" margin and guarantee no clipping.
-    let predictedR = isExp ? 60 * Math.pow(N / 16, 0.36) : 45 * Math.pow(N / 16, 0.36);
-    
-    // BookOverview uses an arbitrary web topology (not a star graph).
-    // It naturally stretches out much wider. We apply a 1.7x safety multiplier.
+    // Unified proportional coordinate bounding box
+    let predictedR = 52 * Math.pow(N / 16, 0.36);
     if (isBookOverview) {
       predictedR *= 1.7;
     }
-    
-    // Generous padding to prevent label clipping and physics jiggle
-    const padding = isExp ? 45 : 25; 
+    const padding = 35; 
     
     const internalW = predictedR * 2 + padding * 2; 
     const internalH = predictedR * 2 + padding * 2;
@@ -517,7 +511,6 @@
     const zoomW = canvasW / internalW;
     const zoomH = canvasH / internalH;
     
-    // This perfectly framing zoom will now optimally utilize exactly 80-85% of the screen!
     const targetZoom = Math.min(zoomW, zoomH);
     
     if (graph.zoom && graph.centerAt) {
@@ -953,7 +946,7 @@
           fill: 'forwards'
         });
 
-        // 2. Only resize canvas and restore small layout when the shrinking animation completes
+        // 2. Only resize canvas buffer when the shrinking animation completes
         anim.onfinish = () => {
           anim.cancel();
           container.classList.remove('is-expanded');
@@ -972,11 +965,7 @@
           if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
             state.sidebarGraph.d3Force('charge').strength(-60);
           }
-          const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-          restoreSmallLayout(state.currentEntityId, nodes);
           state.sidebarGraph.width(smallWidth).height(smallHeight);
-          state.sidebarGraph.graphData({ nodes, links });
-          state.graphNodeMap = nodeMap;
           applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
           hideBoundlessInspector();
           isGraphAnimating = false;

@@ -8,6 +8,7 @@ foreach ($p in $portsToTry) {
     try {
         $listener.Prefixes.Clear()
         $listener.Prefixes.Add("http://localhost:$p/")
+        $listener.Prefixes.Add("http://127.0.0.1:$p/")
         $listener.Start()
         $port = $p
         Write-Output "HTTP Server successfully started at http://localhost:$port/"
@@ -18,7 +19,7 @@ foreach ($p in $portsToTry) {
 }
 
 if (-not $listener.IsListening) {
-    Write-Error "Failed to bind to any local port."
+    Write-Error "Failed to bind to any port."
     exit 1
 }
 

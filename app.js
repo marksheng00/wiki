@@ -632,27 +632,17 @@
           }
         })
         .nodePointerAreaPaint((node, color, ctx, globalScale) => {
-          const isFocused = graphState.focusedNode === node;
-          const isHovered = graphState.hoverNode === node || isFocused;
-          let radius = node.val || 5;
-          if (isFocused) {
-            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-            const minCanvasR = 42 / scale; // Hero screen radius: 42px (84px diameter)
-            const maxCanvasR = 70 / scale; // Hero screen ceiling: 70px (140px diameter)
+          const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+          const minHitR = (state.isGraphExpanded ? 24 : 16) / scale;
+          let radius = Math.max((node.val || 5) * 1.5, minHitR);
+          if (graphState.focusedNode === node) {
+            const minCanvasR = 42 / scale;
+            const maxCanvasR = 70 / scale;
             radius = Math.min(maxCanvasR, Math.max((node.val || 5) * 3.5, minCanvasR));
-          } else if (isHovered) {
-            if (state.isGraphExpanded) {
-              const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-              const minCanvasR = 18 / scale; // Floor: at least 36px diameter on screen
-              const maxCanvasR = 32 / scale; // Ceiling: at most 64px diameter on screen
-              radius = Math.min(maxCanvasR, Math.max(radius * 1.8, minCanvasR));
-            } else {
-              radius = radius * 1.414;
-            }
           }
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, radius + 6, 0, 2 * Math.PI, false);
+          ctx.arc(node.x, node.y, radius + 8, 0, 2 * Math.PI, false);
           ctx.fill();
         })
         .nodeCanvasObject((node, ctx, globalScale) => {

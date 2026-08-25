@@ -566,20 +566,20 @@
         .nodeId('id')
         .nodeVal('val')
         .nodeLabel(() => '')
-        .linkCurvature(0.18)
-        .linkWidth((link) => (link.source === state.currentEntityId || link.target === state.currentEntityId || graphState.hoverNode || graphState.focusedNode ? 1.8 : 0.8))
+        .linkCurvature(0.28)
+        .linkWidth((link) => (link.source === state.currentEntityId || link.target === state.currentEntityId || graphState.hoverNode || graphState.focusedNode ? 1.5 : 0.65))
         .linkColor((link) => {
           if (graphState.focusedNode) {
             const fId = graphState.focusedNode.id;
             const isConnected = link.source === fId || link.target === fId || link.source.id === fId || link.target.id === fId;
             if (isConnected) {
-              return isDark ? 'rgba(255,255,255,0.45)' : (isSepia ? 'rgba(45,38,30,0.45)' : 'rgba(0,0,0,0.35)');
+              return isDark ? 'rgba(255,255,255,0.40)' : (isSepia ? 'rgba(45,38,30,0.40)' : 'rgba(0,0,0,0.30)');
             }
             return isDark ? 'rgba(255,255,255,0.02)' : (isSepia ? 'rgba(45,38,30,0.02)' : 'rgba(0,0,0,0.015)');
           }
-          return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
+          return isDark ? 'rgba(255,255,255,0.12)' : (isSepia ? 'rgba(45,38,30,0.12)' : 'rgba(0,0,0,0.08)');
         })
-        .d3VelocityDecay(0.35)
+        .d3VelocityDecay(0.42)
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
@@ -716,8 +716,11 @@
           ctx.restore();
         });
 
-      // Keep charge constant so large graphs can expand beautifully and spaciously!
-      Graph.d3Force('charge').strength(isExp ? -160 : -60);
+      // Relaxed charge and soft link spring forces for a floaty, relaxed constellation aesthetic
+      Graph.d3Force('charge').strength(isExp ? -130 : -45);
+      if (Graph.d3Force('link')) {
+        Graph.d3Force('link').distance(isExp ? 48 : 36).strength(0.35);
+      }
 
       Graph.graphData({ nodes, links });
 
@@ -738,8 +741,11 @@
       // Re-feed strictly 1-degree scoped data into existing instance
       state.sidebarGraph.graphData({ nodes, links });
       
-      // Update charge for existing graph
-      state.sidebarGraph.d3Force('charge').strength(isExp ? -160 : -60);
+      // Update charge and link strength for existing graph
+      state.sidebarGraph.d3Force('charge').strength(isExp ? -130 : -45);
+      if (state.sidebarGraph.d3Force('link')) {
+        state.sidebarGraph.d3Force('link').distance(isExp ? 48 : 36).strength(0.35);
+      }
       
       const cvsW = isExp ? expSize.width : (container.clientWidth || 300);
       const cvsH = isExp ? expSize.height : 145;

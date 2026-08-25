@@ -837,6 +837,9 @@
           height: expSize.height
         };
 
+        // Teleport container to document.body so its coordinate system is 100% viewport-aligned
+        document.body.appendChild(container);
+
         // 1. Establish full expanded container bounds immediately so canvas clientWidth is accurate
         container.style.position = 'fixed';
         container.style.left = `${bigRect.left}px`;
@@ -949,6 +952,7 @@
         // 2. Only resize canvas buffer when the shrinking animation completes
         anim.onfinish = () => {
           anim.cancel();
+          slot.appendChild(container);
           container.classList.remove('is-expanded');
           container.style.position = '';
           container.style.left = '';

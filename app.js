@@ -583,8 +583,20 @@
         })
         .onNodeClick((node) => {
           if (!node || !node.id) return;
+          const isMobile = window.innerWidth <= 768;
+
+          // Desktop PC Interaction Protocol:
+          // Single click on any node opens the article dossier directly!
+          if (!isMobile) {
+            if (state.isGraphExpanded) toggleGraphExpand(false);
+            clearActiveNav();
+            openEntityArticle(node.id);
+            return;
+          }
+
+          // Mobile Interaction Protocol:
           if (graphState.focusedNode === node) {
-            // Second click on focused node: navigate directly to article
+            // Second tap on focused node: navigate directly to article
             hideBoundlessInspector();
             graphState.focusedNode = null;
             if (state.isGraphExpanded) toggleGraphExpand(false);
@@ -594,7 +606,7 @@
             return;
           }
 
-          // First click: Spotlight Focus + Boundless Text Unfold
+          // Mobile First tap: Spotlight Focus + Boundless Text Unfold in bottom tray
           graphState.focusedNode = node;
           graphState.hoverNode = node;
           if (state.sidebarGraph && state.sidebarGraph.centerAt) {
@@ -605,10 +617,11 @@
           showBoundlessInspector(node);
         })
         .onBackgroundClick(() => {
+          const isMobile = window.innerWidth <= 768;
           if (graphState.focusedNode) {
             graphState.focusedNode = null;
             graphState.hoverNode = null;
-            hideBoundlessInspector();
+            if (isMobile) hideBoundlessInspector();
             if (state.sidebarGraph && state.sidebarGraph.centerAt) {
               state.sidebarGraph.centerAt(0, 0, 350);
             }
@@ -1046,6 +1059,10 @@
    * 3. Bottom 36% Hero Action Stage: Dedicated Touch Capture for Swipe-Up to Read & Tap to Read
    */
   function initMobileGestures() {
+    // Strictly mobile-only gesture engine (<= 768px)
+    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1080);
+    if (!isMobileDevice) return;
+
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
@@ -1053,7 +1070,7 @@
 
     // 1. Global Horizontal Swipe (Main Reading Area Left -> Right)
     document.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) return;
+      if (window.innerWidth > 768 || e.touches.length !== 1) return;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();

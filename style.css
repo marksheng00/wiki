@@ -676,43 +676,45 @@ details.toc-cat-details:not([open]) > summary::after {
   display: block;
 }
 
-/* Masthead Header: Left-Aligned Editorial Title on Desktop */
+/* Masthead Header */
 .article-masthead {
-  margin-bottom: 2rem;
-  text-align: left;
-  display: block;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .article-h1 {
   font-family: var(--font-serif);
-  font-size: 2.85rem;
+  font-size: 3rem;
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.12;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  text-align: left;
+  text-align: center;
   transition: color 150ms ease, opacity 150ms ease;
 }
 .article-h1.is-graph-hovering {
   color: var(--accent);
 }
 
-/* Pure Floating Infobox (Right-Floating on Desktop) */
+/* Pure Floating Infobox (100% Zero-Box, Transparent Canvas) */
 .wiki-infobox {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 0.95rem 2.5rem;
+  margin: 0.5rem 0 0 2rem;
   background: transparent;
   padding: 0;
   border: none;
   font-family: var(--font-sans);
-  clear: right;
 }
 .infobox-media {
   width: 100%;
   aspect-ratio: 3 / 4.2;
   overflow: hidden;
-  margin-bottom: 0.95rem;
+  margin-bottom: 1.25rem;
   background: transparent;
 }
 .infobox-media img {
@@ -724,14 +726,14 @@ details.toc-cat-details:not([open]) > summary::after {
 .infobox-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.95rem;
+  gap: 0.6rem;
   font-size: 0.88rem;
   margin-bottom: 0;
 }
 .infobox-meta-row {
   display: flex;
   justify-content: space-between;
-  padding: 0;
+  padding: 0.15rem 0;
   border: none;
 }
 .infobox-meta-row span {
@@ -752,8 +754,7 @@ details.toc-cat-details:not([open]) > summary::after {
   color: var(--text-primary);
   text-decoration: none;
   line-height: 1;
-  margin-top: 0.95rem;
-  margin-bottom: 0;
+  margin-top: 1rem;
   transition: opacity 160ms ease;
 }
 .infobox-cta-link:hover {
@@ -771,28 +772,30 @@ details.toc-cat-details:not([open]) > summary::after {
   transform: translateX(2px);
 }
 
-/* Entity Editorial Hero Media (Right-Floating on Desktop) */
+/* Entity Editorial Hero Media (Centered, Symmetrical, Zero-Skew) */
 .entity-floating-media {
-  float: right;
-  width: 320px;
-  margin: 0.5rem 0 0.95rem 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 2.5rem auto;
   background: transparent;
-  display: block;
-  clear: right;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 .entity-media-wrap {
   width: 100%;
-  aspect-ratio: 3 / 4;
   overflow: hidden;
-  margin-bottom: 0.95rem;
+  margin-bottom: 0.5rem;
   background: transparent;
-  display: block;
+  display: flex;
+  justify-content: center;
 }
 .entity-floating-media img {
   width: 100%;
-  height: 100%;
+  max-width: 100%;
   aspect-ratio: 3 / 4;
-  max-height: 420px;
+  max-height: 520px;
   object-fit: cover;
   object-position: center 20%;
   display: block;
@@ -801,20 +804,12 @@ details.toc-cat-details:not([open]) > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  text-decoration: none;
-  line-height: 1;
-  margin-top: 0.95rem;
-  margin-bottom: 0;
+  margin-top: 0.4rem;
 }
 
 /* Reading Sections */
 .reading-section {
-  margin-bottom: 2rem;
+  margin-bottom: 3.5rem;
 }
 .reading-section h2 {
   font-family: var(--font-serif);
@@ -822,14 +817,14 @@ details.toc-cat-details:not([open]) > summary::after {
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .prose p {
   color: var(--text-primary);
   font-size: 1.12rem;
   line-height: 1.85;
-  margin-bottom: 1.15rem;
+  margin-bottom: 1.35rem;
   text-align: justify;
   /* Museum-grade Micro-typography */
   text-justify: inter-word;
@@ -873,24 +868,20 @@ details.toc-cat-details:not([open]) > summary::after {
   line-height: 1.85;
   color: var(--text-primary);
 }
-.markdown-prose > *:first-child,
-.prose > *:first-child {
-  margin-top: 0 !important;
-}
 .markdown-prose h2 {
   font-family: var(--font-serif);
   font-size: 1.6rem;
   font-weight: 500;
-  margin: 1.85rem 0 0.65rem;
+  margin: 2.25rem 0 0.85rem;
 }
 .markdown-prose h3 {
   font-size: 1.15rem;
   font-weight: 600;
-  margin: 1.35rem 0 0.35rem;
+  margin: 1.5rem 0 0.45rem;
   font-family: var(--font-sans);
 }
 .markdown-prose p {
-  margin-bottom: 1.15rem;
+  margin-bottom: 1.35rem;
 }
 .markdown-prose blockquote {
   padding: 0.5rem 1.5rem;

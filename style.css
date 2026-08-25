@@ -1416,30 +1416,32 @@ details.toc-cat-details:not([open]) > summary::after {
     background: var(--bg-page);
   }
 
-  /* Minimalist Pure X Close Button for Expanded Graph: 100% Zero-Border, Zero-Background */
+  /* Close Button for Expanded Fullscreen Graph: Positioned at Bottom-Right matching Quick Graph Launcher */
   .sidebar-graph-container.is-expanded .btn-mobile-graph-close {
     display: flex;
-    position: absolute;
-    top: calc(0.75rem + env(safe-area-inset-top));
+    position: fixed;
+    bottom: calc(1.25rem + env(safe-area-inset-bottom));
     right: 1.25rem;
-    z-index: 10;
-    width: 32px;
-    height: 32px;
-    background: transparent;
-    color: var(--text-secondary);
+    z-index: 900;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--text-primary);
     border: none;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: color 150ms ease;
+    opacity: 0.9;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
   }
-  .sidebar-graph-container.is-expanded .btn-mobile-graph-close:hover,
   .sidebar-graph-container.is-expanded .btn-mobile-graph-close:active {
-    color: var(--text-primary);
-    background: transparent;
+    transform: scale(0.92);
+    color: var(--accent);
+    opacity: 1;
   }
 
   /* StoryFlow rows switch to clean mobile cards */

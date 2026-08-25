@@ -468,6 +468,10 @@ svg.lucide, i[data-lucide] {
   display: none;
 }
 
+.btn-mobile-graph-close {
+  display: none;
+}
+
 /* 2. Navigation Hub */
 .wiki-nav-hub {
   flex: 1;

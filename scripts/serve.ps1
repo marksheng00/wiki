@@ -61,7 +61,9 @@ try {
 
             $response.ContentType = $mime
             $response.AddHeader("Access-Control-Allow-Origin", "*")
-            $response.AddHeader("Cache-Control", "no-cache")
+            $response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            $response.AddHeader("Pragma", "no-cache")
+            $response.AddHeader("Expires", "0")
 
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
             $response.ContentLength64 = $bytes.Length

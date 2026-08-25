@@ -399,6 +399,19 @@
           links.push({ source: primaryRaw.id, target: n.id });
         }
       });
+
+      // Pre-position neighbor nodes evenly in a balanced circle around (0, 0)
+      // to eliminate explosive origin repulsion and visual jitter on page navigation
+      const neighborNodes = nodes.filter((n) => n.id !== primaryRaw.id);
+      const totalNeighbors = neighborNodes.length;
+      neighborNodes.forEach((n, idx) => {
+        const angle = (2 * Math.PI * idx) / (totalNeighbors || 1);
+        const initR = 36;
+        n.x = Math.cos(angle) * initR;
+        n.y = Math.sin(angle) * initR;
+        n.vx = 0;
+        n.vy = 0;
+      });
     } else {
       // Default Global Overview Backbone (~16 nodes) when on Book Overview
       const priorityCategories = {
@@ -430,6 +443,19 @@
               links.push({ source: n.id, target: tId });
             }
           });
+        }
+      });
+
+      // Pre-position overview nodes in a circle
+      const totalOverview = nodes.length;
+      nodes.forEach((n, idx) => {
+        if (!n.isPrimary) {
+          const angle = (2 * Math.PI * idx) / (totalOverview || 1);
+          const initR = 50;
+          n.x = Math.cos(angle) * initR;
+          n.y = Math.sin(angle) * initR;
+          n.vx = 0;
+          n.vy = 0;
         }
       });
     }
@@ -554,6 +580,8 @@
         .width(width)
         .height(height)
         .nodeRelSize(25) // Fix: Prevent nodes from disappearing before hitting the viewport edge by expanding the internal culling radius
+        .warmupTicks(25) // Fix: Settle physics synchronously before first frame to eliminate page-switch visual flash
+        .cooldownTicks(60)
         .backgroundColor('rgba(0,0,0,0)')
         .nodeId('id')
         .nodeVal('val')

@@ -1357,6 +1357,11 @@
   function openEntityArticle(entityId) {
     state.currentEntityId = entityId;
 
+    // Reset global graph state to prevent ghost/orphaned nodes from dimming the new graph
+    graphState.focusedNode = null;
+    graphState.hoverNode = null;
+    hideBoundlessInspector();
+
     // Reset title hover caches
     const activeTitle = getActiveTitleElement();
     if (activeTitle) {

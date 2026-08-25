@@ -399,19 +399,6 @@
           links.push({ source: primaryRaw.id, target: n.id });
         }
       });
-
-      // Pre-position neighbor nodes evenly in a balanced circle around (0, 0)
-      // to eliminate explosive origin repulsion and visual jitter on page navigation
-      const neighborNodes = nodes.filter((n) => n.id !== primaryRaw.id);
-      const totalNeighbors = neighborNodes.length;
-      neighborNodes.forEach((n, idx) => {
-        const angle = (2 * Math.PI * idx) / (totalNeighbors || 1);
-        const initR = 36;
-        n.x = Math.cos(angle) * initR;
-        n.y = Math.sin(angle) * initR;
-        n.vx = 0;
-        n.vy = 0;
-      });
     } else {
       // Default Global Overview Backbone (~16 nodes) when on Book Overview
       const priorityCategories = {
@@ -445,19 +432,6 @@
           });
         }
       });
-
-      // Pre-position overview nodes in a circle
-      const totalOverview = nodes.length;
-      nodes.forEach((n, idx) => {
-        if (!n.isPrimary) {
-          const angle = (2 * Math.PI * idx) / (totalOverview || 1);
-          const initR = 50;
-          n.x = Math.cos(angle) * initR;
-          n.y = Math.sin(angle) * initR;
-          n.vx = 0;
-          n.vy = 0;
-        }
-      });
     }
 
     return { nodes, links, nodeMap };
@@ -480,14 +454,10 @@
       type: category,
       imgSrc: localImg,
       isPrimary: !!isPrimary,
-      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, (raw.targets && raw.targets.length ? raw.targets.length : 1) * 0.5 + 4)),
-      fx: fx !== undefined ? fx : undefined,
-      fy: fy !== undefined ? fy : undefined,
-      x: undefined,
-      y: undefined,
-      vx: undefined,
-      vy: undefined
+      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, (raw.targets && raw.targets.length ? raw.targets.length : 1) * 0.5 + 4))
     };
+    if (fx !== undefined) nodeObj.fx = fx;
+    if (fy !== undefined) nodeObj.fy = fy;
     return nodeObj;
   }
 
@@ -580,8 +550,6 @@
         .width(width)
         .height(height)
         .nodeRelSize(25) // Fix: Prevent nodes from disappearing before hitting the viewport edge by expanding the internal culling radius
-        .warmupTicks(25) // Fix: Settle physics synchronously before first frame to eliminate page-switch visual flash
-        .cooldownTicks(60)
         .backgroundColor('rgba(0,0,0,0)')
         .nodeId('id')
         .nodeVal('val')
@@ -599,15 +567,7 @@
           }
           return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
         })
-        .d3VelocityDecay(0.35)
-        .enableZoomInteraction(isExp)
-        .enablePanInteraction(isExp)
-        .onNodeDragEnd((node) => {
-          if (!node.isPrimary) {
-            node.fx = undefined;
-            node.fy = undefined;
-          }
-        })
+        .d3VelocityDecay(0.30)
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
@@ -731,114 +691,35 @@
             ctx.fill();
           }
 
-          // Draw crisp floating label pill below hovered/focused node
-          if ((isHovered || isFocused) && node.label) {
-            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-            const fontSize = Math.max(9, Math.min(13, 11 / scale));
-            ctx.font = `500 ${fontSize}px var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)`;
-            const text = node.label;
-            const textWidth = ctx.measureText(text).width;
-            const padX = 6 / scale;
-            const padY = 3 / scale;
-            const pillW = textWidth + padX * 2;
-            const pillH = fontSize + padY * 2;
-            const pillX = node.x - pillW / 2;
-            const pillY = node.y + radius + 5 / scale;
-
-            ctx.save();
-            ctx.globalAlpha = 0.95;
-            ctx.fillStyle = isDark ? 'rgba(24, 26, 32, 0.94)' : (isSepia ? 'rgba(238, 230, 215, 0.94)' : 'rgba(255, 255, 255, 0.96)');
-            ctx.beginPath();
-            const r = 3 / scale;
-            if (ctx.roundRect) {
-              ctx.roundRect(pillX, pillY, pillW, pillH, r);
-            } else {
-              ctx.rect(pillX, pillY, pillW, pillH);
-            }
-            ctx.fill();
-
-            ctx.fillStyle = isDark ? '#f4f4f8' : (isSepia ? '#2c251c' : '#111827');
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, node.x, pillY + pillH / 2);
-            ctx.restore();
-          }
-
           ctx.restore();
         });
 
-      // Keep charge constant so large graphs can expand beautifully and spaciously!
-      Graph.d3Force('charge').strength(isExp ? -160 : -60);
+      // Harmonic jelly spring physics and organic repulsion
+      Graph.d3Force('charge').strength(isExp ? -140 : -50);
+      Graph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35);
 
       Graph.graphData({ nodes, links });
 
       applyDynamicGeometry(Graph, isExp, width, height, 0, !state.currentEntityId);
-
-      if (!isExp) {
-        setTimeout(() => {
-          const data = Graph.graphData();
-          if (data && data.nodes) cacheSmallLayout(focusEntityId || state.currentEntityId, data.nodes);
-        }, 300);
-      }
 
       state.sidebarGraph = Graph;
       state.graphNodeMap = nodeMap;
     } else {
       // Synchronize canvas dimensions to prevent stale height/width math
       state.sidebarGraph.width(width).height(height);
-      state.sidebarGraph.enableZoomInteraction(isExp).enablePanInteraction(isExp);
 
-      // Re-feed strictly 1-degree scoped data into existing instance
+      // Re-feed data: ForceGraph automatically preserves existing node positions & velocities for buttery morphing!
+      state.sidebarGraph.d3Force('charge').strength(isExp ? -140 : -50);
+      state.sidebarGraph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35);
+
       state.sidebarGraph.graphData({ nodes, links });
-      
-      // Update charge for existing graph
-      state.sidebarGraph.d3Force('charge').strength(isExp ? -160 : -60);
       
       applyDynamicGeometry(state.sidebarGraph, isExp, width, height, 0, !state.currentEntityId);
 
       state.graphNodeMap = nodeMap;
-      if (!isExp) {
-        setTimeout(() => {
-          const data = state.sidebarGraph ? state.sidebarGraph.graphData() : null;
-          if (data && data.nodes) cacheSmallLayout(focusEntityId || state.currentEntityId, data.nodes);
-        }, 300);
-      }
     }
 
     updateGraphHUD(null);
-  }
-
-  const smallLayoutCache = new Map();
-
-  function cacheSmallLayout(entityId, nodes) {
-    if (!nodes || !nodes.length) return;
-    const posMap = new Map();
-    nodes.forEach((n) => {
-      if (typeof n.x === 'number' && !isNaN(n.x) && typeof n.y === 'number' && !isNaN(n.y)) {
-        posMap.set(n.id, { x: n.x, y: n.y });
-      }
-    });
-    if (posMap.size > 0) {
-      smallLayoutCache.set(entityId || '__default__', posMap);
-    }
-  }
-
-  function restoreSmallLayout(entityId, nodes) {
-    const key = entityId || '__default__';
-    if (!smallLayoutCache.has(key)) return false;
-    const posMap = smallLayoutCache.get(key);
-    let count = 0;
-    nodes.forEach((n) => {
-      if (posMap.has(n.id)) {
-        const p = posMap.get(n.id);
-        n.x = p.x;
-        n.y = p.y;
-        n.vx = 0;
-        n.vy = 0;
-        count++;
-      }
-    });
-    return count > 0;
   }
 
   let isGraphAnimating = false;
@@ -859,11 +740,6 @@
 
     if (state.isGraphExpanded) {
       // 1. SMALL -> BIG
-      const currentSmallData = state.sidebarGraph.graphData();
-      if (currentSmallData && currentSmallData.nodes) {
-        cacheSmallLayout(state.currentEntityId, currentSmallData.nodes);
-      }
-
       // Hide launcher FAB during expansion
       const launcher = getEl('btn-mobile-graph-launcher');
       if (launcher) {
@@ -887,10 +763,10 @@
 
         const curW = window.innerWidth;
         const curH = window.innerHeight;
-        state.sidebarGraph.enableZoomInteraction(true).enablePanInteraction(true);
         state.sidebarGraph.width(curW).height(curH);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-160);
+          state.sidebarGraph.d3Force('charge').strength(-140);
+          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         state.sidebarGraph.graphData({ nodes, links });
@@ -921,10 +797,10 @@
         container.style.zIndex = '100';
         container.classList.add('is-expanded');
 
-        state.sidebarGraph.enableZoomInteraction(true).enablePanInteraction(true);
         state.sidebarGraph.width(bigRect.width).height(bigRect.height);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-160);
+          state.sidebarGraph.d3Force('charge').strength(-140);
+          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
         state.sidebarGraph.graphData({ nodes, links });
@@ -976,13 +852,12 @@
 
         const smallWidth = (container && container.clientWidth) || (slot ? slot.clientWidth - 40 : 268) || 268;
         const smallHeight = 145;
-        state.sidebarGraph.enableZoomInteraction(false).enablePanInteraction(false);
         state.sidebarGraph.width(smallWidth).height(smallHeight);
         if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-60);
+          state.sidebarGraph.d3Force('charge').strength(-50);
+          state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
         }
         const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-        restoreSmallLayout(state.currentEntityId, nodes);
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
         applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
@@ -1040,9 +915,9 @@
             launcher.style.pointerEvents = '';
           }
           if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-            state.sidebarGraph.d3Force('charge').strength(-60);
+            state.sidebarGraph.d3Force('charge').strength(-50);
+            state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
           }
-          state.sidebarGraph.enableZoomInteraction(false).enablePanInteraction(false);
           state.sidebarGraph.width(smallWidth).height(smallHeight);
           applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
           hideBoundlessInspector();

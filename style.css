@@ -714,7 +714,7 @@ details.toc-cat-details:not([open]) > summary::after {
   width: 100%;
   aspect-ratio: 3 / 4.2;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 0.95rem;
   background: transparent;
 }
 .infobox-media img {
@@ -726,15 +726,16 @@ details.toc-cat-details:not([open]) > summary::after {
 .infobox-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.95rem;
   font-size: 0.88rem;
   margin-bottom: 0;
 }
 .infobox-meta-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.15rem 0;
+  padding: 0;
   border: none;
+  line-height: 1.2;
 }
 .infobox-meta-row span {
   color: var(--text-muted);

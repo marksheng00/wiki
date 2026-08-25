@@ -701,7 +701,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-infobox {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 0.85rem 2.5rem;
+  margin: 0.5rem 0 0.15rem 2.5rem;
   background: transparent;
   padding: 0;
   border: none;
@@ -751,8 +751,8 @@ details.toc-cat-details:not([open]) > summary::after {
   text-transform: uppercase;
   color: var(--text-primary);
   text-decoration: none;
-  line-height: 1;
-  margin-top: 0.75rem;
+  line-height: 1.1;
+  margin-top: 0.65rem;
   margin-bottom: 0;
   transition: opacity 160ms ease;
 }
@@ -775,7 +775,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .entity-floating-media {
   float: right;
   width: 320px;
-  margin: 0.5rem 0 0.85rem 2.5rem;
+  margin: 0.5rem 0 0.15rem 2.5rem;
   background: transparent;
   display: block;
   clear: right;
@@ -801,7 +801,7 @@ details.toc-cat-details:not([open]) > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  margin-top: 0.65rem;
+  margin-top: 0.5rem;
   margin-bottom: 0;
 }
 
@@ -1375,7 +1375,7 @@ details.toc-cat-details:not([open]) > summary::after {
     float: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 auto 0.85rem auto !important;
+    margin: 0 auto 0.45rem auto !important;
     text-align: center;
     display: flex;
     flex-direction: column;

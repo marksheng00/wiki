@@ -478,22 +478,7 @@
   }
 
   function updateGraphHUD(hoveredNode) {
-    const titleEl = getActiveTitleElement();
-    if (!titleEl) return;
-
-    if (hoveredNode) {
-      if (!titleEl.dataset.defaultTitle) {
-        titleEl.dataset.defaultTitle = titleEl.textContent;
-      }
-      titleEl.textContent = hoveredNode.label || hoveredNode.id;
-      titleEl.classList.add('is-graph-hovering');
-    } else {
-      titleEl.classList.remove('is-graph-hovering');
-      if (titleEl.dataset.defaultTitle) {
-        titleEl.textContent = titleEl.dataset.defaultTitle;
-        delete titleEl.dataset.defaultTitle;
-      }
-    }
+    // Intentionally no-op to keep article h1 title 100% stable and prevent accidental title hijacking
   }
 
   function getExpandedGraphSize() {
@@ -1338,11 +1323,6 @@
   function showArticleView(targetViewId) {
     document.querySelectorAll('.wiki-article-view').forEach((v) => {
       v.style.display = 'none';
-      const h1 = v.querySelector('.article-h1, h1');
-      if (h1) {
-        delete h1.dataset.defaultTitle;
-        h1.classList.remove('is-graph-hovering');
-      }
     });
     const targetEl = getEl(targetViewId);
     if (targetEl) targetEl.style.display = 'block';
@@ -1368,13 +1348,6 @@
     graphState.focusedNode = null;
     graphState.hoverNode = null;
     hideBoundlessInspector();
-
-    // Reset title hover caches
-    const activeTitle = getActiveTitleElement();
-    if (activeTitle) {
-      delete activeTitle.dataset.defaultTitle;
-      activeTitle.classList.remove('is-graph-hovering');
-    }
 
     // Reset sidebar scroll top to strictly prevent slot from shifting upwards
     const stickyWrap = document.querySelector('.wiki-sidebar-sticky');

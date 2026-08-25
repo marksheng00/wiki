@@ -845,7 +845,7 @@
 
         isGraphAnimating = false;
       } else {
-        // Desktop WAAPI 2D Morph
+        // Desktop WAAPI 2D Morph (Seamless Single-Stage Expand)
         const slotRect = slot.getBoundingClientRect();
         const bigRect = {
           left: 0,
@@ -854,11 +854,12 @@
           height: expSize.height
         };
 
+        // 1. Establish full expanded container bounds immediately so canvas clientWidth is accurate
         container.style.position = 'fixed';
-        container.style.left = `${slotRect.left}px`;
-        container.style.top = `${slotRect.top}px`;
-        container.style.width = `${slotRect.width}px`;
-        container.style.height = `${slotRect.height}px`;
+        container.style.left = `${bigRect.left}px`;
+        container.style.top = `${bigRect.top}px`;
+        container.style.width = `${bigRect.width}px`;
+        container.style.height = `${bigRect.height}px`;
         container.style.margin = '0';
         container.style.zIndex = '100';
         container.classList.add('is-expanded');
@@ -871,6 +872,10 @@
         state.sidebarGraph.graphData({ nodes, links });
         state.graphNodeMap = nodeMap;
 
+        // 2. Pre-center and scale graph on full size so it is already at the target zoom
+        applyDynamicGeometry(state.sidebarGraph, true, bigRect.width, bigRect.height, 0, !state.currentEntityId);
+
+        // 3. Smoothly animate container from slot to bigRect in one continuous, fluid GPU motion
         const anim = container.animate([
           {
             left: `${slotRect.left}px`,
@@ -891,13 +896,7 @@
         });
 
         anim.onfinish = () => {
-          container.style.left = `${bigRect.left}px`;
-          container.style.top = `${bigRect.top}px`;
-          container.style.width = `${bigRect.width}px`;
-          container.style.height = `${bigRect.height}px`;
           anim.cancel();
-          state.sidebarGraph.width(bigRect.width).height(bigRect.height);
-          applyDynamicGeometry(state.sidebarGraph, true, bigRect.width, bigRect.height, 0, !state.currentEntityId);
           isGraphAnimating = false;
         };
       }

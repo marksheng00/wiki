@@ -807,7 +807,7 @@ details.toc-cat-details:not([open]) > summary::after {
 
 /* Reading Sections */
 .reading-section {
-  margin-bottom: 3.5rem;
+  margin-bottom: 2rem;
 }
 .reading-section h2 {
   font-family: var(--font-serif);
@@ -815,14 +815,14 @@ details.toc-cat-details:not([open]) > summary::after {
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .prose p {
   color: var(--text-primary);
   font-size: 1.12rem;
   line-height: 1.85;
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.15rem;
   text-align: justify;
   /* Museum-grade Micro-typography */
   text-justify: inter-word;

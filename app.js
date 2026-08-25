@@ -454,10 +454,14 @@
       type: category,
       imgSrc: localImg,
       isPrimary: !!isPrimary,
-      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, (raw.targets && raw.targets.length ? raw.targets.length : 1) * 0.5 + 4))
+      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, (raw.targets && raw.targets.length ? raw.targets.length : 1) * 0.5 + 4)),
+      fx: fx !== undefined ? fx : undefined,
+      fy: fy !== undefined ? fy : undefined,
+      x: undefined,
+      y: undefined,
+      vx: undefined,
+      vy: undefined
     };
-    if (fx !== undefined) nodeObj.fx = fx;
-    if (fy !== undefined) nodeObj.fy = fy;
     return nodeObj;
   }
 
@@ -721,7 +725,8 @@
 
       Graph.graphData({ nodes, links });
 
-      const cvsW = isExp ? expSize.width : (container.clientWidth || 300);
+      const slot = getEl('sidebar-graph-slot');
+      const cvsW = isExp ? expSize.width : ((slot && slot.clientWidth) || container.clientWidth || 300);
       const cvsH = isExp ? expSize.height : 145;
       applyDynamicGeometry(Graph, isExp, cvsW, cvsH, 0, !state.currentEntityId);
 
@@ -741,7 +746,8 @@
       // Update charge for existing graph
       state.sidebarGraph.d3Force('charge').strength(isExp ? -160 : -60);
       
-      const cvsW = isExp ? expSize.width : (container.clientWidth || 300);
+      const slot = getEl('sidebar-graph-slot');
+      const cvsW = isExp ? expSize.width : ((slot && slot.clientWidth) || container.clientWidth || 300);
       const cvsH = isExp ? expSize.height : 145;
       applyDynamicGeometry(state.sidebarGraph, isExp, cvsW, cvsH, 0, !state.currentEntityId);
 

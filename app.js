@@ -18,6 +18,8 @@
     currentStorylineIndex: 0,
     sidebarGraph: null,
     isGraphExpanded: false,
+    graphPhase: 'small',
+    graphReturnSurface: 'article',
   };
 
   function getEl(id) {
@@ -136,12 +138,22 @@
     document.querySelectorAll('.toc-item').forEach((i) => i.classList.remove('active'));
   }
 
-  function openBookOverview() {
+  async function prepareForPageNavigation() {
+    graphState.focusedNode = null;
+    graphState.hoverNode = null;
+    hideBoundlessInspector();
+    if (state.isGraphExpanded || state.graphPhase !== 'small') {
+      await toggleGraphExpand(false, { duration: window.innerWidth <= 768 ? 180 : 420 });
+    }
+  }
+
+  async function openBookOverview() {
+    await prepareForPageNavigation();
     state.currentEntityId = null;
     clearActiveNav();
     const btnBook = getEl('btn-book-home');
     if (btnBook) btnBook.classList.add('active');
-    initBalancedTopologyGraph(null);
+    scheduleGraphForPage(null);
     showArticleView('view-book');
   }
 
@@ -151,20 +163,21 @@
   function initNavHubClicks() {
     const btnBook = getEl('btn-book-home');
     if (btnBook) {
-      btnBook.addEventListener('click', (e) => {
+      btnBook.addEventListener('click', async (e) => {
         e.preventDefault();
-        openBookOverview();
+        await openBookOverview();
       });
     }
 
     const btnStorylines = getEl('btn-storylines-hub');
     if (btnStorylines) {
-      btnStorylines.addEventListener('click', (e) => {
+      btnStorylines.addEventListener('click', async (e) => {
         e.preventDefault();
+        await prepareForPageNavigation();
         state.currentEntityId = null;
         clearActiveNav();
         btnStorylines.classList.add('active');
-        initBalancedTopologyGraph(null);
+        scheduleGraphForPage(null);
         showArticleView('view-storyline');
         setStorylineScene(state.currentStorylineIndex);
       });
@@ -172,12 +185,13 @@
 
     const btnStoryflow = getEl('btn-storyflow-hub');
     if (btnStoryflow) {
-      btnStoryflow.addEventListener('click', (e) => {
+      btnStoryflow.addEventListener('click', async (e) => {
         e.preventDefault();
+        await prepareForPageNavigation();
         state.currentEntityId = null;
         clearActiveNav();
         btnStoryflow.classList.add('active');
-        initBalancedTopologyGraph(null);
+        scheduleGraphForPage(null);
         showArticleView('view-storyflow');
       });
     }
@@ -190,7 +204,7 @@
     const entContainer = getEl('toc-entities-items');
     if (!entContainer) return;
 
-    entContainer.addEventListener('click', (e) => {
+    entContainer.addEventListener('click', async (e) => {
       const target = e.target.closest('.entity-toc-link');
       if (!target) return;
 
@@ -199,7 +213,10 @@
       target.classList.add('active');
 
       const entityId = target.getAttribute('data-id');
-      if (entityId) openEntityArticle(entityId);
+      if (entityId) {
+        await prepareForPageNavigation();
+        openEntityArticle(entityId);
+      }
     });
   }
 
@@ -323,7 +340,15 @@
     highlightNodes: new Set(),
     highlightLinks: new Set(),
     hoverNode: null,
-    imgCache: new Map()
+    focusedNode: null,
+    imgCache: new Map(),
+    knowledgeIndex: null,
+    positionCache: new Map(),
+    renderSize: null,
+    dataRevision: 0,
+    pendingEntityId: null,
+    hasPendingData: false,
+    containerTransitionPromise: Promise.resolve()
   };
 
   const categoryThemeColors = {
@@ -334,6 +359,8 @@
     Rules: { light: '#ea580c', dark: '#fb923c', sepia: '#c2410c' },
     Objects: { light: '#d97706', dark: '#fbbf24', sepia: '#b45309' },
     Events: { light: '#0284c7', dark: '#38bdf8', sepia: '#0369a1' },
+    Actions: { light: '#2563eb', dark: '#60a5fa', sepia: '#1d4ed8' },
+    Creatures: { light: '#9333ea', dark: '#c084fc', sepia: '#7e22ce' },
     States: { light: '#0d9488', dark: '#2dd4bf', sepia: '#0f766e' },
     Expressions: { light: '#db2777', dark: '#f472b6', sepia: '#be185d' },
     Time: { light: '#64748b', dark: '#94a3b8', sepia: '#475569' }
@@ -344,63 +371,118 @@
     return (categoryThemeColors[type] && categoryThemeColors[type][themeKey]) || (state.theme === 'dark' ? '#60a5fa' : '#2563eb');
   }
 
-  function buildGraphDataForEntity(entityId) {
-    const subgraphs = (window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.knowledge_graph && window.WIKI_STORE.master.knowledge_graph.subgraphs) || {};
-    
-    // 1. Build map of all entities
-    const allRawNodes = new Map();
-    for (const [catName, catObj] of Object.entries(subgraphs)) {
-      const nList = (catObj && catObj.value) || (Array.isArray(catObj) ? catObj : []);
-      nList.forEach((n) => {
-        allRawNodes.set(n.id, { ...n, category: catName });
-        if (n.label) allRawNodes.set(n.label.toLowerCase(), { ...n, category: catName });
+  function getKnowledgeIndex() {
+    const source = window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.knowledge_graph;
+    if (!source) return null;
+    if (graphState.knowledgeIndex && graphState.knowledgeIndex.source === source) {
+      return graphState.knowledgeIndex;
+    }
+
+    const nodesById = new Map();
+    const labelToId = new Map();
+    Object.values(source.all_nodes || {}).forEach((node) => {
+      if (!node || !node.id) return;
+      const normalized = { ...node, type: node.type || 'Concepts' };
+      nodesById.set(normalized.id, normalized);
+      if (normalized.label) labelToId.set(normalized.label.toLowerCase(), normalized.id);
+    });
+
+    // Compatibility fallback for older stores that only contain category views.
+    if (!nodesById.size) {
+      Object.values(source.subgraphs || {}).forEach((categoryView) => {
+        const list = (categoryView && categoryView.value) || (Array.isArray(categoryView) ? categoryView : []);
+        list.forEach((node) => {
+          if (!node || !node.id || nodesById.has(node.id)) return;
+          nodesById.set(node.id, { ...node, type: node.type || 'Concepts' });
+          if (node.label) labelToId.set(node.label.toLowerCase(), node.id);
+        });
       });
     }
 
-    const nodes = [];
-    const links = [];
-    const nodeMap = new Map();
+    const outgoing = new Map();
+    const incoming = new Map();
+    nodesById.forEach((_, id) => {
+      outgoing.set(id, new Set());
+      incoming.set(id, new Set());
+    });
 
-    const primaryRaw = entityId ? (allRawNodes.get(entityId) || allRawNodes.get(entityId.toLowerCase())) : null;
+    const edgeMap = new Map();
+    const sourceEdges = Array.isArray(source.all_edges) && source.all_edges.length
+      ? source.all_edges
+      : Array.from(nodesById.values()).flatMap((node) =>
+          (node.targets || []).map((target) => ({ source: node.id, target }))
+        );
 
-    if (primaryRaw) {
-      // 1-Degree ONLY Mode: Primary Node + 1st Degree Direct Connections
-      // Strictly anchor the primary node to (0, 0) to prevent center-of-mass drift!
-      const primaryNode = createGraphNode(primaryRaw, primaryRaw.category, true, 0, 0);
-      nodeMap.set(primaryRaw.id, primaryNode);
-      nodes.push(primaryNode);
+    sourceEdges.forEach((edge) => {
+      const sourceId = typeof edge.source === 'object' ? edge.source.id : edge.source;
+      const targetId = typeof edge.target === 'object' ? edge.target.id : edge.target;
+      if (!nodesById.has(sourceId) || !nodesById.has(targetId) || sourceId === targetId) return;
+      const key = `${sourceId}\u0000${targetId}`;
+      if (!edgeMap.has(key)) edgeMap.set(key, { source: sourceId, target: targetId });
+      outgoing.get(sourceId).add(targetId);
+      incoming.get(targetId).add(sourceId);
+    });
 
-      // Add outgoing 1-degree targets
-      if (primaryRaw.targets && Array.isArray(primaryRaw.targets)) {
-        primaryRaw.targets.forEach((tId) => {
-          const targetRaw = allRawNodes.get(tId);
-          if (targetRaw && !nodeMap.has(targetRaw.id)) {
-            const targetNode = createGraphNode(targetRaw, targetRaw.category, false);
-            nodeMap.set(targetRaw.id, targetNode);
-            nodes.push(targetNode);
-          }
+    const degree = new Map();
+    nodesById.forEach((_, id) => {
+      degree.set(id, new Set([...(outgoing.get(id) || []), ...(incoming.get(id) || [])]).size);
+    });
+
+    graphState.knowledgeIndex = {
+      source,
+      nodesById,
+      labelToId,
+      edges: Array.from(edgeMap.values()),
+      outgoing,
+      incoming,
+      degree
+    };
+    return graphState.knowledgeIndex;
+  }
+
+  function resolveEntityId(entityId, index) {
+    if (!entityId || !index) return null;
+    if (index.nodesById.has(entityId)) return entityId;
+    return index.labelToId.get(String(entityId).toLowerCase()) || null;
+  }
+
+  function cacheCurrentGraphPositions() {
+    graphState.positionCache.clear();
+    if (!state.sidebarGraph) return graphState.positionCache;
+    const data = state.sidebarGraph.graphData();
+    (data.nodes || []).forEach((node) => {
+      if (Number.isFinite(node.x) && Number.isFinite(node.y)) {
+        graphState.positionCache.set(node.id, {
+          x: node.x,
+          y: node.y,
+          vx: Number.isFinite(node.vx) ? node.vx : 0,
+          vy: Number.isFinite(node.vy) ? node.vy : 0
         });
       }
+    });
+    return graphState.positionCache;
+  }
 
-      // Add incoming 1-degree sources
-      for (const [nId, rawN] of allRawNodes.entries()) {
-        if (rawN.targets && Array.isArray(rawN.targets) && rawN.targets.includes(primaryRaw.id)) {
-          if (!nodeMap.has(rawN.id)) {
-            const srcNode = createGraphNode(rawN, rawN.category, false);
-            nodeMap.set(rawN.id, srcNode);
-            nodes.push(srcNode);
-          }
-        }
-      }
+  function buildGraphDataForEntity(entityId) {
+    const index = getKnowledgeIndex();
+    if (!index) return { nodes: [], links: [], nodeMap: new Map() };
 
-      // Create strictly 1-degree links between primary node and all its 1-degree neighbors
-      nodes.forEach((n) => {
-        if (n.id !== primaryRaw.id) {
-          links.push({ source: primaryRaw.id, target: n.id });
-        }
+    const primaryId = resolveEntityId(entityId, index);
+    let selectedIds = [];
+
+    if (primaryId) {
+      const neighborIds = new Set([
+        ...(index.outgoing.get(primaryId) || []),
+        ...(index.incoming.get(primaryId) || [])
+      ]);
+      const rankedNeighbors = Array.from(neighborIds).sort((a, b) => {
+        const degreeDelta = (index.degree.get(b) || 0) - (index.degree.get(a) || 0);
+        return degreeDelta || (index.nodesById.get(a).label || '').localeCompare(index.nodesById.get(b).label || '');
       });
+      // This canvas is a one-hop navigation preview. Keep the strongest direct
+      // relations legible instead of shrinking a 100+ node hub into pixels.
+      selectedIds = [primaryId, ...rankedNeighbors.slice(0, 35)];
     } else {
-      // Default Global Overview Backbone (~16 nodes) when on Book Overview
       const priorityCategories = {
         Characters: 5,
         Locations: 4,
@@ -408,36 +490,67 @@
         Concepts: 2,
         Objects: 2
       };
-      let isFirst = true;
-      Object.entries(priorityCategories).forEach(([catKey, limit]) => {
-        const catObj = subgraphs[catKey];
-        const cNodes = (catObj && catObj.value) || (Array.isArray(catObj) ? catObj : []);
-        cNodes.slice(0, limit).forEach((n) => {
-          if (!nodeMap.has(n.id)) {
-            // Anchor central node at (0, 0) to strictly prevent center-of-mass vertical drift
-            const nodeObj = createGraphNode(n, catKey, isFirst, isFirst ? 0 : undefined, isFirst ? 0 : undefined);
-            if (isFirst) isFirst = false;
-            nodeMap.set(n.id, nodeObj);
-            nodes.push(nodeObj);
-          }
-        });
-      });
-      nodes.forEach((n) => {
-        const rawN = allRawNodes.get(n.id);
-        if (rawN && rawN.targets) {
-          rawN.targets.forEach((tId) => {
-            if (nodeMap.has(tId)) {
-              links.push({ source: n.id, target: tId });
-            }
+      Object.entries(priorityCategories).forEach(([type, limit]) => {
+        const candidates = Array.from(index.nodesById.values())
+          .filter((node) => node.type === type)
+          .sort((a, b) => {
+            const degreeDelta = (index.degree.get(b.id) || 0) - (index.degree.get(a.id) || 0);
+            return degreeDelta || (a.label || '').localeCompare(b.label || '');
           });
-        }
+        selectedIds.push(...candidates.slice(0, limit).map((node) => node.id));
       });
     }
 
-    return { nodes, links, nodeMap };
+    const selectedSet = new Set(selectedIds);
+    const anchorId = primaryId || selectedIds[0];
+    const cachedAnchor = primaryId ? graphState.positionCache.get(anchorId) : null;
+    const nodeMap = new Map();
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+    selectedIds.forEach((id, indexInGraph) => {
+      const raw = index.nodesById.get(id);
+      if (!raw) return;
+      const cached = graphState.positionCache.get(id);
+      const radius = 12 + Math.sqrt(indexInGraph + 1) * 9;
+      const angle = indexInGraph * goldenAngle;
+      const canReuseCurrentPosition = !!(cachedAnchor && cached);
+      const x = id === anchorId ? 0 : (canReuseCurrentPosition ? cached.x - cachedAnchor.x : Math.cos(angle) * radius);
+      const y = id === anchorId ? 0 : (canReuseCurrentPosition ? cached.y - cachedAnchor.y : Math.sin(angle) * radius);
+      const node = createGraphNode(raw, id === primaryId || (!primaryId && id === anchorId), index.degree.get(id) || 0, x, y);
+      if (!node.isPrimary && canReuseCurrentPosition) {
+        node.vx = cached.vx;
+        node.vy = cached.vy;
+      }
+      nodeMap.set(id, node);
+    });
+
+    const links = [];
+    const visualEdges = new Set();
+    if (primaryId) {
+      selectedIds.slice(1).forEach((neighborId) => {
+        links.push({ source: primaryId, target: neighborId });
+      });
+    } else {
+      index.edges.forEach((edge) => {
+        if (!selectedSet.has(edge.source) || !selectedSet.has(edge.target)) return;
+        const key = edge.source < edge.target
+          ? `${edge.source}\u0000${edge.target}`
+          : `${edge.target}\u0000${edge.source}`;
+        if (visualEdges.has(key)) return;
+        visualEdges.add(key);
+        links.push({ source: edge.source, target: edge.target });
+      });
+    }
+
+    return {
+      nodes: Array.from(nodeMap.values()),
+      links,
+      nodeMap,
+      cameraShift: cachedAnchor ? { x: cachedAnchor.x, y: cachedAnchor.y } : null
+    };
   }
 
-  function createGraphNode(raw, category, isPrimary, fx, fy) {
+  function createGraphNode(raw, isPrimary, degree, x, y) {
     let localImg = null;
     if (raw.imageUrl) {
       const fileName = raw.imageUrl.split('/').pop();
@@ -451,14 +564,54 @@
     const nodeObj = {
       id: raw.id,
       label: raw.label,
-      type: category,
+      type: raw.type || 'Concepts',
       imgSrc: localImg,
       isPrimary: !!isPrimary,
-      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, (raw.targets && raw.targets.length ? raw.targets.length : 1) * 0.5 + 4))
+      val: isPrimary ? 8.5 : Math.max(4.5, Math.min(7, degree * 0.12 + 4.4)),
+      x,
+      y
     };
-    if (fx !== undefined) nodeObj.fx = fx;
-    if (fy !== undefined) nodeObj.fy = fy;
+    if (isPrimary) {
+      nodeObj.fx = 0;
+      nodeObj.fy = 0;
+    }
     return nodeObj;
+  }
+
+  function drawGraphImageCover(ctx, img, x, y, size) {
+    const sourceWidth = img.naturalWidth || img.width;
+    const sourceHeight = img.naturalHeight || img.height;
+    if (!sourceWidth || !sourceHeight || !size) return false;
+
+    const targetRatio = 1;
+    const sourceRatio = sourceWidth / sourceHeight;
+    let sourceX = 0;
+    let sourceY = 0;
+    let cropWidth = sourceWidth;
+    let cropHeight = sourceHeight;
+
+    if (sourceRatio > targetRatio) {
+      cropWidth = sourceHeight * targetRatio;
+      sourceX = (sourceWidth - cropWidth) / 2;
+    } else if (sourceRatio < targetRatio) {
+      cropHeight = sourceWidth / targetRatio;
+      // Match the editorial images' upper-biased focal point without any
+      // entity-specific coordinates.
+      sourceY = (sourceHeight - cropHeight) * 0.2;
+    }
+
+    ctx.drawImage(
+      img,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      x,
+      y,
+      size,
+      size
+    );
+    return true;
   }
 
   function getActiveTitleElement() {
@@ -480,64 +633,215 @@
   function getExpandedGraphSize() {
     const isMobile = window.innerWidth <= 768;
     if (isMobile) {
-      // True 100% Fullscreen Mobile Explorer Mode (100vw × 100vh)
       return { width: window.innerWidth, height: window.innerHeight };
     }
-    // Desktop: Top-Left quadrant = exactly 50% viewport width × 50% usable viewport height (below 52px header)
-    // Area = 0.50 * 0.50 = 25% of total screen area, invariant across 1080p, 2K, 4K!
-    const w = Math.round(window.innerWidth * 0.50);
-    const h = Math.round((window.innerHeight - 52) * 0.50);
-    return { width: w, height: h };
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const usableHeight = Math.max(1, window.innerHeight - 52);
+    const minWidth = Math.min(420, viewportWidth);
+    const minHeight = Math.min(300, usableHeight);
+    const width = Math.min(760, viewportWidth, Math.max(minWidth, Math.round(viewportWidth * 0.48)));
+    const height = Math.min(560, usableHeight, Math.max(minHeight, Math.round(usableHeight * 0.58)));
+    return { width, height };
   }
 
-  function applyDynamicGeometry(graph, isExp, canvasW, canvasH, duration = 0, isBookOverview = false) {
-    const nodes = graph.graphData().nodes;
-    const N = (nodes && nodes.length) || 1;
-    
-    // Unified proportional coordinate bounding box
-    let predictedR = 52 * Math.pow(N / 16, 0.36);
-    if (isBookOverview) {
-      predictedR *= 1.7;
+  function configureGraphPhysics(graph, isExpanded) {
+    if (!graph) return;
+    const nodeCount = Math.max(1, ((graph.graphData() || {}).nodes || []).length);
+    const isOverview = !state.currentEntityId;
+    // Window mode must never mutate graph topology. Small/expanded views share
+    // one settled layout; only their camera and available viewport differ.
+    const chargeStrength = isOverview ? -40 : -Math.min(72, 42 + nodeCount * 0.15);
+    const linkDistance = isOverview ? 30 : Math.min(44, Math.max(32, 27 + Math.sqrt(nodeCount) * 1.15));
+
+    if (graph.d3Force && graph.d3Force('charge')) {
+      graph.d3Force('charge').strength(chargeStrength);
+      graph.d3Force('link').distance(linkDistance).strength(0.35);
     }
-    const padding = 35; 
-    
-    const internalW = predictedR * 2 + padding * 2; 
-    const internalH = predictedR * 2 + padding * 2;
-    
-    const zoomW = canvasW / internalW;
-    const zoomH = canvasH / internalH;
-    
-    const targetZoom = Math.min(zoomW, zoomH);
-    
-    if (graph.zoom && graph.centerAt) {
-      graph.zoom(targetZoom, duration);     
-      graph.centerAt(0, 0, duration); 
+    if (graph.backgroundColor) {
+      const needsOpaqueCanvas = isExpanded && window.innerWidth <= 768;
+      const pageColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-page').trim() || '#ffffff';
+      graph.backgroundColor(needsOpaqueCanvas ? pageColor : 'rgba(0,0,0,0)');
     }
+    if (graph.enableZoomInteraction) graph.enableZoomInteraction(isExpanded);
+    if (graph.enablePanInteraction) graph.enablePanInteraction(isExpanded);
+    if (graph.enableNodeDrag) graph.enableNodeDrag(isExpanded);
   }
 
-  function initBalancedTopologyGraph(focusEntityId) {
+  function getCurrentGraphViewportSize() {
+    const container = getEl('sidebar-graph-container');
+    const slot = getEl('sidebar-graph-slot');
+    const rect = container ? container.getBoundingClientRect() : null;
+    return {
+      width: Math.max(1, (rect && rect.width) || (container && container.clientWidth) || (slot && slot.clientWidth) || 268),
+      height: Math.max(1, (rect && rect.height) || (container && container.clientHeight) || (slot && slot.clientHeight) || 145)
+    };
+  }
+
+  function syncGraphRenderSize(graph, requestedSize = getExpandedGraphSize()) {
+    const surface = getEl('canvas-sidebar-graph');
+    if (!surface) return false;
+    const size = {
+      width: Math.max(1, Math.round(requestedSize.width)),
+      height: Math.max(1, Math.round(requestedSize.height))
+    };
+    surface.style.width = `${size.width}px`;
+    surface.style.height = `${size.height}px`;
+    const previous = graphState.renderSize;
+    const changed = !previous || previous.width !== size.width || previous.height !== size.height;
+    graphState.renderSize = size;
+    if (graph && changed) graph.width(size.width).height(size.height);
+    return changed;
+  }
+
+  function getGraphCameraForViewport(graph, size, expansionProgress) {
+    if (!graph) return;
+    const data = graph.graphData();
+    if (!data || !data.nodes || !data.nodes.length) return;
+    const positionedNodes = data.nodes.filter((node) => Number.isFinite(node.x) && Number.isFinite(node.y));
+    if (!positionedNodes.length) return;
+
+    const maxVisualRadius = positionedNodes.reduce((max, node) => Math.max(max, node.val || 5), 5) + 5;
+    const minX = Math.min(...positionedNodes.map((node) => node.x)) - maxVisualRadius;
+    const maxX = Math.max(...positionedNodes.map((node) => node.x)) + maxVisualRadius;
+    const minY = Math.min(...positionedNodes.map((node) => node.y)) - maxVisualRadius;
+    const maxY = Math.max(...positionedNodes.map((node) => node.y)) + maxVisualRadius;
+    const spanX = Math.max(1, maxX - minX);
+    const spanY = Math.max(1, maxY - minY);
+    const shortestSide = Math.max(1, Math.min(size.width || 1, size.height || 1));
+    const smallPadding = Math.max(12, Math.min(20, Math.round(shortestSide * 0.10)));
+    const expandedPadding = Math.max(38, Math.min(70, Math.round(shortestSide * 0.11)));
+    const padding = smallPadding + (expandedPadding - smallPadding) * expansionProgress;
+    const availableWidth = Math.max(1, size.width - padding * 2);
+    const availableHeight = Math.max(1, size.height - padding * 2);
+    // Limit by the largest node's on-screen radius, not by an arbitrary zoom
+    // number. Sparse graphs can then use a large viewport without turning a
+    // portrait node into an oversized disk.
+    const largestNodeRadius = positionedNodes.reduce((max, node) => Math.max(max, node.val || 5), 5);
+    const maximumNodeRadius = 20 + 12 * expansionProgress;
+    const maximumZoom = Math.min(3.6, maximumNodeRadius / largestNodeRadius);
+    const targetZoom = Math.max(0.18, Math.min(maximumZoom, availableWidth / spanX, availableHeight / spanY));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    return { x: centerX, y: centerY, zoom: targetZoom };
+  }
+
+  function fitGraphToViewport(graph, duration = 0, options = {}) {
+    const expansionProgress = options.expansionProgress === undefined
+      ? (state.isGraphExpanded ? 1 : 0)
+      : Math.max(0, Math.min(1, options.expansionProgress));
+    const size = options.size || getCurrentGraphViewportSize();
+    const camera = getGraphCameraForViewport(graph, size, expansionProgress);
+    if (!camera) return;
+
+    if (graph.centerAt) graph.centerAt(camera.x, camera.y, duration);
+    if (graph.zoom) graph.zoom(camera.zoom, duration);
+  }
+
+  function morphGraphViewport(container, graph, fromRect, getTargetRect, duration, toExpansion) {
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const initialTarget = getTargetRect();
+    const targetCamera = getGraphCameraForViewport(graph, initialTarget, toExpansion);
+
+    if (reducedMotion || duration <= 0) {
+      applyFixedGraphRect(container, initialTarget);
+      fitGraphToViewport(graph, 0, { size: initialTarget, expansionProgress: toExpansion });
+      return Promise.resolve(initialTarget);
+    }
+
+    // ForceGraph owns its camera interpolation. Issuing a new zero-duration
+    // camera command on every frame builds an internal queue that can replay
+    // stale transforms after the container has finished moving.
+    if (targetCamera) {
+      if (graph.centerAt) graph.centerAt(targetCamera.x, targetCamera.y, duration);
+      if (graph.zoom) graph.zoom(targetCamera.zoom, duration);
+    }
+
+    return new Promise((resolve) => {
+      const startedAt = performance.now();
+      const tick = (now) => {
+        const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+        // Smooth acceleration and deceleration keeps the interpolation visible
+        // instead of completing most of the distance in the first few frames.
+        const eased = linear * linear * (3 - 2 * linear);
+        const target = getTargetRect();
+        const rect = {
+          left: fromRect.left + (target.left - fromRect.left) * eased,
+          top: fromRect.top + (target.top - fromRect.top) * eased,
+          width: fromRect.width + (target.width - fromRect.width) * eased,
+          height: fromRect.height + (target.height - fromRect.height) * eased
+        };
+        applyFixedGraphRect(container, rect);
+
+        if (linear < 1) {
+          window.requestAnimationFrame(tick);
+        } else {
+          // Same-frame final authority: no timer and no second visible stage.
+          fitGraphToViewport(graph, 0, { size: target, expansionProgress: toExpansion });
+          resolve(target);
+        }
+      };
+      window.requestAnimationFrame(tick);
+    });
+  }
+
+  function getLinkEndpointId(endpoint) {
+    return endpoint && typeof endpoint === 'object' ? endpoint.id : endpoint;
+  }
+
+  function getGraphEnterProgress(item) {
+    if (!item || !item.enteredAt) return 1;
+    const linear = Math.max(0, Math.min(1, (performance.now() - item.enteredAt) / 420));
+    return linear * linear * (3 - 2 * linear);
+  }
+
+  function applyGraphData(graph, graphData, animate = true) {
+    if (!graph) return;
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const previousIds = new Set(((graph.graphData() || {}).nodes || []).map((node) => node.id));
+    const previousCamera = graph.centerAt ? graph.centerAt() : null;
+    const revision = ++graphState.dataRevision;
+    const enteredAt = performance.now();
+    graphData.nodes.forEach((node) => {
+      node.enteredAt = animate && !reducedMotion && !previousIds.has(node.id) ? enteredAt : 0;
+    });
+    graphData.links.forEach((link) => {
+      const sourceId = getLinkEndpointId(link.source);
+      const targetId = getLinkEndpointId(link.target);
+      link.enteredAt = animate && !reducedMotion && (!previousIds.has(sourceId) || !previousIds.has(targetId)) ? enteredAt : 0;
+    });
+
+    graph.graphData({ nodes: graphData.nodes, links: graphData.links });
+    state.graphNodeMap = graphData.nodeMap;
+    configureGraphPhysics(graph, state.isGraphExpanded);
+    if (graphData.cameraShift && previousCamera && graph.centerAt) {
+      // The new graph is translated so the clicked node becomes (0, 0).
+      // Translate the camera by the same amount before the next paint; every
+      // shared portrait therefore remains at exactly the same screen point.
+      graph.centerAt(
+        previousCamera.x - graphData.cameraShift.x,
+        previousCamera.y - graphData.cameraShift.y,
+        0
+      );
+    }
+    if (graph.d3ReheatSimulation) graph.d3ReheatSimulation();
+    window.requestAnimationFrame(() => {
+      if (revision !== graphState.dataRevision) return;
+      fitGraphToViewport(graph, animate && !reducedMotion ? 420 : 0);
+    });
+  }
+
+  function initBalancedTopologyGraph(focusEntityId, options = {}) {
     const container = getEl('canvas-sidebar-graph');
     if (!window.ForceGraph || !container) return;
 
-    const isMobile = window.innerWidth <= 768;
-    const isExp = state.isGraphExpanded;
-    const expSize = getExpandedGraphSize();
-    const slot = getEl('sidebar-graph-slot');
-
-    let width, height;
-    if (isMobile) {
-      width = isExp ? window.innerWidth : ((slot ? slot.clientWidth - 40 : 0) || (container && container.clientWidth) || 268);
-      height = isExp ? window.innerHeight : 145;
-    } else {
-      // Desktop
-      width = isExp ? expSize.width : ((slot && slot.clientWidth) || 268);
-      height = isExp ? expSize.height : 145;
-    }
-
-    const isDark = state.theme === 'dark';
-    const isSepia = state.theme === 'sepia';
-
-    const { nodes, links, nodeMap } = buildGraphDataForEntity(focusEntityId || state.currentEntityId);
+    const renderSize = getExpandedGraphSize();
+    syncGraphRenderSize(null, renderSize);
+    // Capture the actual visible frame before deriving the next graph's local
+    // coordinate system. A long-lived cross-page cache mixes unrelated local
+    // spaces and makes portraits appear at positions from an older article.
+    cacheCurrentGraphPositions();
+    const graphData = buildGraphDataForEntity(focusEntityId || state.currentEntityId);
 
     if (!state.sidebarGraph) {
       container.innerHTML = '';
@@ -547,19 +851,31 @@
       });
 
       const Graph = ForceGraph()(container)
-        .width(width)
-        .height(height)
-        .nodeRelSize(25) // Fix: Prevent nodes from disappearing before hitting the viewport edge by expanding the internal culling radius
+        .width(renderSize.width)
+        .height(renderSize.height)
+        // Match ForceGraph's measured bounds to the radius used by our custom
+        // canvas renderer; the previous value (25) made zoomToFit over-shrink.
+        .nodeRelSize(4)
         .backgroundColor('rgba(0,0,0,0)')
         .nodeId('id')
         .nodeVal('val')
-        .nodeLabel(() => '')
+        .nodeLabel((node) => window.innerWidth > 768 ? (node.label || node.id) : '')
         .linkCurvature(0.18)
-        .linkWidth((link) => (link.source === state.currentEntityId || link.target === state.currentEntityId || graphState.hoverNode || graphState.focusedNode ? 1.8 : 0.8))
+        .linkWidth((link) => {
+          const sourceId = getLinkEndpointId(link.source);
+          const targetId = getLinkEndpointId(link.target);
+          const activeId = (graphState.focusedNode && graphState.focusedNode.id) || (graphState.hoverNode && graphState.hoverNode.id);
+          const baseWidth = activeId
+            ? (sourceId === activeId || targetId === activeId ? 1.8 : 0.45)
+            : (sourceId === state.currentEntityId || targetId === state.currentEntityId ? 1.25 : 0.8);
+          return baseWidth * getGraphEnterProgress(link);
+        })
         .linkColor((link) => {
+          const isDark = state.theme === 'dark';
+          const isSepia = state.theme === 'sepia';
           if (graphState.focusedNode) {
             const fId = graphState.focusedNode.id;
-            const isConnected = link.source === fId || link.target === fId || link.source.id === fId || link.target.id === fId;
+            const isConnected = getLinkEndpointId(link.source) === fId || getLinkEndpointId(link.target) === fId;
             if (isConnected) {
               return isDark ? 'rgba(255,255,255,0.45)' : (isSepia ? 'rgba(45,38,30,0.45)' : 'rgba(0,0,0,0.35)');
             }
@@ -568,44 +884,43 @@
           return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
         })
         .d3VelocityDecay(0.30)
+        .onEngineStop(() => {
+          cacheCurrentGraphPositions();
+        })
+        .onNodeDragEnd((node) => {
+          if (!node.isPrimary) {
+            node.fx = undefined;
+            node.fy = undefined;
+          }
+          fitGraphToViewport(Graph, 260);
+        })
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
             updateGraphHUD(node);
           }
         })
-        .onNodeClick((node) => {
+        .onNodeClick(async (node) => {
           if (!node || !node.id) return;
           const isMobileDevice = window.innerWidth <= 768;
 
-          // Desktop PC Interaction Protocol:
-          // Single click on any node opens the article dossier directly!
           if (!isMobileDevice) {
-            if (state.isGraphExpanded) toggleGraphExpand(false);
-            clearActiveNav();
-            openEntityArticle(node.id);
+            await navigateFromGraphNode(node.id, { collapseGraph: false });
             return;
           }
 
-          // Mobile Interaction Protocol:
-          if (graphState.focusedNode === node) {
-            // Second tap on focused node: navigate directly to article
-            hideBoundlessInspector();
-            graphState.focusedNode = null;
-            if (state.isGraphExpanded) toggleGraphExpand(false);
-            closeMobileSidebar();
-            clearActiveNav();
-            openEntityArticle(node.id);
+          if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
+            await navigateFromGraphNode(node.id);
             return;
           }
 
-          // Mobile First tap: Spotlight Focus + Boundless Text Unfold in bottom tray
           graphState.focusedNode = node;
           graphState.hoverNode = node;
           if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-            // Offset camera so node stays safely in upper half, leaving spacious room for title below
+            // Preserve the mobile camera protocol: center the selected node,
+            // with only the original small upward allowance for the bottom tray.
             const offsetY = state.isGraphExpanded ? 36 : 0;
-            state.sidebarGraph.centerAt(node.x, node.y + offsetY, 350);
+            state.sidebarGraph.centerAt(node.x, node.y + offsetY, 180);
           }
           showBoundlessInspector(node);
         })
@@ -615,16 +930,14 @@
             graphState.focusedNode = null;
             graphState.hoverNode = null;
             if (isMobileDevice) hideBoundlessInspector();
-            if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-              state.sidebarGraph.centerAt(0, 0, 350);
-            }
+            fitGraphToViewport(Graph, 260);
           }
         })
         .nodePointerAreaPaint((node, color, ctx, globalScale) => {
           const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
           const minHitR = (state.isGraphExpanded ? 24 : 16) / scale;
           let radius = Math.max((node.val || 5) * 1.5, minHitR);
-          if (graphState.focusedNode === node) {
+          if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
             const minCanvasR = 42 / scale;
             const maxCanvasR = 70 / scale;
             radius = Math.min(maxCanvasR, Math.max((node.val || 5) * 3.5, minCanvasR));
@@ -635,8 +948,8 @@
           ctx.fill();
         })
         .nodeCanvasObject((node, ctx, globalScale) => {
-          const isFocused = graphState.focusedNode === node;
-          const isHovered = graphState.hoverNode === node;
+          const isFocused = graphState.focusedNode && graphState.focusedNode.id === node.id;
+          const isHovered = graphState.hoverNode && graphState.hoverNode.id === node.id;
           const isPrimary = (state.currentEntityId === node.id) || node.isPrimary;
           
           let alpha = 1;
@@ -646,6 +959,7 @@
           } else if (graphState.hoverNode) {
             alpha = (isPrimary || isHovered) ? 1 : 0.65;
           }
+          alpha *= getGraphEnterProgress(node);
 
           ctx.save();
           ctx.globalAlpha = alpha;
@@ -677,7 +991,7 @@
               ctx.beginPath();
               ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
               ctx.clip();
-              ctx.drawImage(img, node.x - radius, node.y - radius, radius * 2, radius * 2);
+              drawGraphImageCover(ctx, img, node.x - radius, node.y - radius, radius * 2);
               ctx.restore();
               hasDrawnImage = true;
             }
@@ -694,237 +1008,190 @@
           ctx.restore();
         });
 
-      // Harmonic jelly spring physics and organic repulsion
-      Graph.d3Force('charge').strength(isExp ? -140 : -50);
-      Graph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35);
-
-      Graph.graphData({ nodes, links });
-
-      applyDynamicGeometry(Graph, isExp, width, height, 0, !state.currentEntityId);
-
       state.sidebarGraph = Graph;
-      state.graphNodeMap = nodeMap;
+      graphState.renderSize = { width: Math.round(renderSize.width), height: Math.round(renderSize.height) };
+      applyGraphData(Graph, graphData, false);
     } else {
-      // Synchronize canvas dimensions to prevent stale height/width math
-      state.sidebarGraph.width(width).height(height);
-
-      // Re-feed data: ForceGraph automatically preserves existing node positions & velocities for buttery morphing!
-      state.sidebarGraph.d3Force('charge').strength(isExp ? -140 : -50);
-      state.sidebarGraph.d3Force('link').distance(isExp ? 65 : 45).strength(0.35);
-
-      state.sidebarGraph.graphData({ nodes, links });
-      
-      applyDynamicGeometry(state.sidebarGraph, isExp, width, height, 0, !state.currentEntityId);
-
-      state.graphNodeMap = nodeMap;
+      syncGraphRenderSize(state.sidebarGraph, renderSize);
+      applyGraphData(state.sidebarGraph, graphData, options.animate !== false);
     }
 
     updateGraphHUD(null);
   }
 
-  let isGraphAnimating = false;
+  function scheduleGraphForPage(entityId, options = {}) {
+    const shouldDefer = window.innerWidth <= 768
+      && !state.isGraphExpanded
+      && state.graphPhase === 'small';
+    if (shouldDefer) {
+      graphState.pendingEntityId = entityId;
+      graphState.hasPendingData = true;
+      return;
+    }
 
-  function toggleGraphExpand(forceState) {
+    graphState.hasPendingData = false;
+    initBalancedTopologyGraph(entityId, options);
+  }
+
+  function flushPendingGraphData() {
+    if (!graphState.hasPendingData) return;
+    const entityId = graphState.pendingEntityId;
+    graphState.hasPendingData = false;
+    initBalancedTopologyGraph(entityId, { animate: false });
+  }
+
+  function applyFixedGraphRect(container, rect) {
+    container.style.position = 'fixed';
+    container.style.inset = 'auto';
+    container.style.left = `${rect.left}px`;
+    container.style.top = `${rect.top}px`;
+    container.style.width = `${rect.width}px`;
+    container.style.height = `${rect.height}px`;
+    container.style.margin = '0';
+    container.style.zIndex = window.innerWidth <= 768 ? '500' : '100';
+  }
+
+  function resetGraphContainerStyles(container) {
+    ['position', 'inset', 'left', 'top', 'width', 'height', 'margin', 'zIndex', 'background'].forEach((property) => {
+      container.style[property] = '';
+    });
+  }
+
+  function getMobileLauncherGraphRect(launcher) {
+    const anchor = launcher.getBoundingClientRect();
+    const width = Math.min(180, window.innerWidth);
+    const height = Math.min(128, window.innerHeight);
+    const centerX = anchor.left + anchor.width / 2;
+    const centerY = anchor.top + anchor.height / 2;
+    return {
+      left: Math.max(0, Math.min(window.innerWidth - width, centerX - width / 2)),
+      top: Math.max(0, Math.min(window.innerHeight - height, centerY - height / 2)),
+      width,
+      height
+    };
+  }
+
+  function toggleGraphExpand(forceState, options = {}) {
     const container = getEl('sidebar-graph-container');
     const slot = getEl('sidebar-graph-slot') || (container ? container.parentElement : null);
-    if (!container || !state.sidebarGraph || isGraphAnimating || !slot) return;
+    if (!container || !state.sidebarGraph || !slot) return Promise.resolve();
 
     const targetState = typeof forceState === 'boolean' ? forceState : !state.isGraphExpanded;
-    if (targetState === state.isGraphExpanded) return;
+    const transitionDuration = Number.isFinite(options.duration)
+      ? Math.max(0, options.duration)
+      : 420;
+    const isStable = state.graphPhase === 'small' || state.graphPhase === 'expanded';
+    if (targetState === state.isGraphExpanded && isStable) return Promise.resolve();
+    if (!isStable) {
+      return graphState.containerTransitionPromise.then(() => toggleGraphExpand(targetState, options));
+    }
 
-    state.isGraphExpanded = targetState;
-    isGraphAnimating = true;
-
-    const isMobile = window.innerWidth <= 768;
-    const expSize = getExpandedGraphSize();
-
-    if (state.isGraphExpanded) {
-      // 1. SMALL -> BIG
-      // Hide launcher FAB during expansion
+    graphState.containerTransitionPromise = (async () => {
+      const isMobile = window.innerWidth <= 768;
       const launcher = getEl('btn-mobile-graph-launcher');
-      if (launcher) {
-        launcher.style.opacity = '0';
-        launcher.style.pointerEvents = 'none';
+      if (targetState && isMobile) flushPendingGraphData();
+      const startRect = container.getBoundingClientRect();
+      const sidebar = getEl('wiki-sidebar');
+      if (targetState && isMobile) {
+        state.graphReturnSurface = sidebar && sidebar.classList.contains('is-open') ? 'sidebar' : 'article';
       }
+      state.isGraphExpanded = targetState;
 
-      if (isMobile) {
-        // Teleport container to document.body on mobile to escape sidebar transform containing block
-        document.body.appendChild(container);
-        container.classList.add('is-expanded');
-        container.style.position = 'fixed';
-        container.style.inset = '0';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.width = '100vw';
-        container.style.height = '100dvh';
-        container.style.zIndex = '500';
-        container.style.margin = '0';
-        container.style.background = 'var(--bg-page)';
-
-        const curW = window.innerWidth;
-        const curH = window.innerHeight;
-        state.sidebarGraph.width(curW).height(curH);
-        if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-140);
-          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
+      if (targetState) {
+        state.graphPhase = 'expanding';
+        if (launcher) {
+          launcher.style.opacity = '0';
+          launcher.style.pointerEvents = 'none';
         }
-        const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-        state.sidebarGraph.graphData({ nodes, links });
-        state.graphNodeMap = nodeMap;
-        applyDynamicGeometry(state.sidebarGraph, true, curW, curH, 0, !state.currentEntityId);
 
-        isGraphAnimating = false;
-      } else {
-        // Desktop WAAPI 2D Morph (Seamless Single-Stage Expand)
-        const slotRect = slot.getBoundingClientRect();
-        const bigRect = {
+        const expandedSize = getExpandedGraphSize();
+        syncGraphRenderSize(state.sidebarGraph, expandedSize);
+        const targetRect = {
           left: 0,
-          top: 52,
-          width: expSize.width,
-          height: expSize.height
+          top: isMobile ? 0 : 52,
+          width: expandedSize.width,
+          height: expandedSize.height
         };
-
-        // Teleport container to document.body so its coordinate system is 100% viewport-aligned
         document.body.appendChild(container);
-
-        // 1. Establish full expanded container bounds immediately so canvas clientWidth is accurate
-        container.style.position = 'fixed';
-        container.style.left = `${bigRect.left}px`;
-        container.style.top = `${bigRect.top}px`;
-        container.style.width = `${bigRect.width}px`;
-        container.style.height = `${bigRect.height}px`;
-        container.style.margin = '0';
-        container.style.zIndex = '100';
+        closeMobileSidebar();
         container.classList.add('is-expanded');
+        document.body.classList.add('graph-is-expanded');
+        // Interaction-mode changes can reset ForceGraph's zoom transform.
+        // Apply them before capturing the transition camera so the single
+        // interpolation below is the final authority over the whole motion.
+        configureGraphPhysics(state.sidebarGraph, true);
+        const originRect = isMobile && state.graphReturnSurface === 'article' && launcher
+          ? getMobileLauncherGraphRect(launcher)
+          : startRect;
+        applyFixedGraphRect(container, originRect);
+        await morphGraphViewport(
+          container,
+          state.sidebarGraph,
+          originRect,
+          () => targetRect,
+          transitionDuration,
+          1
+        );
+        state.graphPhase = 'expanded';
+      } else {
+        state.graphPhase = 'collapsing';
+        graphState.focusedNode = null;
+        graphState.hoverNode = null;
+        hideBoundlessInspector();
+        if (isMobile && state.graphReturnSurface === 'sidebar') openMobileSidebar();
+        configureGraphPhysics(state.sidebarGraph, false);
+        const returnsToArticleLauncher = isMobile && state.graphReturnSurface === 'article' && launcher;
+        const getCollapseTarget = () => (
+          returnsToArticleLauncher
+            ? getMobileLauncherGraphRect(launcher)
+            : slot.getBoundingClientRect()
+        );
+        await morphGraphViewport(
+          container,
+          state.sidebarGraph,
+          startRect,
+          getCollapseTarget,
+          transitionDuration,
+          0
+        );
 
-        state.sidebarGraph.width(bigRect.width).height(bigRect.height);
-        if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-140);
-          state.sidebarGraph.d3Force('link').distance(65).strength(0.35);
-        }
-        const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-        state.sidebarGraph.graphData({ nodes, links });
-        state.graphNodeMap = nodeMap;
-
-        // 2. Pre-center and scale graph on full size so it is already at the target zoom
-        applyDynamicGeometry(state.sidebarGraph, true, bigRect.width, bigRect.height, 0, !state.currentEntityId);
-
-        // 3. Smoothly animate container from slot to bigRect in one continuous, fluid GPU motion
-        const anim = container.animate([
-          {
-            left: `${slotRect.left}px`,
-            top: `${slotRect.top}px`,
-            width: `${slotRect.width}px`,
-            height: `${slotRect.height}px`
-          },
-          {
-            left: `${bigRect.left}px`,
-            top: `${bigRect.top}px`,
-            width: `${bigRect.width}px`,
-            height: `${bigRect.height}px`
-          }
-        ], {
-          duration: 300,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-          fill: 'forwards'
-        });
-
-        anim.onfinish = () => {
-          anim.cancel();
-          isGraphAnimating = false;
-        };
-      }
-    } else {
-      // 2. BIG -> SMALL
-      if (isMobile) {
-        // Return container back to slot on mobile
         slot.appendChild(container);
         container.classList.remove('is-expanded');
-        container.style.position = '';
-        container.style.inset = '';
-        container.style.top = '';
-        container.style.left = '';
-        container.style.width = '';
-        container.style.height = '';
-        container.style.margin = '';
-        container.style.zIndex = '';
-        container.style.background = '';
-
-        const smallWidth = (container && container.clientWidth) || (slot ? slot.clientWidth - 40 : 268) || 268;
-        const smallHeight = 145;
-        state.sidebarGraph.width(smallWidth).height(smallHeight);
-        if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-          state.sidebarGraph.d3Force('charge').strength(-50);
-          state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
-        }
-        const { nodes, links, nodeMap } = buildGraphDataForEntity(state.currentEntityId);
-        state.sidebarGraph.graphData({ nodes, links });
-        state.graphNodeMap = nodeMap;
-        applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
-
-        const launcher = getEl('btn-mobile-graph-launcher');
+        document.body.classList.remove('graph-is-expanded');
+        resetGraphContainerStyles(container);
+        state.graphPhase = 'small';
         if (launcher) {
           launcher.style.opacity = '';
           launcher.style.pointerEvents = '';
         }
-        hideBoundlessInspector();
-        isGraphAnimating = false;
-      } else {
-        // Desktop WAAPI 2D Morph (Seamless Single-Stage Collapse)
-        const currentRect = container.getBoundingClientRect();
-        const targetSlotRect = slot.getBoundingClientRect();
-
-        const smallWidth = targetSlotRect.width || (slot && slot.clientWidth) || 268;
-        const smallHeight = targetSlotRect.height || 145;
-
-        // 1. Smoothly animate container from current expanded size down to slot size
-        const anim = container.animate([
-          {
-            left: `${currentRect.left}px`,
-            top: `${currentRect.top}px`,
-            width: `${currentRect.width}px`,
-            height: `${currentRect.height}px`
-          },
-          {
-            left: `${targetSlotRect.left}px`,
-            top: `${targetSlotRect.top}px`,
-            width: `${targetSlotRect.width}px`,
-            height: `${targetSlotRect.height}px`
-          }
-        ], {
-          duration: 300,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-          fill: 'forwards'
-        });
-
-        // 2. Only resize canvas buffer when the shrinking animation completes
-        anim.onfinish = () => {
-          anim.cancel();
-          slot.appendChild(container);
-          container.classList.remove('is-expanded');
-          container.style.position = '';
-          container.style.left = '';
-          container.style.top = '';
-          container.style.width = '';
-          container.style.height = '';
-          container.style.margin = '';
-          container.style.zIndex = '';
-          const launcher = getEl('btn-mobile-graph-launcher');
-          if (launcher) {
-            launcher.style.opacity = '';
-            launcher.style.pointerEvents = '';
-          }
-          if (state.sidebarGraph.d3Force && state.sidebarGraph.d3Force('charge')) {
-            state.sidebarGraph.d3Force('charge').strength(-50);
-            state.sidebarGraph.d3Force('link').distance(45).strength(0.35);
-          }
-          state.sidebarGraph.width(smallWidth).height(smallHeight);
-          applyDynamicGeometry(state.sidebarGraph, false, smallWidth, smallHeight, 0, !state.currentEntityId);
-          hideBoundlessInspector();
-          isGraphAnimating = false;
-        };
+        // The launcher-origin preview collapses into an article-only control.
+        // Once it is offscreen, prepare the sidebar camera for its next reveal.
+        if (returnsToArticleLauncher) {
+          const slotRect = slot.getBoundingClientRect();
+          fitGraphToViewport(state.sidebarGraph, 0, {
+            size: { width: slotRect.width || 268, height: slotRect.height || 145 },
+            expansionProgress: 0
+          });
+        }
       }
+    })();
+
+    return graphState.containerTransitionPromise;
+  }
+
+  async function navigateFromGraphNode(entityId, options = {}) {
+    const collapseGraph = options.collapseGraph !== false;
+    const isMobile = window.innerWidth <= 768;
+    hideBoundlessInspector();
+    graphState.focusedNode = null;
+    graphState.hoverNode = null;
+    state.graphReturnSurface = 'article';
+    if (collapseGraph && (state.isGraphExpanded || state.graphPhase !== 'small')) {
+      await toggleGraphExpand(false, { duration: isMobile ? 180 : 420 });
     }
+    closeMobileSidebar();
+    clearActiveNav();
+    openEntityArticle(entityId, { animateGraph: !isMobile });
   }
 
   function showBoundlessInspector(node) {
@@ -949,17 +1216,12 @@
       }
     }
 
-    const enterArticle = (e) => {
+    const enterArticle = async (e) => {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
-      hideBoundlessInspector();
-      graphState.focusedNode = null;
-      if (state.isGraphExpanded) toggleGraphExpand(false);
-      closeMobileSidebar();
-      clearActiveNav();
-      openEntityArticle(node.id);
+      await navigateFromGraphNode(node.id);
     };
 
     inspector.onclick = enterArticle;
@@ -1057,7 +1319,6 @@
 
         // Pull Down Gesture: Triggered directly in default state on the very first pull!
         if (isAtTop && deltaY > 35 && deltaY > Math.abs(deltaX) * 1.05 && elapsed < 600 && !state.isGraphExpanded) {
-          closeMobileSidebar();
           toggleGraphExpand(true);
         }
       }, { passive: true });
@@ -1090,12 +1351,7 @@
             // Swipe UP in bottom zone: Immediately enter entity article!
             if (graphState.focusedNode) {
               const focusedId = graphState.focusedNode.id;
-              hideBoundlessInspector();
-              graphState.focusedNode = null;
-              toggleGraphExpand(false);
-              closeMobileSidebar();
-              clearActiveNav();
-              openEntityArticle(focusedId);
+              navigateFromGraphNode(focusedId);
             } else {
               toggleGraphExpand(false);
             }
@@ -1107,12 +1363,7 @@
           // Tap anywhere in bottom zone: Enter article
           if (graphState.focusedNode) {
             const focusedId = graphState.focusedNode.id;
-            hideBoundlessInspector();
-            graphState.focusedNode = null;
-            toggleGraphExpand(false);
-            closeMobileSidebar();
-            clearActiveNav();
-            openEntityArticle(focusedId);
+            navigateFromGraphNode(focusedId);
           }
         }
       }, { passive: true });
@@ -1205,23 +1456,33 @@
     const handleResize = () => {
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
-        if (!state.sidebarGraph) return;
+        if (!state.sidebarGraph || (state.graphPhase !== 'small' && state.graphPhase !== 'expanded')) return;
+        if (window.innerWidth > 768) flushPendingGraphData();
+        const container = getEl('sidebar-graph-container');
+        const canvasContainer = getEl('canvas-sidebar-graph');
+        if (!container || !canvasContainer) return;
+        const expSize = getExpandedGraphSize();
         if (state.isGraphExpanded) {
-          const expSize = getExpandedGraphSize();
-          const container = getEl('sidebar-graph-container');
-          if (container) {
-            container.style.width = `${expSize.width}px`;
-            container.style.height = `${expSize.height}px`;
-          }
-          state.sidebarGraph.width(expSize.width).height(expSize.height);
-          applyDynamicGeometry(state.sidebarGraph, true, expSize.width, expSize.height, 0, !state.currentEntityId);
+          applyFixedGraphRect(container, {
+            left: 0,
+            top: window.innerWidth <= 768 ? 0 : 52,
+            width: expSize.width,
+            height: expSize.height
+          });
+          configureGraphPhysics(state.sidebarGraph, true);
         } else {
-          const isMobile = window.innerWidth <= 768;
-          const slot = getEl('sidebar-graph-slot');
-          const smallW = isMobile ? ((slot ? slot.clientWidth - 40 : 0) || 268) : ((slot && slot.clientWidth) || 268);
-          state.sidebarGraph.width(smallW).height(145);
-          applyDynamicGeometry(state.sidebarGraph, false, smallW, 145, 0, !state.currentEntityId);
+          configureGraphPhysics(state.sidebarGraph, false);
         }
+        syncGraphRenderSize(state.sidebarGraph, expSize);
+        // ForceGraph resets its camera when its backing store changes. Apply
+        // the logical viewport camera on the next paint, after that reset.
+        requestAnimationFrame(() => {
+          if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') return;
+          fitGraphToViewport(state.sidebarGraph, 0, {
+            size: state.isGraphExpanded ? expSize : getCurrentGraphViewportSize(),
+            expansionProgress: state.isGraphExpanded ? 1 : 0
+          });
+        });
       });
     };
 
@@ -1229,6 +1490,14 @@
     window.addEventListener('orientationchange', () => {
       setTimeout(handleResize, 150);
     }, { passive: true });
+
+    if (window.ResizeObserver) {
+      const slot = getEl('sidebar-graph-slot');
+      if (slot) {
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(slot);
+      }
+    }
   }
 
   function focusGraphNode(entityId) {
@@ -1265,8 +1534,11 @@
     closeMobileSidebar();
   }
 
-  function openEntityArticle(entityId) {
-    state.currentEntityId = entityId;
+  function openEntityArticle(entityId, options = {}) {
+    const knowledgeIndex = getKnowledgeIndex();
+    const resolvedEntityId = resolveEntityId(entityId, knowledgeIndex) || entityId;
+    entityId = resolvedEntityId;
+    state.currentEntityId = resolvedEntityId;
 
     // Reset global graph state to prevent ghost/orphaned nodes from dimming the new graph
     graphState.focusedNode = null;
@@ -1290,21 +1562,13 @@
       }
     }
 
-    initBalancedTopologyGraph(entityId);
+    const animateGraph = options.animateGraph === undefined
+      ? window.innerWidth > 768
+      : options.animateGraph;
+    scheduleGraphForPage(entityId, { animate: animateGraph });
 
-    let foundNode = null;
-    let foundCat = 'Characters';
-    const subgraphs = (window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.knowledge_graph && window.WIKI_STORE.master.knowledge_graph.subgraphs) || {};
-
-    for (const [catName, catObj] of Object.entries(subgraphs)) {
-      const nList = (catObj && catObj.value) || (Array.isArray(catObj) ? catObj : []);
-      const match = nList.find((n) => n.id === entityId || (n.label && n.label.toLowerCase() === entityId.toLowerCase()));
-      if (match) {
-        foundNode = match;
-        foundCat = catName;
-        break;
-      }
-    }
+    const foundNode = knowledgeIndex && knowledgeIndex.nodesById.get(resolvedEntityId);
+    const foundCat = (foundNode && foundNode.type) || 'Characters';
 
     const label = foundNode ? foundNode.label : entityId;
 
@@ -1376,7 +1640,10 @@
       themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
       if (window.lucide) window.lucide.createIcons();
     }
-    if (state.sidebarGraph) initBalancedTopologyGraph();
+    if (state.sidebarGraph) {
+      configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
+      if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+    }
   }
 
   function toggleFont() {
@@ -1400,6 +1667,14 @@
     }
   }
 
+  function openMobileSidebar() {
+    const sidebar = getEl('wiki-sidebar');
+    const backdrop = getEl('sidebar-backdrop');
+    flushPendingGraphData();
+    if (sidebar) sidebar.classList.add('is-open');
+    if (backdrop) backdrop.classList.add('is-visible');
+  }
+
   function toggleMobileSidebar() {
     const sidebar = getEl('wiki-sidebar');
     const backdrop = getEl('sidebar-backdrop');
@@ -1411,8 +1686,7 @@
           sidebar.classList.remove('is-open');
           if (backdrop) backdrop.classList.remove('is-visible');
         } else {
-          sidebar.classList.add('is-open');
-          if (backdrop) backdrop.classList.add('is-visible');
+          openMobileSidebar();
         }
       } else {
         sidebar.classList.toggle('collapsed');

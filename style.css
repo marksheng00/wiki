@@ -27,6 +27,13 @@
   --border-hairline: rgba(0, 0, 0, 0.06);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .topology-pure-canvas,
+  .boundless-node-inspector {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 [data-theme="sepia"] {
   --bg-page: #fbf7f0;
   --bg-page-rgb: 251, 247, 240;
@@ -347,6 +354,8 @@ svg.lucide, i[data-lucide] {
   height: 100%;
   position: relative;
   box-sizing: border-box;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 /* Zero-Box Mirrored-L Corner Expand Handle (Bottom-Right) */
@@ -387,11 +396,18 @@ svg.lucide, i[data-lucide] {
 }
 
 .topology-pure-canvas {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   background: var(--bg-subtle);
   overflow: hidden;
   cursor: grab;
+}
+.topology-pure-canvas .force-graph-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 .topology-pure-canvas canvas {
   width: 100% !important;
@@ -455,13 +471,31 @@ svg.lucide, i[data-lucide] {
 
 /* Layer 2 (Topmost Graph Canvas): 100% Solid & Crisp Nodes, Zero Mask */
 .sidebar-graph-container.is-expanded .topology-pure-canvas {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   background: transparent;
   -webkit-mask-image: none !important;
   mask-image: none !important;
+}
+
+.sidebar-graph-container .graph-tooltip {
+  max-width: min(240px, calc(100% - 24px));
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border-hairline);
+  border-radius: 6px;
+  background: rgba(var(--bg-page-rgb), 0.96);
+  color: var(--text-primary);
+  box-shadow: 0 8px 24px rgba(20, 25, 35, 0.12);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: normal;
+  pointer-events: none;
+  z-index: 8;
 }
 
 .sidebar-graph-container.is-expanded .btn-graph-expand {
@@ -1226,6 +1260,11 @@ details.toc-cat-details:not([open]) > summary::after {
 
 /* Mobile Handheld Viewports (<= 768px) */
 @media (max-width: 768px) {
+  body.graph-is-expanded {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   /* Header: clean mobile bar matching desktop height */
   .wiki-header {
     height: 52px;
@@ -1327,6 +1366,14 @@ details.toc-cat-details:not([open]) > summary::after {
     height: 145px;
   }
 
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .topology-pure-canvas {
+    touch-action: pan-y;
+  }
+
+  .sidebar-graph-container .graph-tooltip {
+    display: none !important;
+  }
+
   .wiki-sidebar .wiki-nav-hub {
     padding: 0 1.25rem calc(2.5rem + env(safe-area-inset-bottom)) 1.25rem;
   }
@@ -1413,6 +1460,16 @@ details.toc-cat-details:not([open]) > summary::after {
     top: 0;
     left: 0;
     z-index: 250;
+    background: var(--bg-page);
+    box-shadow: none;
+    touch-action: none;
+  }
+
+  .sidebar-graph-container.is-expanded::before {
+    display: none;
+  }
+
+  .sidebar-graph-container.is-expanded .topology-pure-canvas {
     background: var(--bg-page);
   }
 

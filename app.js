@@ -337,19 +337,33 @@
    * High-Aesthetic Force Graph Engine (Obsidian Extended Graph Grade)
    */
   const graphState = {
-    highlightNodes: new Set(),
-    highlightLinks: new Set(),
     hoverNode: null,
     focusedNode: null,
     imgCache: new Map(),
     knowledgeIndex: null,
-    positionCache: new Map(),
+    layoutTransition: null,
+    cameraTransition: null,
+    activeTargetPositions: new Map(),
+    nodeSprings: new Map(),
+    nodeSpringFrame: null,
+    draggedNodeId: null,
     renderSize: null,
     dataRevision: 0,
     pendingEntityId: null,
     hasPendingData: false,
+    pointerGesture: null,
+    pointerGestureRevision: 0,
+    pointerIntentBound: false,
+    resizeFrame: null,
+    resizePending: false,
     containerTransitionPromise: Promise.resolve()
   };
+
+  const DESKTOP_GRAPH_CLICK_SLOP_PX = 6;
+  const GRAPH_NODE_HOME_STIFFNESS = 140;
+  const GRAPH_LINK_SPRING_STIFFNESS = 55;
+  const GRAPH_NODE_SPRING_DAMPING = 22;
+  const GRAPH_NODE_MAX_RELEASE_SPEED = 900;
 
   const categoryThemeColors = {
     Characters: { light: '#e11d48', dark: '#fb7185', sepia: '#b91c1c' },
@@ -446,24 +460,78 @@
     return index.labelToId.get(String(entityId).toLowerCase()) || null;
   }
 
-  function cacheCurrentGraphPositions() {
-    graphState.positionCache.clear();
-    if (!state.sidebarGraph) return graphState.positionCache;
-    const data = state.sidebarGraph.graphData();
-    (data.nodes || []).forEach((node) => {
-      if (Number.isFinite(node.x) && Number.isFinite(node.y)) {
-        graphState.positionCache.set(node.id, {
-          x: node.x,
-          y: node.y,
-          vx: Number.isFinite(node.vx) ? node.vx : 0,
-          vy: Number.isFinite(node.vy) ? node.vy : 0
-        });
-      }
+  function captureVisibleGraphPose(graph = state.sidebarGraph) {
+    const pose = new Map();
+    const data = graph && graph.graphData ? graph.graphData() : null;
+    (data && data.nodes ? data.nodes : []).forEach((node) => {
+      if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+      pose.set(node.id, {
+        x: node.x,
+        y: node.y
+      });
     });
-    return graphState.positionCache;
+    return pose;
   }
 
-  function buildGraphDataForEntity(entityId) {
+  const GRAPH_GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+  const DETAIL_RING_CAPACITIES = [8, 14, 20];
+  const DETAIL_RING_RADII = [32, 58, 86];
+
+  function compareStableText(left, right) {
+    const leftText = String(left || '');
+    const rightText = String(right || '');
+    if (leftText === rightText) return 0;
+    return leftText < rightText ? -1 : 1;
+  }
+
+  function getStableGraphRotation(anchorId) {
+    const text = String(anchorId || 'overview');
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return ((hash >>> 0) / 4294967296) * Math.PI * 2;
+  }
+
+  /**
+   * Produce the final graph geometry as a pure function of the selected entity
+   * and its stable node order. The force engine is only a renderer here: it may
+   * never "learn" or overwrite these coordinates, so reload timing, navigation
+   * history and the current viewport cannot change where a graph settles.
+   */
+  function getDeterministicGraphPosition(indexInGraph, nodeCount, isEntityGraph, rotation) {
+    if (indexInGraph === 0) return { x: 0, y: 0 };
+
+    if (!isEntityGraph) {
+      const radius = 24 + Math.sqrt(indexInGraph) * 14;
+      const angle = rotation + indexInGraph * GRAPH_GOLDEN_ANGLE;
+      return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+    }
+
+    let ringNodeIndex = indexInGraph - 1;
+    let remainingNodes = Math.max(0, nodeCount - 1);
+    for (let ringIndex = 0; ringIndex < DETAIL_RING_CAPACITIES.length; ringIndex += 1) {
+      const ringCount = Math.min(DETAIL_RING_CAPACITIES[ringIndex], remainingNodes);
+      if (ringNodeIndex < ringCount) {
+        const angle = rotation + ringIndex * 0.17 + (Math.PI * 2 * ringNodeIndex) / Math.max(1, ringCount);
+        const radius = DETAIL_RING_RADII[ringIndex];
+        return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+      }
+      ringNodeIndex -= ringCount;
+      remainingNodes -= ringCount;
+    }
+
+    // Future-proof the layout if the one-hop preview limit grows beyond the
+    // current 35 neighbours. Extra nodes form deterministic outer rings.
+    const overflowRing = Math.floor(ringNodeIndex / 24);
+    const overflowIndex = ringNodeIndex % 24;
+    const radius = DETAIL_RING_RADII[DETAIL_RING_RADII.length - 1] + (overflowRing + 1) * 28;
+    const angle = rotation + 0.51 + (Math.PI * 2 * overflowIndex) / 24;
+    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+  }
+
+  function buildGraphDataForEntity(entityId, visiblePose = new Map()) {
     const index = getKnowledgeIndex();
     if (!index) return { nodes: [], links: [], nodeMap: new Map() };
 
@@ -477,7 +545,9 @@
       ]);
       const rankedNeighbors = Array.from(neighborIds).sort((a, b) => {
         const degreeDelta = (index.degree.get(b) || 0) - (index.degree.get(a) || 0);
-        return degreeDelta || (index.nodesById.get(a).label || '').localeCompare(index.nodesById.get(b).label || '');
+        if (degreeDelta) return degreeDelta;
+        const labelDelta = compareStableText(index.nodesById.get(a).label, index.nodesById.get(b).label);
+        return labelDelta || compareStableText(a, b);
       });
       // This canvas is a one-hop navigation preview. Keep the strongest direct
       // relations legible instead of shrinking a 100+ node hub into pixels.
@@ -495,7 +565,9 @@
           .filter((node) => node.type === type)
           .sort((a, b) => {
             const degreeDelta = (index.degree.get(b.id) || 0) - (index.degree.get(a.id) || 0);
-            return degreeDelta || (a.label || '').localeCompare(b.label || '');
+            if (degreeDelta) return degreeDelta;
+            const labelDelta = compareStableText(a.label, b.label);
+            return labelDelta || compareStableText(a.id, b.id);
           });
         selectedIds.push(...candidates.slice(0, limit).map((node) => node.id));
       });
@@ -503,32 +575,11 @@
 
     const selectedSet = new Set(selectedIds);
     const anchorId = primaryId || selectedIds[0];
-    const cachedAnchor = primaryId ? graphState.positionCache.get(anchorId) : null;
-    const nodeMap = new Map();
-    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-
-    selectedIds.forEach((id, indexInGraph) => {
-      const raw = index.nodesById.get(id);
-      if (!raw) return;
-      const cached = graphState.positionCache.get(id);
-      const radius = 12 + Math.sqrt(indexInGraph + 1) * 9;
-      const angle = indexInGraph * goldenAngle;
-      const canReuseCurrentPosition = !!(cachedAnchor && cached);
-      const x = id === anchorId ? 0 : (canReuseCurrentPosition ? cached.x - cachedAnchor.x : Math.cos(angle) * radius);
-      const y = id === anchorId ? 0 : (canReuseCurrentPosition ? cached.y - cachedAnchor.y : Math.sin(angle) * radius);
-      const node = createGraphNode(raw, id === primaryId || (!primaryId && id === anchorId), index.degree.get(id) || 0, x, y);
-      if (!node.isPrimary && canReuseCurrentPosition) {
-        node.vx = cached.vx;
-        node.vy = cached.vy;
-      }
-      nodeMap.set(id, node);
-    });
-
-    const links = [];
+    const edgePairs = [];
     const visualEdges = new Set();
     if (primaryId) {
       selectedIds.slice(1).forEach((neighborId) => {
-        links.push({ source: primaryId, target: neighborId });
+        edgePairs.push([primaryId, neighborId]);
       });
     } else {
       index.edges.forEach((edge) => {
@@ -538,15 +589,55 @@
           : `${edge.target}\u0000${edge.source}`;
         if (visualEdges.has(key)) return;
         visualEdges.add(key);
-        links.push({ source: edge.source, target: edge.target });
+        edgePairs.push([edge.source, edge.target]);
       });
     }
+
+    const visibleAnchor = visiblePose.get(anchorId);
+    const nodeMap = new Map();
+    const targetPositions = new Map();
+    const rotation = getStableGraphRotation(anchorId);
+
+    selectedIds.forEach((id, indexInGraph) => {
+      const raw = index.nodesById.get(id);
+      if (!raw) return;
+      const target = getDeterministicGraphPosition(
+        indexInGraph,
+        selectedIds.length,
+        !!primaryId,
+        rotation
+      );
+      const visible = visiblePose.get(id);
+      const canContinueFromVisiblePose = !!(visibleAnchor && visible);
+      const start = id === anchorId
+        ? { x: 0, y: 0 }
+        : (canContinueFromVisiblePose
+          ? { x: visible.x - visibleAnchor.x, y: visible.y - visibleAnchor.y }
+          : (visibleAnchor
+            ? { x: target.x * 0.55, y: target.y * 0.55 }
+            : target));
+      const node = createGraphNode(raw, id === primaryId || (!primaryId && id === anchorId), index.degree.get(id) || 0, start.x, start.y);
+      targetPositions.set(id, { x: target.x, y: target.y });
+      // Pin every node before graphData reaches ForceGraph. This prevents its
+      // asynchronous simulation from inserting a path-dependent intermediate
+      // layout between our transition frames.
+      node.fx = start.x;
+      node.fy = start.y;
+      node.vx = 0;
+      node.vy = 0;
+      nodeMap.set(id, node);
+    });
+
+    const links = edgePairs.map(([source, target]) => ({ source, target }));
 
     return {
       nodes: Array.from(nodeMap.values()),
       links,
       nodeMap,
-      cameraShift: cachedAnchor ? { x: cachedAnchor.x, y: cachedAnchor.y } : null
+      cameraShift: visibleAnchor ? { x: visibleAnchor.x, y: visibleAnchor.y } : null,
+      layout: {
+        targetPositions
+      }
     };
   }
 
@@ -614,20 +705,169 @@
     return true;
   }
 
-  function getActiveTitleElement() {
-    const viewEntity = getEl('view-entity');
-    if (viewEntity && viewEntity.style.display !== 'none') {
-      return getEl('view-entity-title');
-    }
-    const viewBook = getEl('view-book');
-    if (viewBook && viewBook.style.display !== 'none') {
-      return getEl('article-h1');
-    }
-    return getEl('article-h1') || getEl('view-entity-title');
+  function isDesktopExpandedGraphInteraction() {
+    return window.innerWidth > 768
+      && state.isGraphExpanded
+      && state.graphPhase === 'expanded';
   }
 
-  function updateGraphHUD(hoveredNode) {
-    // Intentionally no-op to keep article h1 title 100% stable and prevent accidental title hijacking
+  function snapshotGraphNodes(graph) {
+    const snapshot = new Map();
+    const nodes = ((graph && graph.graphData && graph.graphData()) || {}).nodes || [];
+    nodes.forEach((node) => {
+      snapshot.set(node.id, {
+        x: node.x,
+        y: node.y,
+        vx: node.vx,
+        vy: node.vy,
+        fx: node.fx,
+        fy: node.fy
+      });
+    });
+    return snapshot;
+  }
+
+  function restoreGraphNodes(graph, snapshot) {
+    if (!graph || !snapshot) return;
+    const nodes = ((graph.graphData && graph.graphData()) || {}).nodes || [];
+    nodes.forEach((node) => {
+      const saved = snapshot.get(node.id);
+      if (!saved) return;
+      node.x = saved.x;
+      node.y = saved.y;
+      node.vx = saved.vx;
+      node.vy = saved.vy;
+      node.fx = saved.fx;
+      node.fy = saved.fy;
+    });
+    if (graph.refresh) graph.refresh();
+  }
+
+  function updateGraphPointerDistance(gesture, event) {
+    if (!gesture || !event || event.pointerId !== gesture.pointerId) return;
+    const dx = event.clientX - gesture.startX;
+    const dy = event.clientY - gesture.startY;
+    gesture.maxDistanceSq = Math.max(gesture.maxDistanceSq, dx * dx + dy * dy);
+    if (event.type !== 'pointermove') return;
+
+    const now = performance.now();
+    const sampleDx = event.clientX - gesture.lastX;
+    const sampleDy = event.clientY - gesture.lastY;
+    const elapsed = Math.max(1, now - gesture.lastSampleAt);
+    if (sampleDx || sampleDy) {
+      const blend = Math.min(0.72, elapsed / 24);
+      gesture.velocityX += (sampleDx / elapsed - gesture.velocityX) * blend;
+      gesture.velocityY += (sampleDy / elapsed - gesture.velocityY) * blend;
+      gesture.lastMoveAt = now;
+    }
+    gesture.lastX = event.clientX;
+    gesture.lastY = event.clientY;
+    gesture.lastSampleAt = now;
+  }
+
+  function initDesktopGraphPointerIntent(container) {
+    if (!container || graphState.pointerIntentBound) return;
+    graphState.pointerIntentBound = true;
+
+    container.addEventListener('pointerdown', (event) => {
+      cancelGraphCameraTransition();
+      if (!isDesktopExpandedGraphInteraction() || event.button !== 0 || event.isPrimary === false) return;
+      const graph = state.sidebarGraph;
+      if (!graph) return;
+      const now = performance.now();
+      graphState.pointerGesture = {
+        revision: ++graphState.pointerGestureRevision,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        lastSampleAt: now,
+        lastMoveAt: now,
+        velocityX: 0,
+        velocityY: 0,
+        maxDistanceSq: 0,
+        dragNodeId: null,
+        snapshot: snapshotGraphNodes(graph),
+        cancelled: false,
+        handled: false
+      };
+    }, { passive: true });
+
+    window.addEventListener('pointermove', (event) => {
+      updateGraphPointerDistance(graphState.pointerGesture, event);
+    }, { passive: true });
+
+    window.addEventListener('pointerup', (event) => {
+      const gesture = graphState.pointerGesture;
+      if (!gesture || event.pointerId !== gesture.pointerId) return;
+      updateGraphPointerDistance(gesture, event);
+      const revision = gesture.revision;
+      // ForceGraph dispatches a valid node click in requestAnimationFrame.
+      // Clear our gesture after its callback has had the first chance to consume it.
+      window.requestAnimationFrame(() => {
+        if (graphState.pointerGesture && graphState.pointerGesture.revision === revision) {
+          graphState.pointerGesture = null;
+        }
+      });
+    }, { passive: true });
+
+    const cancelGesture = (event) => {
+      const gesture = graphState.pointerGesture;
+      if (!gesture || (event && event.pointerId !== undefined && event.pointerId !== gesture.pointerId)) return;
+      gesture.cancelled = true;
+      if (!gesture.handled && gesture.dragNodeId && state.graphNodeMap) {
+        startGraphNodeReturn(state.sidebarGraph, state.graphNodeMap.get(gesture.dragNodeId));
+      } else if (!gesture.handled) {
+        restoreGraphNodes(state.sidebarGraph, gesture.snapshot);
+      }
+      graphState.pointerGesture = null;
+    };
+    window.addEventListener('pointercancel', cancelGesture, { passive: true, capture: true });
+    window.addEventListener('blur', cancelGesture, { passive: true });
+  }
+
+  function bindNodeDragToPointerGesture(node) {
+    const gesture = graphState.pointerGesture;
+    if (!gesture || !node || !isDesktopExpandedGraphInteraction()) return;
+    gesture.dragNodeId = node.id;
+  }
+
+  function getGraphGestureDistancePx(graph, gesture, translate) {
+    const pointerDistance = gesture ? Math.sqrt(gesture.maxDistanceSq) : Number.POSITIVE_INFINITY;
+    const zoom = graph && graph.zoom ? (graph.zoom() || 1) : 1;
+    const graphDistance = translate
+      ? Math.hypot(translate.x || 0, translate.y || 0) * zoom
+      : 0;
+    return Math.max(pointerDistance, graphDistance);
+  }
+
+  async function handleGraphNodeActivation(node) {
+    if (!node || !node.id) return;
+    if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') return;
+    const gesture = graphState.pointerGesture;
+    if (gesture) {
+      if (gesture.handled) return;
+      gesture.handled = true;
+    }
+
+    const isMobileDevice = window.innerWidth <= 768;
+    if (!isMobileDevice) {
+      await navigateFromGraphNode(node.id, { collapseGraph: false });
+      return;
+    }
+
+    if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
+      await navigateFromGraphNode(node.id);
+      return;
+    }
+
+    graphState.focusedNode = node;
+    graphState.hoverNode = node;
+    // Preserve the mobile camera protocol: center the selected node, with only
+    // the original small upward allowance for the bottom tray.
+    centerMobileFocusedGraphNode(180);
+    showBoundlessInspector(node);
   }
 
   function getExpandedGraphSize() {
@@ -646,25 +886,20 @@
 
   function configureGraphPhysics(graph, isExpanded) {
     if (!graph) return;
-    const nodeCount = Math.max(1, ((graph.graphData() || {}).nodes || []).length);
-    const isOverview = !state.currentEntityId;
-    // Window mode must never mutate graph topology. Small/expanded views share
-    // one settled layout; only their camera and available viewport differ.
-    const chargeStrength = isOverview ? -40 : -Math.min(72, 42 + nodeCount * 0.15);
-    const linkDistance = isOverview ? 30 : Math.min(44, Math.max(32, 27 + Math.sqrt(nodeCount) * 1.15));
-
-    if (graph.d3Force && graph.d3Force('charge')) {
-      graph.d3Force('charge').strength(chargeStrength);
-      graph.d3Force('link').distance(linkDistance).strength(0.35);
-    }
     if (graph.backgroundColor) {
       const needsOpaqueCanvas = isExpanded && window.innerWidth <= 768;
       const pageColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-page').trim() || '#ffffff';
       graph.backgroundColor(needsOpaqueCanvas ? pageColor : 'rgba(0,0,0,0)');
     }
-    if (graph.enableZoomInteraction) graph.enableZoomInteraction(isExpanded);
-    if (graph.enablePanInteraction) graph.enablePanInteraction(isExpanded);
-    if (graph.enableNodeDrag) graph.enableNodeDrag(isExpanded);
+    // Page-layout interpolation owns node positions and the camera until its
+    // final frame. Keep node hit testing/clicks alive, but temporarily suspend
+    // gestures that could write competing positions or transforms.
+    const canInteract = isExpanded
+      && state.graphPhase === 'expanded'
+      && !graphState.layoutTransition;
+    if (graph.enableZoomInteraction) graph.enableZoomInteraction(canInteract);
+    if (graph.enablePanInteraction) graph.enablePanInteraction(canInteract);
+    if (graph.enableNodeDrag) graph.enableNodeDrag(canInteract);
   }
 
   function getCurrentGraphViewportSize() {
@@ -693,11 +928,16 @@
     return changed;
   }
 
-  function getGraphCameraForViewport(graph, size, expansionProgress) {
+  function getGraphCameraForViewport(graph, size, expansionProgress, positionMap = null) {
     if (!graph) return;
     const data = graph.graphData();
     if (!data || !data.nodes || !data.nodes.length) return;
-    const positionedNodes = data.nodes.filter((node) => Number.isFinite(node.x) && Number.isFinite(node.y));
+    const positionedNodes = data.nodes.map((node) => {
+      const position = positionMap && positionMap.get(node.id);
+      const x = position ? position.x : node.x;
+      const y = position ? position.y : node.y;
+      return Number.isFinite(x) && Number.isFinite(y) ? { ...node, x, y } : null;
+    }).filter(Boolean);
     if (!positionedNodes.length) return;
 
     const maxVisualRadius = positionedNodes.reduce((max, node) => Math.max(max, node.val || 5), 5) + 5;
@@ -726,35 +966,114 @@
     return { x: centerX, y: centerY, zoom: targetZoom };
   }
 
+  function getCurrentGraphCamera(graph) {
+    if (!graph) return null;
+    const center = graph.centerAt ? graph.centerAt() : null;
+    const zoom = graph.zoom ? graph.zoom() : null;
+    return center
+      && Number.isFinite(center.x)
+      && Number.isFinite(center.y)
+      && Number.isFinite(zoom)
+      ? { x: center.x, y: center.y, zoom }
+      : null;
+  }
+
+  function applyGraphCamera(graph, camera) {
+    if (!graph || !camera) return;
+    if (graph.centerAt) graph.centerAt(camera.x, camera.y, 0);
+    if (graph.zoom) graph.zoom(camera.zoom, 0);
+  }
+
+  function cancelGraphCameraTransition() {
+    const transition = graphState.cameraTransition;
+    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    graphState.cameraTransition = null;
+  }
+
+  function animateGraphCamera(graph, targetCamera, duration = 0) {
+    cancelGraphCameraTransition();
+    if (!graph || !targetCamera) return;
+    const startCamera = getCurrentGraphCamera(graph) || targetCamera;
+    if (duration <= 0) {
+      applyGraphCamera(graph, targetCamera);
+      return;
+    }
+
+    const transition = { frameId: null };
+    graphState.cameraTransition = transition;
+    const startedAt = performance.now();
+    const tick = (now) => {
+      if (graphState.cameraTransition !== transition) return;
+      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+      const eased = linear * linear * (3 - 2 * linear);
+      applyGraphCamera(graph, {
+        x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
+        y: startCamera.y + (targetCamera.y - startCamera.y) * eased,
+        zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * eased
+      });
+      if (linear < 1) {
+        transition.frameId = requestAnimationFrame(tick);
+      } else {
+        graphState.cameraTransition = null;
+      }
+    };
+    transition.frameId = requestAnimationFrame(tick);
+  }
+
+  function getMobileFocusedGraphCamera(graph, baseCamera, isExpanded = state.isGraphExpanded) {
+    const node = graphState.focusedNode;
+    if (window.innerWidth > 768
+      || !graph
+      || !baseCamera
+      || !node
+      || !Number.isFinite(node.x)
+      || !Number.isFinite(node.y)) return baseCamera;
+    return {
+      x: node.x,
+      y: node.y + (isExpanded ? 36 : 0),
+      zoom: baseCamera.zoom
+    };
+  }
+
+  function centerMobileFocusedGraphNode(duration = 0) {
+    const graph = state.sidebarGraph;
+    const node = graphState.focusedNode;
+    if (window.innerWidth > 768 || !graph || !node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) return false;
+    const camera = getCurrentGraphCamera(graph);
+    if (!camera) return false;
+    animateGraphCamera(graph, getMobileFocusedGraphCamera(graph, camera), duration);
+    return true;
+  }
+
   function fitGraphToViewport(graph, duration = 0, options = {}) {
     const expansionProgress = options.expansionProgress === undefined
       ? (state.isGraphExpanded ? 1 : 0)
       : Math.max(0, Math.min(1, options.expansionProgress));
     const size = options.size || getCurrentGraphViewportSize();
-    const camera = getGraphCameraForViewport(graph, size, expansionProgress);
+    const positionMap = Object.prototype.hasOwnProperty.call(options, 'positionMap')
+      ? options.positionMap
+      : graphState.activeTargetPositions;
+    const camera = getGraphCameraForViewport(graph, size, expansionProgress, positionMap);
     if (!camera) return;
-
-    if (graph.centerAt) graph.centerAt(camera.x, camera.y, duration);
-    if (graph.zoom) graph.zoom(camera.zoom, duration);
+    animateGraphCamera(graph, camera, duration);
   }
 
   function morphGraphViewport(container, graph, fromRect, getTargetRect, duration, toExpansion) {
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const initialTarget = getTargetRect();
-    const targetCamera = getGraphCameraForViewport(graph, initialTarget, toExpansion);
+    const startCamera = getCurrentGraphCamera(graph);
+    cancelGraphCameraTransition();
 
     if (reducedMotion || duration <= 0) {
       applyFixedGraphRect(container, initialTarget);
-      fitGraphToViewport(graph, 0, { size: initialTarget, expansionProgress: toExpansion });
+      const fitCamera = getGraphCameraForViewport(
+        graph,
+        initialTarget,
+        toExpansion,
+        graphState.activeTargetPositions
+      );
+      applyGraphCamera(graph, getMobileFocusedGraphCamera(graph, fitCamera, toExpansion === 1));
       return Promise.resolve(initialTarget);
-    }
-
-    // ForceGraph owns its camera interpolation. Issuing a new zero-duration
-    // camera command on every frame builds an internal queue that can replay
-    // stale transforms after the container has finished moving.
-    if (targetCamera) {
-      if (graph.centerAt) graph.centerAt(targetCamera.x, targetCamera.y, duration);
-      if (graph.zoom) graph.zoom(targetCamera.zoom, duration);
     }
 
     return new Promise((resolve) => {
@@ -772,12 +1091,26 @@
           height: fromRect.height + (target.height - fromRect.height) * eased
         };
         applyFixedGraphRect(container, rect);
+        const fitCamera = getGraphCameraForViewport(
+          graph,
+          target,
+          toExpansion,
+          graphState.activeTargetPositions
+        );
+        const targetCamera = getMobileFocusedGraphCamera(graph, fitCamera, toExpansion === 1);
+        if (startCamera && targetCamera) {
+          applyGraphCamera(graph, {
+            x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
+            y: startCamera.y + (targetCamera.y - startCamera.y) * eased,
+            zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * eased
+          });
+        } else {
+          applyGraphCamera(graph, targetCamera);
+        }
 
         if (linear < 1) {
           window.requestAnimationFrame(tick);
         } else {
-          // Same-frame final authority: no timer and no second visible stage.
-          fitGraphToViewport(graph, 0, { size: target, expansionProgress: toExpansion });
           resolve(target);
         }
       };
@@ -789,46 +1122,315 @@
     return endpoint && typeof endpoint === 'object' ? endpoint.id : endpoint;
   }
 
-  function getGraphEnterProgress(item) {
-    if (!item || !item.enteredAt) return 1;
-    const linear = Math.max(0, Math.min(1, (performance.now() - item.enteredAt) / 420));
-    return linear * linear * (3 - 2 * linear);
+  function cancelGraphLayoutTransition() {
+    const transition = graphState.layoutTransition;
+    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    graphState.layoutTransition = null;
+  }
+
+  function settleGraphLayoutTransitionNodes() {
+    const transition = graphState.layoutTransition;
+    if (!transition) return;
+    if (transition.frameId) cancelAnimationFrame(transition.frameId);
+    graphState.layoutTransition = null;
+    if (transition.finishNodes) transition.finishNodes();
+  }
+
+  function placeGraphNode(node, position) {
+    if (!node || !position) return;
+    node.x = position.x;
+    node.y = position.y;
+    node.vx = 0;
+    node.vy = 0;
+    node.fx = position.x;
+    node.fy = position.y;
+  }
+
+  function cancelAllGraphNodeSprings(settle = false) {
+    if (graphState.nodeSpringFrame) cancelAnimationFrame(graphState.nodeSpringFrame);
+    graphState.nodeSpringFrame = null;
+    graphState.draggedNodeId = null;
+    if (settle) {
+      graphState.nodeSprings.forEach((spring) => placeGraphNode(spring.node, spring.target));
+      if (state.sidebarGraph && state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+    }
+    graphState.nodeSprings.clear();
+  }
+
+  function getGraphGestureReleaseVelocity(graph, gesture) {
+    if (!gesture || performance.now() - gesture.lastMoveAt > 90) return { x: 0, y: 0 };
+    const zoom = graph && graph.zoom ? Math.max(0.01, graph.zoom() || 1) : 1;
+    let x = (gesture.velocityX * 1000) / zoom;
+    let y = (gesture.velocityY * 1000) / zoom;
+    const speed = Math.hypot(x, y);
+    if (speed > GRAPH_NODE_MAX_RELEASE_SPEED) {
+      const scale = GRAPH_NODE_MAX_RELEASE_SPEED / speed;
+      x *= scale;
+      y *= scale;
+    }
+    return { x, y };
+  }
+
+  function ensureGraphSpringNetwork(graph) {
+    if (!graph || graph !== state.sidebarGraph) return false;
+    const data = graph.graphData ? graph.graphData() : null;
+    const nodes = (data && data.nodes) || [];
+    const links = (data && data.links) || [];
+    const degrees = new Map(nodes.map((node) => [node.id, 0]));
+    links.forEach((link) => {
+      const sourceId = getLinkEndpointId(link.source);
+      const targetId = getLinkEndpointId(link.target);
+      degrees.set(sourceId, (degrees.get(sourceId) || 0) + 1);
+      degrees.set(targetId, (degrees.get(targetId) || 0) + 1);
+    });
+    nodes.forEach((node) => {
+      const target = graphState.activeTargetPositions.get(node.id);
+      if (!target) return;
+      const existing = graphState.nodeSprings.get(node.id);
+      if (existing && existing.graph === graph) {
+        existing.degreeScale = Math.sqrt(Math.max(1, degrees.get(node.id) || 0));
+        return;
+      }
+      graphState.nodeSprings.set(node.id, {
+        graph,
+        node,
+        target: { x: target.x, y: target.y },
+        degreeScale: Math.sqrt(Math.max(1, degrees.get(node.id) || 0)),
+        velocityX: 0,
+        velocityY: 0
+      });
+    });
+    return graphState.nodeSprings.size > 0;
+  }
+
+  function ensureGraphSpringFrame(graph) {
+    if (graphState.nodeSpringFrame || !graphState.nodeSprings.size) return;
+    let previousTime = performance.now();
+    const tick = (now) => {
+      graphState.nodeSpringFrame = null;
+      if (graph !== state.sidebarGraph) {
+        cancelAllGraphNodeSprings(false);
+        return;
+      }
+
+      const elapsed = Math.max(0.001, Math.min(0.034, (now - previousTime) / 1000));
+      previousTime = now;
+      const stepCount = Math.max(1, Math.ceil(elapsed / (1 / 120)));
+      const step = elapsed / stepCount;
+      const data = graph.graphData ? graph.graphData() : null;
+      const links = (data && data.links) || [];
+
+      for (let stepIndex = 0; stepIndex < stepCount; stepIndex += 1) {
+        const forces = new Map();
+        graphState.nodeSprings.forEach((spring, nodeId) => {
+          if (nodeId === graphState.draggedNodeId) {
+            spring.velocityX = 0;
+            spring.velocityY = 0;
+            return;
+          }
+          forces.set(nodeId, {
+            x: -GRAPH_NODE_HOME_STIFFNESS * (spring.node.x - spring.target.x)
+              - GRAPH_NODE_SPRING_DAMPING * spring.velocityX,
+            y: -GRAPH_NODE_HOME_STIFFNESS * (spring.node.y - spring.target.y)
+              - GRAPH_NODE_SPRING_DAMPING * spring.velocityY
+          });
+        });
+
+        links.forEach((link) => {
+          const sourceId = getLinkEndpointId(link.source);
+          const targetId = getLinkEndpointId(link.target);
+          const source = graphState.nodeSprings.get(sourceId);
+          const target = graphState.nodeSprings.get(targetId);
+          if (!source || !target) return;
+          const deltaX = target.node.x - source.node.x;
+          const deltaY = target.node.y - source.node.y;
+          const distance = Math.max(0.001, Math.hypot(deltaX, deltaY));
+          const restLength = Math.max(
+            0.001,
+            Math.hypot(target.target.x - source.target.x, target.target.y - source.target.y)
+          );
+          const stretch = distance - restLength;
+          const linkForceX = GRAPH_LINK_SPRING_STIFFNESS * stretch * (deltaX / distance);
+          const linkForceY = GRAPH_LINK_SPRING_STIFFNESS * stretch * (deltaY / distance);
+          const sourceForce = forces.get(sourceId);
+          const targetForce = forces.get(targetId);
+          if (sourceForce) {
+            sourceForce.x += linkForceX / source.degreeScale;
+            sourceForce.y += linkForceY / source.degreeScale;
+          }
+          if (targetForce) {
+            targetForce.x -= linkForceX / target.degreeScale;
+            targetForce.y -= linkForceY / target.degreeScale;
+          }
+        });
+
+        graphState.nodeSprings.forEach((spring, nodeId) => {
+          const force = forces.get(nodeId);
+          if (!force) return;
+          spring.velocityX += force.x * step;
+          spring.velocityY += force.y * step;
+          spring.node.x += spring.velocityX * step;
+          spring.node.y += spring.velocityY * step;
+        });
+      }
+
+      let maximumDistance = 0;
+      let maximumSpeed = 0;
+      graphState.nodeSprings.forEach((spring) => {
+        spring.node.vx = 0;
+        spring.node.vy = 0;
+        spring.node.fx = spring.node.x;
+        spring.node.fy = spring.node.y;
+        maximumDistance = Math.max(
+          maximumDistance,
+          Math.hypot(spring.node.x - spring.target.x, spring.node.y - spring.target.y)
+        );
+        maximumSpeed = Math.max(maximumSpeed, Math.hypot(spring.velocityX, spring.velocityY));
+      });
+
+      if (!graphState.draggedNodeId && maximumDistance < 0.08 && maximumSpeed < 1.5) {
+        cancelAllGraphNodeSprings(true);
+        return;
+      }
+      if (graph.refresh) graph.refresh();
+      graphState.nodeSpringFrame = requestAnimationFrame(tick);
+    };
+    graphState.nodeSpringFrame = requestAnimationFrame(tick);
+  }
+
+  function beginGraphNodeDrag(graph, node) {
+    if (!graph || !node || !ensureGraphSpringNetwork(graph)) return;
+    graphState.draggedNodeId = node.id;
+    const spring = graphState.nodeSprings.get(node.id);
+    if (spring) {
+      spring.velocityX = 0;
+      spring.velocityY = 0;
+    }
+    ensureGraphSpringFrame(graph);
+  }
+
+  function startGraphNodeReturn(graph, node, releaseVelocity = { x: 0, y: 0 }) {
+    if (!graph || !node || !ensureGraphSpringNetwork(graph)) return;
+    graphState.draggedNodeId = null;
+    const spring = graphState.nodeSprings.get(node.id);
+    if (spring) {
+      spring.velocityX = Number.isFinite(releaseVelocity.x) ? releaseVelocity.x : 0;
+      spring.velocityY = Number.isFinite(releaseVelocity.y) ? releaseVelocity.y : 0;
+    }
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      cancelAllGraphNodeSprings(true);
+      return;
+    }
+    ensureGraphSpringFrame(graph);
+  }
+
+  function transitionGraphToLayout(graph, layout, targetCamera, duration) {
+    if (!graph || !layout) return;
+    const data = graph.graphData ? graph.graphData() : null;
+    const nodes = (data && data.nodes) || [];
+    const starts = new Map();
+    nodes.forEach((node) => {
+      const target = layout.targetPositions.get(node.id);
+      starts.set(node.id, {
+        x: Number.isFinite(node.x) ? node.x : target.x,
+        y: Number.isFinite(node.y) ? node.y : target.y
+      });
+    });
+    const cameraStart = getCurrentGraphCamera(graph) || targetCamera;
+
+    const applyNodes = (progress) => {
+      nodes.forEach((node) => {
+        const start = starts.get(node.id);
+        const target = layout.targetPositions.get(node.id);
+        if (!start || !target) return;
+        placeGraphNode(node, {
+          x: start.x + (target.x - start.x) * progress,
+          y: start.y + (target.y - start.y) * progress
+        });
+      });
+    };
+
+    const apply = (progress) => {
+      applyNodes(progress);
+      if (cameraStart && targetCamera) {
+        const camera = {
+          x: cameraStart.x + (targetCamera.x - cameraStart.x) * progress,
+          y: cameraStart.y + (targetCamera.y - cameraStart.y) * progress,
+          zoom: cameraStart.zoom + (targetCamera.zoom - cameraStart.zoom) * progress
+        };
+        // Immediate camera writes keep camera and nodes under the same
+        // revision-token RAF. No uncancellable ForceGraph tween survives a
+        // rapid page change and moves the next graph afterwards.
+        applyGraphCamera(graph, camera);
+      }
+      if (graph.refresh) graph.refresh();
+    };
+
+    if (duration <= 0) {
+      apply(1);
+      return;
+    }
+
+    const transition = {
+      revision: graphState.dataRevision,
+      frameId: null,
+      finishNodes: () => {
+        applyNodes(1);
+        if (graph.refresh) graph.refresh();
+      }
+    };
+    graphState.layoutTransition = transition;
+    configureGraphPhysics(graph, state.isGraphExpanded);
+    const startedAt = performance.now();
+    const tick = (now) => {
+      if (graphState.layoutTransition !== transition || graphState.dataRevision !== transition.revision) return;
+      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+      const eased = linear * linear * (3 - 2 * linear);
+      apply(eased);
+      if (linear < 1) {
+        transition.frameId = requestAnimationFrame(tick);
+      } else {
+        graphState.layoutTransition = null;
+        configureGraphPhysics(graph, state.isGraphExpanded);
+      }
+    };
+    transition.frameId = requestAnimationFrame(tick);
   }
 
   function applyGraphData(graph, graphData, animate = true) {
     if (!graph) return;
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const previousIds = new Set(((graph.graphData() || {}).nodes || []).map((node) => node.id));
-    const previousCamera = graph.centerAt ? graph.centerAt() : null;
-    const revision = ++graphState.dataRevision;
-    const enteredAt = performance.now();
-    graphData.nodes.forEach((node) => {
-      node.enteredAt = animate && !reducedMotion && !previousIds.has(node.id) ? enteredAt : 0;
-    });
-    graphData.links.forEach((link) => {
-      const sourceId = getLinkEndpointId(link.source);
-      const targetId = getLinkEndpointId(link.target);
-      link.enteredAt = animate && !reducedMotion && (!previousIds.has(sourceId) || !previousIds.has(targetId)) ? enteredAt : 0;
-    });
+    cancelGraphCameraTransition();
+    cancelGraphLayoutTransition();
+    cancelAllGraphNodeSprings(false);
+    const previousCamera = getCurrentGraphCamera(graph);
+    ++graphState.dataRevision;
+    const transitionDuration = animate && !reducedMotion ? 420 : 0;
+    graphState.activeTargetPositions = (graphData.layout && graphData.layout.targetPositions) || new Map();
 
     graph.graphData({ nodes: graphData.nodes, links: graphData.links });
     state.graphNodeMap = graphData.nodeMap;
     configureGraphPhysics(graph, state.isGraphExpanded);
-    if (graphData.cameraShift && previousCamera && graph.centerAt) {
+    if (graphData.cameraShift && previousCamera) {
       // The new graph is translated so the clicked node becomes (0, 0).
       // Translate the camera by the same amount before the next paint; every
       // shared portrait therefore remains at exactly the same screen point.
-      graph.centerAt(
-        previousCamera.x - graphData.cameraShift.x,
-        previousCamera.y - graphData.cameraShift.y,
-        0
-      );
+      applyGraphCamera(graph, {
+        x: previousCamera.x - graphData.cameraShift.x,
+        y: previousCamera.y - graphData.cameraShift.y,
+        zoom: previousCamera.zoom
+      });
     }
-    if (graph.d3ReheatSimulation) graph.d3ReheatSimulation();
-    window.requestAnimationFrame(() => {
-      if (revision !== graphState.dataRevision) return;
-      fitGraphToViewport(graph, animate && !reducedMotion ? 420 : 0);
-    });
+
+    const camera = getGraphCameraForViewport(
+      graph,
+      getCurrentGraphViewportSize(),
+      state.isGraphExpanded ? 1 : 0,
+      graphData.layout && graphData.layout.targetPositions
+    );
+    transitionGraphToLayout(graph, graphData.layout, camera, transitionDuration);
   }
 
   function initBalancedTopologyGraph(focusEntityId, options = {}) {
@@ -837,17 +1439,15 @@
 
     const renderSize = getExpandedGraphSize();
     syncGraphRenderSize(null, renderSize);
-    // Capture the actual visible frame before deriving the next graph's local
-    // coordinate system. A long-lived cross-page cache mixes unrelated local
-    // spaces and makes portraits appear at positions from an older article.
-    cacheCurrentGraphPositions();
-    const graphData = buildGraphDataForEntity(focusEntityId || state.currentEntityId);
+    // The outgoing frame is only the animation source. Destination geometry is
+    // computed solely from that destination's data and never learned from it.
+    const visiblePose = captureVisibleGraphPose();
+    const graphData = buildGraphDataForEntity(focusEntityId || state.currentEntityId, visiblePose);
 
     if (!state.sidebarGraph) {
       container.innerHTML = '';
       container.addEventListener('mouseleave', () => {
         graphState.hoverNode = null;
-        updateGraphHUD(null);
       });
 
       const Graph = ForceGraph()(container)
@@ -868,7 +1468,7 @@
           const baseWidth = activeId
             ? (sourceId === activeId || targetId === activeId ? 1.8 : 0.45)
             : (sourceId === state.currentEntityId || targetId === state.currentEntityId ? 1.25 : 0.8);
-          return baseWidth * getGraphEnterProgress(link);
+          return baseWidth;
         })
         .linkColor((link) => {
           const isDark = state.theme === 'dark';
@@ -883,47 +1483,38 @@
           }
           return isDark ? 'rgba(255,255,255,0.18)' : (isSepia ? 'rgba(45,38,30,0.18)' : 'rgba(0,0,0,0.12)');
         })
-        .d3VelocityDecay(0.30)
-        .onEngineStop(() => {
-          cacheCurrentGraphPositions();
+        .onNodeDrag((node) => {
+          bindNodeDragToPointerGesture(node);
+          beginGraphNodeDrag(Graph, node);
         })
-        .onNodeDragEnd((node) => {
-          if (!node.isPrimary) {
-            node.fx = undefined;
-            node.fy = undefined;
+        .onNodeDragEnd(async (node, translate) => {
+          const gesture = graphState.pointerGesture;
+          const isTrackedDesktopDrag = isDesktopExpandedGraphInteraction()
+            && gesture
+            && gesture.dragNodeId === node.id;
+          const dragDistancePx = getGraphGestureDistancePx(Graph, gesture, translate);
+
+          if (isTrackedDesktopDrag
+            && !gesture.cancelled
+            && dragDistancePx <= DESKTOP_GRAPH_CLICK_SLOP_PX) {
+            cancelAllGraphNodeSprings(false);
+            restoreGraphNodes(Graph, gesture.snapshot);
+            await handleGraphNodeActivation(node);
+            return;
           }
-          fitGraphToViewport(Graph, 260);
+
+          if (isTrackedDesktopDrag) gesture.handled = true;
+          // Desktop dragging temporarily deforms the relation network. Every
+          // affected node is still anchored to deterministic geometry, so the
+          // whole network settles home without moving the camera.
+          startGraphNodeReturn(Graph, node, getGraphGestureReleaseVelocity(Graph, gesture));
         })
         .onNodeHover((node) => {
           if (!graphState.focusedNode) {
             graphState.hoverNode = node || null;
-            updateGraphHUD(node);
           }
         })
-        .onNodeClick(async (node) => {
-          if (!node || !node.id) return;
-          const isMobileDevice = window.innerWidth <= 768;
-
-          if (!isMobileDevice) {
-            await navigateFromGraphNode(node.id, { collapseGraph: false });
-            return;
-          }
-
-          if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
-            await navigateFromGraphNode(node.id);
-            return;
-          }
-
-          graphState.focusedNode = node;
-          graphState.hoverNode = node;
-          if (state.sidebarGraph && state.sidebarGraph.centerAt) {
-            // Preserve the mobile camera protocol: center the selected node,
-            // with only the original small upward allowance for the bottom tray.
-            const offsetY = state.isGraphExpanded ? 36 : 0;
-            state.sidebarGraph.centerAt(node.x, node.y + offsetY, 180);
-          }
-          showBoundlessInspector(node);
-        })
+        .onNodeClick(handleGraphNodeActivation)
         .onBackgroundClick(() => {
           const isMobileDevice = window.innerWidth <= 768;
           if (graphState.focusedNode) {
@@ -959,8 +1550,6 @@
           } else if (graphState.hoverNode) {
             alpha = (isPrimary || isHovered) ? 1 : 0.65;
           }
-          alpha *= getGraphEnterProgress(node);
-
           ctx.save();
           ctx.globalAlpha = alpha;
 
@@ -1009,20 +1598,22 @@
         });
 
       state.sidebarGraph = Graph;
+      initDesktopGraphPointerIntent(container);
       graphState.renderSize = { width: Math.round(renderSize.width), height: Math.round(renderSize.height) };
       applyGraphData(Graph, graphData, false);
     } else {
       syncGraphRenderSize(state.sidebarGraph, renderSize);
       applyGraphData(state.sidebarGraph, graphData, options.animate !== false);
     }
-
-    updateGraphHUD(null);
   }
 
   function scheduleGraphForPage(entityId, options = {}) {
-    const shouldDefer = window.innerWidth <= 768
+    const isViewportTransitioning = state.graphPhase !== 'small' && state.graphPhase !== 'expanded';
+    const shouldDefer = isViewportTransitioning || (
+      window.innerWidth <= 768
       && !state.isGraphExpanded
-      && state.graphPhase === 'small';
+      && state.graphPhase === 'small'
+    );
     if (shouldDefer) {
       graphState.pendingEntityId = entityId;
       graphState.hasPendingData = true;
@@ -1089,6 +1680,10 @@
     graphState.containerTransitionPromise = (async () => {
       const isMobile = window.innerWidth <= 768;
       const launcher = getEl('btn-mobile-graph-launcher');
+      // Window morphing owns the camera. Finish only the current node geometry
+      // first so page-layout and viewport-layout animations can never compete.
+      cancelGraphCameraTransition();
+      settleGraphLayoutTransitionNodes();
       if (targetState && isMobile) flushPendingGraphData();
       const startRect = container.getBoundingClientRect();
       const sidebar = getEl('wiki-sidebar');
@@ -1106,11 +1701,14 @@
 
         const expandedSize = getExpandedGraphSize();
         syncGraphRenderSize(state.sidebarGraph, expandedSize);
-        const targetRect = {
-          left: 0,
-          top: isMobile ? 0 : 52,
-          width: expandedSize.width,
-          height: expandedSize.height
+        const getExpandedTarget = () => {
+          const size = getExpandedGraphSize();
+          return {
+            left: 0,
+            top: window.innerWidth <= 768 ? 0 : 52,
+            width: size.width,
+            height: size.height
+          };
         };
         document.body.appendChild(container);
         closeMobileSidebar();
@@ -1128,11 +1726,12 @@
           container,
           state.sidebarGraph,
           originRect,
-          () => targetRect,
+          getExpandedTarget,
           transitionDuration,
           1
         );
         state.graphPhase = 'expanded';
+        configureGraphPhysics(state.sidebarGraph, true);
       } else {
         state.graphPhase = 'collapsing';
         graphState.focusedNode = null;
@@ -1174,6 +1773,8 @@
           });
         }
       }
+      if (targetState || window.innerWidth > 768) flushPendingGraphData();
+      if (graphState.resizePending) scheduleGraphResizeSync();
     })();
 
     return graphState.containerTransitionPromise;
@@ -1220,6 +1821,11 @@
       if (e) {
         e.preventDefault();
         e.stopPropagation();
+      }
+      const suppressUntil = Number(inspector.dataset.suppressClickUntil || 0);
+      if (suppressUntil) delete inspector.dataset.suppressClickUntil;
+      if (performance.now() < suppressUntil) {
+        return;
       }
       await navigateFromGraphNode(node.id);
     };
@@ -1347,6 +1953,9 @@
         const absX = Math.abs(deltaX);
 
         if (absY > 25 && absY > absX * 1.1 && elapsed < 600) {
+          // This swipe owns the gesture. Ignore only the compatibility click
+          // that some touch browsers synthesize after touchend.
+          boundlessInspector.dataset.suppressClickUntil = String(performance.now() + 600);
           if (deltaY < 0) {
             // Swipe UP in bottom zone: Immediately enter entity article!
             if (graphState.focusedNode) {
@@ -1358,12 +1967,6 @@
           } else if (deltaY > 35) {
             // Swipe DOWN: Collapse graph
             toggleGraphExpand(false);
-          }
-        } else if (absY < 15 && absX < 15 && elapsed < 400) {
-          // Tap anywhere in bottom zone: Enter article
-          if (graphState.focusedNode) {
-            const focusedId = graphState.focusedNode.id;
-            navigateFromGraphNode(focusedId);
           }
         }
       }, { passive: true });
@@ -1404,6 +2007,53 @@
     }
   }
 
+  function scheduleGraphResizeSync() {
+    if (graphState.resizeFrame) cancelAnimationFrame(graphState.resizeFrame);
+    graphState.resizeFrame = requestAnimationFrame(() => {
+      graphState.resizeFrame = null;
+      if (!state.sidebarGraph) return;
+      if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') {
+        graphState.resizePending = true;
+        return;
+      }
+
+      graphState.resizePending = false;
+      cancelGraphCameraTransition();
+      settleGraphLayoutTransitionNodes();
+      if (window.innerWidth > 768) flushPendingGraphData();
+      const container = getEl('sidebar-graph-container');
+      const canvasContainer = getEl('canvas-sidebar-graph');
+      if (!container || !canvasContainer) return;
+      const expandedSize = getExpandedGraphSize();
+      if (state.isGraphExpanded) {
+        applyFixedGraphRect(container, {
+          left: 0,
+          top: window.innerWidth <= 768 ? 0 : 52,
+          width: expandedSize.width,
+          height: expandedSize.height
+        });
+        configureGraphPhysics(state.sidebarGraph, true);
+      } else {
+        configureGraphPhysics(state.sidebarGraph, false);
+      }
+      syncGraphRenderSize(state.sidebarGraph, expandedSize);
+
+      // Backing-store changes can reset ForceGraph's transform. Reapply one
+      // authoritative camera on the next paint, then restore mobile selection.
+      requestAnimationFrame(() => {
+        if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') {
+          graphState.resizePending = true;
+          return;
+        }
+        fitGraphToViewport(state.sidebarGraph, 0, {
+          size: state.isGraphExpanded ? expandedSize : getCurrentGraphViewportSize(),
+          expansionProgress: state.isGraphExpanded ? 1 : 0
+        });
+        centerMobileFocusedGraphNode(0);
+      });
+    });
+  }
+
   function initGraphControls() {
     const expandBtn = getEl('btn-graph-expand');
     if (expandBtn) {
@@ -1415,8 +2065,18 @@
 
     const mobileGraphCloseBtn = getEl('btn-mobile-graph-close');
     if (mobileGraphCloseBtn) {
+      const claimGraphCloseControl = (e) => {
+        if (e) e.stopPropagation();
+        cancelGraphCameraTransition();
+        graphState.focusedNode = null;
+        graphState.hoverNode = null;
+        hideBoundlessInspector();
+      };
+      // Claim the pointer before the fullscreen inspector can interpret the
+      // same release as its "enter article" gesture.
+      mobileGraphCloseBtn.addEventListener('pointerdown', claimGraphCloseControl);
       mobileGraphCloseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+        claimGraphCloseControl(e);
         toggleGraphExpand(false);
       });
     }
@@ -1452,64 +2112,17 @@
       }
     });
 
-    let resizeRaf = null;
-    const handleResize = () => {
-      if (resizeRaf) cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => {
-        if (!state.sidebarGraph || (state.graphPhase !== 'small' && state.graphPhase !== 'expanded')) return;
-        if (window.innerWidth > 768) flushPendingGraphData();
-        const container = getEl('sidebar-graph-container');
-        const canvasContainer = getEl('canvas-sidebar-graph');
-        if (!container || !canvasContainer) return;
-        const expSize = getExpandedGraphSize();
-        if (state.isGraphExpanded) {
-          applyFixedGraphRect(container, {
-            left: 0,
-            top: window.innerWidth <= 768 ? 0 : 52,
-            width: expSize.width,
-            height: expSize.height
-          });
-          configureGraphPhysics(state.sidebarGraph, true);
-        } else {
-          configureGraphPhysics(state.sidebarGraph, false);
-        }
-        syncGraphRenderSize(state.sidebarGraph, expSize);
-        // ForceGraph resets its camera when its backing store changes. Apply
-        // the logical viewport camera on the next paint, after that reset.
-        requestAnimationFrame(() => {
-          if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') return;
-          fitGraphToViewport(state.sidebarGraph, 0, {
-            size: state.isGraphExpanded ? expSize : getCurrentGraphViewportSize(),
-            expansionProgress: state.isGraphExpanded ? 1 : 0
-          });
-        });
-      });
-    };
-
-    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('resize', scheduleGraphResizeSync, { passive: true });
     window.addEventListener('orientationchange', () => {
-      setTimeout(handleResize, 150);
+      setTimeout(scheduleGraphResizeSync, 150);
     }, { passive: true });
 
     if (window.ResizeObserver) {
       const slot = getEl('sidebar-graph-slot');
       if (slot) {
-        const observer = new ResizeObserver(handleResize);
+        const observer = new ResizeObserver(scheduleGraphResizeSync);
         observer.observe(slot);
       }
-    }
-  }
-
-  function focusGraphNode(entityId) {
-    if (!state.sidebarGraph || !state.graphNodeMap) return;
-    const node = state.graphNodeMap.get(entityId);
-    if (node && state.sidebarGraph.centerAt) {
-      state.sidebarGraph.centerAt(node.x, node.y, 400);
-      graphState.highlightNodes.clear();
-      graphState.highlightLinks.clear();
-      graphState.highlightNodes.add(node.id);
-      if (node.neighbors) node.neighbors.forEach((nbr) => graphState.highlightNodes.add(nbr.id));
-      if (node.links) node.links.forEach((l) => graphState.highlightLinks.add(l));
     }
   }
 

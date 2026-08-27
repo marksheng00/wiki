@@ -109,6 +109,14 @@
               <i data-lucide="x" style="width:20px;height:20px;"></i>
             </button>
             <div class="topology-pure-canvas" id="canvas-sidebar-graph"></div>
+            <!-- Mobile node action stage shares the graph stacking context so
+                 canvas < inspector < close button is structurally guaranteed. -->
+            <div class="boundless-node-inspector" id="boundless-node-inspector">
+              <h3 class="boundless-title" id="boundless-title">Winston Smith</h3>
+              <div class="boundless-gesture-hint" id="boundless-gesture-hint">
+                <i data-lucide="chevron-up" style="width: 14px; height: 14px;"></i>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -686,14 +694,6 @@
   <button id="btn-mobile-graph-launcher" class="btn-mobile-graph-launcher" aria-label="Open Knowledge Graph">
     <i data-lucide="network" style="width:20px;height:20px;"></i>
   </button>
-
-  <!-- Boundless Typographic Node Hero Stage (Single Hero Portrait on Canvas + Matched Title + Whisper-Light Gesture Hint) -->
-  <div class="boundless-node-inspector" id="boundless-node-inspector">
-    <h3 class="boundless-title" id="boundless-title">Winston Smith</h3>
-    <div class="boundless-gesture-hint" id="boundless-gesture-hint">
-      <i data-lucide="chevron-up" style="width: 14px; height: 14px;"></i>
-    </div>
-  </div>
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>

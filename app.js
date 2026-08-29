@@ -139,8 +139,15 @@
   }
 
   async function prepareForPageNavigation() {
-    graphState.focusedNode = null;
-    graphState.hoverNode = null;
+    const isMobile = isMobileGraphViewport();
+    const isClosingExpandedMobileGraph = isMobile
+      && (state.isGraphExpanded || state.graphPhase !== 'small');
+    if (!isClosingExpandedMobileGraph) {
+      graphState.focusedNode = null;
+      graphState.hoverNode = null;
+    } else {
+      cancelMobileGraphFocusTransition();
+    }
     hideBoundlessInspector();
     if (state.isGraphExpanded || state.graphPhase !== 'small') {
       await toggleGraphExpand(false, { duration: window.innerWidth <= 768 ? 180 : 420 });
@@ -354,12 +361,37 @@
     pointerGesture: null,
     pointerGestureRevision: 0,
     pointerIntentBound: false,
+    mobileFocusWeights: new Map(),
+    mobileFocusTransition: null,
+    mobileExpansionProgress: 0,
+    mobileNodeGestureUntil: 0,
     resizeFrame: null,
     resizePending: false,
     containerTransitionPromise: Promise.resolve()
   };
 
   const DESKTOP_GRAPH_CLICK_SLOP_PX = 6;
+  const MOBILE_GRAPH_TAP_SLOP_PX = 10;
+  const MOBILE_GRAPH_FOCUS_DURATION_MS = 240;
+  const MOBILE_GRAPH_FOCUS_SCALE = 1.5;
+  const MOBILE_GRAPH_FOCUS_MIN_RADIUS_PX = 18;
+  const MOBILE_GRAPH_FOCUS_MAX_RADIUS_PX = 30;
+  const MOBILE_GRAPH_CONTROL_ICON_INSET_PX = 13;
+  const MOBILE_GRAPH_CONTROL_SHAPES = {
+    // The corner geometry is the desktop 10px L mapped into the bottom-right
+    // of a fixed 22px icon viewport, including its 1.5px rendered stroke.
+    corner: {
+      first: [14.1818, 22.9091, 22.9091, 22.9091],
+      second: [22.9091, 14.1818, 22.9091, 22.9091],
+      strokeWidth: 1.6364
+    },
+    // Lucide's canonical X geometry, matching the 22px sidebar close icon.
+    close: {
+      first: [6, 6, 18, 18],
+      second: [18, 6, 6, 18],
+      strokeWidth: 1.8
+    }
+  };
   const GRAPH_NODE_HOME_STIFFNESS = 140;
   const GRAPH_LINK_SPRING_STIFFNESS = 55;
   const GRAPH_NODE_SPRING_DAMPING = 22;
@@ -711,6 +743,16 @@
       && state.graphPhase === 'expanded';
   }
 
+  function isMobileGraphViewport() {
+    return window.innerWidth <= 768;
+  }
+
+  function isMobileExpandedGraphInteraction() {
+    return isMobileGraphViewport()
+      && state.isGraphExpanded
+      && state.graphPhase === 'expanded';
+  }
+
   function snapshotGraphNodes(graph) {
     const snapshot = new Map();
     const nodes = ((graph && graph.graphData && graph.graphData()) || {}).nodes || [];
@@ -765,13 +807,16 @@
     gesture.lastSampleAt = now;
   }
 
-  function initDesktopGraphPointerIntent(container) {
+  function initGraphPointerIntent(container) {
     if (!container || graphState.pointerIntentBound) return;
     graphState.pointerIntentBound = true;
 
     container.addEventListener('pointerdown', (event) => {
       cancelGraphCameraTransition();
-      if (!isDesktopExpandedGraphInteraction() || event.button !== 0 || event.isPrimary === false) return;
+      const isDesktop = isDesktopExpandedGraphInteraction();
+      const isMobile = isMobileExpandedGraphInteraction();
+      if ((!isDesktop && !isMobile) || event.button !== 0 || event.isPrimary === false) return;
+      if (isMobile) cancelMobileGraphFocusTransition();
       const graph = state.sidebarGraph;
       if (!graph) return;
       const now = performance.now();
@@ -788,6 +833,8 @@
         velocityY: 0,
         maxDistanceSq: 0,
         dragNodeId: null,
+        platform: isMobile ? 'mobile' : 'desktop',
+        clickSlopPx: isMobile ? MOBILE_GRAPH_TAP_SLOP_PX : DESKTOP_GRAPH_CLICK_SLOP_PX,
         snapshot: snapshotGraphNodes(graph),
         cancelled: false,
         handled: false
@@ -829,7 +876,9 @@
 
   function bindNodeDragToPointerGesture(node) {
     const gesture = graphState.pointerGesture;
-    if (!gesture || !node || !isDesktopExpandedGraphInteraction()) return;
+    if (!gesture
+      || !node
+      || (!isDesktopExpandedGraphInteraction() && !isMobileExpandedGraphInteraction())) return;
     gesture.dragNodeId = node.id;
   }
 
@@ -862,11 +911,8 @@
       return;
     }
 
-    graphState.focusedNode = node;
     graphState.hoverNode = node;
-    // Preserve the mobile camera protocol: center the selected node, with only
-    // the original small upward allowance for the bottom tray.
-    centerMobileFocusedGraphNode(180);
+    transitionMobileGraphFocus(state.sidebarGraph, node);
     showBoundlessInspector(node);
   }
 
@@ -990,6 +1036,40 @@
     graphState.cameraTransition = null;
   }
 
+  function cancelMobileGraphFocusTransition() {
+    const transition = graphState.mobileFocusTransition;
+    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    graphState.mobileFocusTransition = null;
+  }
+
+  function clearMobileGraphFocusVisuals() {
+    cancelMobileGraphFocusTransition();
+    graphState.mobileFocusWeights.clear();
+    if (state.sidebarGraph && state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+  }
+
+  function getMobileGraphFocusWeight(nodeId) {
+    const value = graphState.mobileFocusWeights.get(nodeId);
+    const focus = Number.isFinite(value)
+      ? Math.max(0, Math.min(1, value))
+      : (graphState.focusedNode && graphState.focusedNode.id === nodeId ? 1 : 0);
+    return focus * Math.max(0, Math.min(1, graphState.mobileExpansionProgress));
+  }
+
+  function getMobileRenderedNodeRadiusPx(node, globalScale) {
+    const scale = Math.max(0.01, globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1);
+    const baseRadiusPx = (node.val || 5) * scale;
+    const focusRadiusPx = Math.max(
+      baseRadiusPx,
+      Math.min(
+        MOBILE_GRAPH_FOCUS_MAX_RADIUS_PX,
+        Math.max(MOBILE_GRAPH_FOCUS_MIN_RADIUS_PX, baseRadiusPx * MOBILE_GRAPH_FOCUS_SCALE)
+      )
+    );
+    const focusWeight = getMobileGraphFocusWeight(node.id);
+    return baseRadiusPx + (focusRadiusPx - baseRadiusPx) * focusWeight;
+  }
+
   function animateGraphCamera(graph, targetCamera, duration = 0) {
     cancelGraphCameraTransition();
     if (!graph || !targetCamera) return;
@@ -1020,28 +1100,155 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function getMobileFocusedGraphCamera(graph, baseCamera, isExpanded = state.isGraphExpanded) {
-    const node = graphState.focusedNode;
-    if (window.innerWidth > 768
-      || !graph
-      || !baseCamera
-      || !node
-      || !Number.isFinite(node.x)
-      || !Number.isFinite(node.y)) return baseCamera;
+  function getMobileGraphSafeRect(size) {
+    const container = getEl('sidebar-graph-container');
+    const containerRect = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
+    const visualViewport = window.visualViewport;
+    const viewportLeft = visualViewport ? visualViewport.offsetLeft : 0;
+    const viewportTop = visualViewport ? visualViewport.offsetTop : 0;
+    const visibleWidth = Math.min(size.width, visualViewport ? visualViewport.width : size.width);
+    const visibleHeight = Math.min(size.height, visualViewport ? visualViewport.height : size.height);
+    const localLeft = Math.max(0, viewportLeft - containerRect.left);
+    const localTop = Math.max(0, viewportTop - containerRect.top);
+    const horizontalInset = Math.max(36, Math.min(52, visibleWidth * 0.12));
+    const topInset = Math.max(64, Math.min(96, visibleHeight * 0.10));
+    const bottomInset = Math.max(88, Math.min(120, visibleHeight * 0.12));
+    const inspector = getEl('boundless-node-inspector');
+    const inspectorRect = inspector ? inspector.getBoundingClientRect() : null;
+    const inspectorTop = inspectorRect && inspectorRect.height
+      ? inspectorRect.top - containerRect.top
+      : localTop + visibleHeight;
+    const top = localTop + topInset;
+    const bottom = Math.max(top, Math.min(
+      localTop + visibleHeight - bottomInset,
+      inspectorTop - 28
+    ));
     return {
-      x: node.x,
-      y: node.y + (isExpanded ? 36 : 0),
-      zoom: baseCamera.zoom
+      left: localLeft + horizontalInset,
+      right: localLeft + visibleWidth - horizontalInset,
+      top,
+      bottom
     };
   }
 
-  function centerMobileFocusedGraphNode(duration = 0) {
+  function getMobileFocusSafeCamera(
+    graph,
+    baseCamera,
+    isExpanded = state.isGraphExpanded,
+    focusedNode = graphState.focusedNode
+  ) {
+    if (!isMobileGraphViewport()
+      || !graph
+      || !baseCamera
+      || !focusedNode
+      || !isExpanded) return baseCamera;
+    const home = graphState.activeTargetPositions.get(focusedNode.id) || focusedNode;
+    if (!Number.isFinite(home.x) || !Number.isFinite(home.y)) return baseCamera;
+    const size = getCurrentGraphViewportSize();
+    const safeRect = getMobileGraphSafeRect(size);
+    const zoom = Math.max(0.01, baseCamera.zoom || 1);
+    const screenX = (home.x - baseCamera.x) * zoom + size.width / 2;
+    const screenY = (home.y - baseCamera.y) * zoom + size.height / 2;
+    const safeX = Math.max(safeRect.left, Math.min(safeRect.right, screenX));
+    const safeY = Math.max(safeRect.top, Math.min(safeRect.bottom, screenY));
+    if (Math.abs(safeX - screenX) < 0.5 && Math.abs(safeY - screenY) < 0.5) return baseCamera;
+    return {
+      x: home.x - (safeX - size.width / 2) / zoom,
+      y: home.y - (safeY - size.height / 2) / zoom,
+      zoom
+    };
+  }
+
+  function mobileGraphFocusEase(progress) {
+    if (progress >= 1) return 1;
+    const response = 4.6;
+    const curve = (value) => 1 - (1 + response * value) * Math.exp(-response * value);
+    return curve(progress) / curve(1);
+  }
+
+  function transitionMobileGraphFocus(graph, nextNode, duration = MOBILE_GRAPH_FOCUS_DURATION_MS) {
+    if (!isMobileGraphViewport() || !graph) return false;
+    const data = graph.graphData ? graph.graphData() : null;
+    const nodes = (data && data.nodes) || [];
+    const previousFocusedId = graphState.focusedNode && graphState.focusedNode.id;
+    const fromWeights = new Map(nodes.map((node) => {
+      const existing = graphState.mobileFocusWeights.get(node.id);
+      return [node.id, Number.isFinite(existing) ? existing : (node.id === previousFocusedId ? 1 : 0)];
+    }));
+
+    cancelMobileGraphFocusTransition();
+    cancelGraphCameraTransition();
+    graphState.focusedNode = nextNode || null;
+
+    const size = getCurrentGraphViewportSize();
+    const expansionProgress = state.isGraphExpanded ? 1 : 0;
+    const fittedCamera = getGraphCameraForViewport(
+      graph,
+      size,
+      expansionProgress,
+      graphState.activeTargetPositions
+    );
+    const startCamera = getCurrentGraphCamera(graph) || fittedCamera;
+    const focusBaseCamera = nextNode && startCamera ? startCamera : fittedCamera;
+    const targetCamera = nextNode
+      ? getMobileFocusSafeCamera(graph, focusBaseCamera, state.isGraphExpanded, nextNode)
+      : fittedCamera;
+    const cameraNeedsMotion = startCamera && targetCamera && (
+      Math.abs(startCamera.x - targetCamera.x) > 0.001
+      || Math.abs(startCamera.y - targetCamera.y) > 0.001
+      || Math.abs(startCamera.zoom - targetCamera.zoom) > 0.001
+    );
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const apply = (progress) => {
+      nodes.forEach((node) => {
+        const from = fromWeights.get(node.id) || 0;
+        const to = nextNode && node.id === nextNode.id ? 1 : 0;
+        graphState.mobileFocusWeights.set(node.id, from + (to - from) * progress);
+      });
+      if (cameraNeedsMotion) {
+        applyGraphCamera(graph, {
+          x: startCamera.x + (targetCamera.x - startCamera.x) * progress,
+          y: startCamera.y + (targetCamera.y - startCamera.y) * progress,
+          zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * progress
+        });
+      }
+      if (graph.refresh) graph.refresh();
+    };
+
+    if (reducedMotion || duration <= 0) {
+      apply(1);
+      graphState.mobileFocusWeights.clear();
+      if (nextNode) graphState.mobileFocusWeights.set(nextNode.id, 1);
+      return true;
+    }
+
+    const transition = { frameId: null };
+    graphState.mobileFocusTransition = transition;
+    const startedAt = performance.now();
+    const tick = (now) => {
+      if (graphState.mobileFocusTransition !== transition) return;
+      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+      apply(mobileGraphFocusEase(linear));
+      if (linear < 1) {
+        transition.frameId = requestAnimationFrame(tick);
+      } else {
+        graphState.mobileFocusTransition = null;
+        graphState.mobileFocusWeights.clear();
+        if (nextNode) graphState.mobileFocusWeights.set(nextNode.id, 1);
+      }
+    };
+    transition.frameId = requestAnimationFrame(tick);
+    return true;
+  }
+
+  function ensureMobileFocusedGraphNodeVisible(duration = 0) {
     const graph = state.sidebarGraph;
     const node = graphState.focusedNode;
-    if (window.innerWidth > 768 || !graph || !node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) return false;
+    if (!isMobileGraphViewport() || !state.isGraphExpanded || !graph || !node) return false;
     const camera = getCurrentGraphCamera(graph);
     if (!camera) return false;
-    animateGraphCamera(graph, getMobileFocusedGraphCamera(graph, camera), duration);
+    animateGraphCamera(graph, getMobileFocusSafeCamera(graph, camera), duration);
     return true;
   }
 
@@ -1058,7 +1265,15 @@
     animateGraphCamera(graph, camera, duration);
   }
 
-  function morphGraphViewport(container, graph, fromRect, getTargetRect, duration, toExpansion) {
+  function morphGraphViewport(
+    container,
+    graph,
+    fromRect,
+    getTargetRect,
+    duration,
+    toExpansion,
+    onProgress = null
+  ) {
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const initialTarget = getTargetRect();
     const startCamera = getCurrentGraphCamera(graph);
@@ -1072,7 +1287,8 @@
         toExpansion,
         graphState.activeTargetPositions
       );
-      applyGraphCamera(graph, getMobileFocusedGraphCamera(graph, fitCamera, toExpansion === 1));
+      applyGraphCamera(graph, getMobileFocusSafeCamera(graph, fitCamera, toExpansion === 1));
+      if (onProgress) onProgress(toExpansion);
       return Promise.resolve(initialTarget);
     }
 
@@ -1083,6 +1299,7 @@
         // Smooth acceleration and deceleration keeps the interpolation visible
         // instead of completing most of the distance in the first few frames.
         const eased = linear * linear * (3 - 2 * linear);
+        if (onProgress) onProgress(toExpansion === 1 ? eased : 1 - eased);
         const target = getTargetRect();
         const rect = {
           left: fromRect.left + (target.left - fromRect.left) * eased,
@@ -1097,7 +1314,7 @@
           toExpansion,
           graphState.activeTargetPositions
         );
-        const targetCamera = getMobileFocusedGraphCamera(graph, fitCamera, toExpansion === 1);
+        const targetCamera = getMobileFocusSafeCamera(graph, fitCamera, toExpansion === 1);
         if (startCamera && targetCamera) {
           applyGraphCamera(graph, {
             x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
@@ -1403,6 +1620,7 @@
     if (!graph) return;
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     cancelGraphCameraTransition();
+    if (isMobileGraphViewport()) clearMobileGraphFocusVisuals();
     cancelGraphLayoutTransition();
     cancelAllGraphNodeSprings(false);
     const previousCamera = getCurrentGraphCamera(graph);
@@ -1464,6 +1682,15 @@
         .linkWidth((link) => {
           const sourceId = getLinkEndpointId(link.source);
           const targetId = getLinkEndpointId(link.target);
+          if (isMobileGraphViewport()) {
+            const focusWeight = Math.max(
+              getMobileGraphFocusWeight(sourceId),
+              getMobileGraphFocusWeight(targetId)
+            );
+            const touchesCurrent = sourceId === state.currentEntityId || targetId === state.currentEntityId;
+            const baseWidth = touchesCurrent ? 1.1 : 0.8;
+            return baseWidth + (1.3 - baseWidth) * focusWeight;
+          }
           const activeId = (graphState.focusedNode && graphState.focusedNode.id) || (graphState.hoverNode && graphState.hoverNode.id);
           const baseWidth = activeId
             ? (sourceId === activeId || targetId === activeId ? 1.8 : 0.45)
@@ -1473,6 +1700,18 @@
         .linkColor((link) => {
           const isDark = state.theme === 'dark';
           const isSepia = state.theme === 'sepia';
+          if (isMobileGraphViewport()) {
+            const focusWeight = Math.max(
+              getMobileGraphFocusWeight(getLinkEndpointId(link.source)),
+              getMobileGraphFocusWeight(getLinkEndpointId(link.target))
+            );
+            const baseAlpha = isDark ? 0.22 : (isSepia ? 0.18 : 0.16);
+            const focusedAlpha = isDark ? 0.42 : (isSepia ? 0.36 : 0.34);
+            const alpha = baseAlpha + (focusedAlpha - baseAlpha) * focusWeight;
+            if (isDark) return `rgba(255,255,255,${alpha})`;
+            if (isSepia) return `rgba(45,38,30,${alpha})`;
+            return `rgba(0,0,0,${alpha})`;
+          }
           if (graphState.focusedNode) {
             const fId = graphState.focusedNode.id;
             const isConnected = getLinkEndpointId(link.source) === fId || getLinkEndpointId(link.target) === fId;
@@ -1489,24 +1728,26 @@
         })
         .onNodeDragEnd(async (node, translate) => {
           const gesture = graphState.pointerGesture;
-          const isTrackedDesktopDrag = isDesktopExpandedGraphInteraction()
-            && gesture
-            && gesture.dragNodeId === node.id;
+          const isTrackedPointerDrag = gesture && gesture.dragNodeId === node.id;
           const dragDistancePx = getGraphGestureDistancePx(Graph, gesture, translate);
 
-          if (isTrackedDesktopDrag
+          if (isTrackedPointerDrag && gesture.platform === 'mobile') {
+            graphState.mobileNodeGestureUntil = performance.now() + 120;
+          }
+
+          if (isTrackedPointerDrag
             && !gesture.cancelled
-            && dragDistancePx <= DESKTOP_GRAPH_CLICK_SLOP_PX) {
+            && dragDistancePx <= gesture.clickSlopPx) {
             cancelAllGraphNodeSprings(false);
             restoreGraphNodes(Graph, gesture.snapshot);
             await handleGraphNodeActivation(node);
             return;
           }
 
-          if (isTrackedDesktopDrag) gesture.handled = true;
-          // Desktop dragging temporarily deforms the relation network. Every
-          // affected node is still anchored to deterministic geometry, so the
-          // whole network settles home without moving the camera.
+          if (isTrackedPointerDrag) gesture.handled = true;
+          // Dragging temporarily deforms the relation network. Every affected
+          // node remains anchored to deterministic geometry, so the whole
+          // network settles home without moving the camera.
           startGraphNodeReturn(Graph, node, getGraphGestureReleaseVelocity(Graph, gesture));
         })
         .onNodeHover((node) => {
@@ -1518,14 +1759,28 @@
         .onBackgroundClick(() => {
           const isMobileDevice = window.innerWidth <= 768;
           if (graphState.focusedNode) {
-            graphState.focusedNode = null;
             graphState.hoverNode = null;
-            if (isMobileDevice) hideBoundlessInspector();
-            fitGraphToViewport(Graph, 260);
+            if (isMobileDevice) {
+              hideBoundlessInspector();
+              transitionMobileGraphFocus(Graph, null, 220);
+            } else {
+              graphState.focusedNode = null;
+              fitGraphToViewport(Graph, 260);
+            }
           }
         })
         .nodePointerAreaPaint((node, color, ctx, globalScale) => {
           const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+          if (isMobileGraphViewport()) {
+            const visualRadiusPx = getMobileRenderedNodeRadiusPx(node, scale);
+            const minimumHitRadiusPx = state.isGraphExpanded ? 24 : 22;
+            const hitRadiusPx = Math.min(34, Math.max(minimumHitRadiusPx, visualRadiusPx + 3));
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, hitRadiusPx / scale, 0, 2 * Math.PI, false);
+            ctx.fill();
+            return;
+          }
           const minHitR = (state.isGraphExpanded ? 24 : 16) / scale;
           let radius = Math.max((node.val || 5) * 1.5, minHitR);
           if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
@@ -1539,15 +1794,16 @@
           ctx.fill();
         })
         .nodeCanvasObject((node, ctx, globalScale) => {
+          const isMobileDevice = isMobileGraphViewport();
           const isFocused = graphState.focusedNode && graphState.focusedNode.id === node.id;
           const isHovered = graphState.hoverNode && graphState.hoverNode.id === node.id;
           const isPrimary = (state.currentEntityId === node.id) || node.isPrimary;
           
           let alpha = 1;
-          if (graphState.focusedNode) {
+          if (!isMobileDevice && graphState.focusedNode) {
             // Everything else blurs/dissolves deeply into a bokeh background
             alpha = isFocused ? 1 : 0.08;
-          } else if (graphState.hoverNode) {
+          } else if (!isMobileDevice && graphState.hoverNode) {
             alpha = (isPrimary || isHovered) ? 1 : 0.65;
           }
           ctx.save();
@@ -1555,7 +1811,10 @@
 
           const baseColor = getCategoryColor(node.type);
           let radius = node.val || 5;
-          if (isFocused) {
+          if (isMobileDevice) {
+            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+            radius = getMobileRenderedNodeRadiusPx(node, scale) / scale;
+          } else if (isFocused) {
             const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
             const minCanvasR = 42 / scale; // Hero screen radius: 42px (84px diameter)
             const maxCanvasR = 70 / scale; // Hero screen ceiling: 70px (140px diameter)
@@ -1598,7 +1857,7 @@
         });
 
       state.sidebarGraph = Graph;
-      initDesktopGraphPointerIntent(container);
+      initGraphPointerIntent(container);
       graphState.renderSize = { width: Math.round(renderSize.width), height: Math.round(renderSize.height) };
       applyGraphData(Graph, graphData, false);
     } else {
@@ -1648,6 +1907,21 @@
     });
   }
 
+  function getGraphSlotContentRect(slot) {
+    const rect = slot.getBoundingClientRect();
+    const style = getComputedStyle(slot);
+    const insetLeft = (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
+    const insetRight = (parseFloat(style.borderRightWidth) || 0) + (parseFloat(style.paddingRight) || 0);
+    const insetTop = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.paddingTop) || 0);
+    const insetBottom = (parseFloat(style.borderBottomWidth) || 0) + (parseFloat(style.paddingBottom) || 0);
+    return {
+      left: rect.left + insetLeft,
+      top: rect.top + insetTop,
+      width: Math.max(1, rect.width - insetLeft - insetRight),
+      height: Math.max(1, rect.height - insetTop - insetBottom)
+    };
+  }
+
   function getMobileLauncherGraphRect(launcher) {
     const anchor = launcher.getBoundingClientRect();
     const width = Math.min(180, window.innerWidth);
@@ -1660,6 +1934,92 @@
       width,
       height
     };
+  }
+
+  function getMobileGraphControlExpandedInsets(launcher, control) {
+    if (!launcher) return { right: 17, bottom: 17 };
+    const rect = launcher.getBoundingClientRect();
+    const controlRect = control ? control.getBoundingClientRect() : null;
+    const halfControl = controlRect && controlRect.width ? controlRect.width / 2 : 24;
+    return {
+      right: Math.max(0, window.innerWidth - (rect.left + rect.width / 2) - halfControl),
+      bottom: Math.max(0, window.innerHeight - (rect.top + rect.height / 2) - halfControl)
+    };
+  }
+
+  function setMobileGraphControlShape(progress) {
+    const normalized = Math.max(0, Math.min(1, progress));
+    const firstStroke = getEl('graph-control-morph-a');
+    const secondStroke = getEl('graph-control-morph-b');
+    const from = MOBILE_GRAPH_CONTROL_SHAPES.corner;
+    const to = MOBILE_GRAPH_CONTROL_SHAPES.close;
+    const attributes = ['x1', 'y1', 'x2', 'y2'];
+    const applyStroke = (stroke, start, end) => {
+      if (!stroke) return;
+      attributes.forEach((attribute, index) => {
+        stroke.setAttribute(attribute, String(start[index] + (end[index] - start[index]) * normalized));
+      });
+      stroke.setAttribute(
+        'stroke-width',
+        String(from.strokeWidth + (to.strokeWidth - from.strokeWidth) * normalized)
+      );
+    };
+    applyStroke(firstStroke, from.first, to.first);
+    applyStroke(secondStroke, from.second, to.second);
+  }
+
+  function setMobileGraphExpansionProgress(progress, transitioning = false) {
+    if (!isMobileGraphViewport()) return;
+    const normalized = Math.max(0, Math.min(1, progress));
+    const container = getEl('sidebar-graph-container');
+    const expandButton = getEl('btn-graph-expand');
+    const launcher = getEl('btn-mobile-graph-launcher');
+    if (!container) return;
+
+    graphState.mobileExpansionProgress = normalized;
+    const returnsToArticle = state.graphReturnSurface === 'article';
+    const launcherHandoff = returnsToArticle
+      ? Math.max(0, Math.min(1, normalized / 0.28))
+      : 1;
+    const expandedInsets = getMobileGraphControlExpandedInsets(launcher, expandButton);
+    const controlRight = returnsToArticle
+      ? expandedInsets.right
+      : expandedInsets.right * normalized;
+    const controlBottom = returnsToArticle
+      ? expandedInsets.bottom
+      : expandedInsets.bottom * normalized;
+    const controlOpacity = returnsToArticle
+      ? launcherHandoff * (0.85 + 0.15 * normalized)
+      : 0.35 + 0.65 * normalized;
+    const glyphInset = returnsToArticle
+      ? MOBILE_GRAPH_CONTROL_ICON_INSET_PX
+      : MOBILE_GRAPH_CONTROL_ICON_INSET_PX * normalized;
+    const inspectorProgress = Math.max(0, Math.min(1, (normalized - 0.45) / 0.55));
+    container.style.setProperty('--mobile-graph-expansion-progress', String(normalized));
+    container.style.setProperty('--mobile-graph-control-right', `${controlRight}px`);
+    container.style.setProperty('--mobile-graph-control-bottom', `${controlBottom}px`);
+    container.style.setProperty('--mobile-graph-control-opacity', String(controlOpacity));
+    container.style.setProperty('--mobile-graph-control-glyph-inset', `${glyphInset}px`);
+    container.style.setProperty('--mobile-inspector-opacity', String(inspectorProgress));
+    container.style.setProperty('--mobile-inspector-shift', `${16 * (1 - inspectorProgress)}px`);
+    container.classList.toggle('is-viewport-transitioning', transitioning);
+    setMobileGraphControlShape(normalized);
+
+    const isStableSmall = normalized <= 0.001 && !transitioning;
+    const isStableExpanded = normalized >= 0.999 && !transitioning;
+    if (expandButton) {
+      const isInteractive = isStableSmall || isStableExpanded;
+      expandButton.style.pointerEvents = isInteractive ? 'auto' : 'none';
+      expandButton.tabIndex = isInteractive ? 0 : -1;
+      expandButton.setAttribute('aria-hidden', isInteractive ? 'false' : 'true');
+      expandButton.setAttribute('aria-expanded', isStableExpanded ? 'true' : 'false');
+      expandButton.setAttribute('aria-label', isStableExpanded ? 'Close graph explorer' : 'Expand graph');
+    }
+    if (launcher) {
+      launcher.classList.toggle('is-graph-morphing', transitioning);
+      launcher.style.opacity = String(returnsToArticle ? 0.85 * (1 - launcherHandoff) : 0);
+      launcher.style.pointerEvents = isStableSmall && returnsToArticle ? '' : 'none';
+    }
   }
 
   function toggleGraphExpand(forceState, options = {}) {
@@ -1694,7 +2054,9 @@
 
       if (targetState) {
         state.graphPhase = 'expanding';
-        if (launcher) {
+        if (isMobile) {
+          setMobileGraphExpansionProgress(0, true);
+        } else if (launcher) {
           launcher.style.opacity = '0';
           launcher.style.pointerEvents = 'none';
         }
@@ -1711,7 +2073,8 @@
           };
         };
         document.body.appendChild(container);
-        closeMobileSidebar();
+        const openedFromMobileSidebar = isMobile && state.graphReturnSurface === 'sidebar';
+        if (!openedFromMobileSidebar) closeMobileSidebar();
         container.classList.add('is-expanded');
         document.body.classList.add('graph-is-expanded');
         // Interaction-mode changes can reset ForceGraph's zoom transform.
@@ -1728,22 +2091,33 @@
           originRect,
           getExpandedTarget,
           transitionDuration,
-          1
+          1,
+          isMobile ? (progress) => setMobileGraphExpansionProgress(progress, true) : null
         );
         state.graphPhase = 'expanded';
+        if (isMobile) setMobileGraphExpansionProgress(1, false);
         configureGraphPhysics(state.sidebarGraph, true);
       } else {
         state.graphPhase = 'collapsing';
-        graphState.focusedNode = null;
-        graphState.hoverNode = null;
-        hideBoundlessInspector();
-        if (isMobile && state.graphReturnSurface === 'sidebar') openMobileSidebar();
-        configureGraphPhysics(state.sidebarGraph, false);
+        if (isMobile) {
+          cancelMobileGraphFocusTransition();
+          setMobileGraphExpansionProgress(1, true);
+        } else {
+          graphState.focusedNode = null;
+          graphState.hoverNode = null;
+          hideBoundlessInspector();
+        }
         const returnsToArticleLauncher = isMobile && state.graphReturnSurface === 'article' && launcher;
+        if (isMobile && state.graphReturnSurface === 'sidebar') {
+          if (!sidebar || !sidebar.classList.contains('is-open')) openMobileSidebar();
+        } else if (returnsToArticleLauncher && sidebar && sidebar.classList.contains('is-open')) {
+          closeMobileSidebar({ animate: false });
+        }
+        configureGraphPhysics(state.sidebarGraph, false);
         const getCollapseTarget = () => (
           returnsToArticleLauncher
             ? getMobileLauncherGraphRect(launcher)
-            : slot.getBoundingClientRect()
+            : getGraphSlotContentRect(slot)
         );
         await morphGraphViewport(
           container,
@@ -1751,22 +2125,31 @@
           startRect,
           getCollapseTarget,
           transitionDuration,
-          0
+          0,
+          isMobile ? (progress) => setMobileGraphExpansionProgress(progress, true) : null
         );
 
+        if (isMobile) {
+          graphState.focusedNode = null;
+          graphState.hoverNode = null;
+          clearMobileGraphFocusVisuals();
+          hideBoundlessInspector();
+          setMobileGraphExpansionProgress(0, false);
+        }
         slot.appendChild(container);
         container.classList.remove('is-expanded');
         document.body.classList.remove('graph-is-expanded');
         resetGraphContainerStyles(container);
         state.graphPhase = 'small';
         if (launcher) {
+          launcher.classList.remove('is-graph-morphing');
           launcher.style.opacity = '';
           launcher.style.pointerEvents = '';
         }
         // The launcher-origin preview collapses into an article-only control.
         // Once it is offscreen, prepare the sidebar camera for its next reveal.
         if (returnsToArticleLauncher) {
-          const slotRect = slot.getBoundingClientRect();
+          const slotRect = getGraphSlotContentRect(slot);
           fitGraphToViewport(state.sidebarGraph, 0, {
             size: { width: slotRect.width || 268, height: slotRect.height || 145 },
             expansionProgress: 0
@@ -1784,11 +2167,24 @@
     const collapseGraph = options.collapseGraph !== false;
     const isMobile = window.innerWidth <= 768;
     hideBoundlessInspector();
-    graphState.focusedNode = null;
-    graphState.hoverNode = null;
+    const preserveFocusThroughCollapse = isMobile
+      && collapseGraph
+      && (state.isGraphExpanded || state.graphPhase !== 'small');
+    if (preserveFocusThroughCollapse) {
+      cancelMobileGraphFocusTransition();
+    } else {
+      graphState.focusedNode = null;
+      graphState.hoverNode = null;
+      if (isMobile) clearMobileGraphFocusVisuals();
+    }
     state.graphReturnSurface = 'article';
     if (collapseGraph && (state.isGraphExpanded || state.graphPhase !== 'small')) {
       await toggleGraphExpand(false, { duration: isMobile ? 180 : 420 });
+    }
+    if (isMobile) {
+      graphState.focusedNode = null;
+      graphState.hoverNode = null;
+      clearMobileGraphFocusVisuals();
     }
     closeMobileSidebar();
     clearActiveNav();
@@ -1988,6 +2384,7 @@
 
       graphContainer.addEventListener('touchend', (e) => {
         if (!state.isGraphExpanded || e.changedTouches.length !== 1) return;
+        if (performance.now() < graphState.mobileNodeGestureUntil) return;
         const deltaY = e.changedTouches[0].clientY - graphTouchStartY;
         const deltaX = e.changedTouches[0].clientX - graphTouchStartX;
         const elapsed = Date.now() - graphTouchTime;
@@ -2025,6 +2422,9 @@
       const canvasContainer = getEl('canvas-sidebar-graph');
       if (!container || !canvasContainer) return;
       const expandedSize = getExpandedGraphSize();
+      if (isMobileGraphViewport()) {
+        setMobileGraphExpansionProgress(state.isGraphExpanded ? 1 : 0, false);
+      }
       if (state.isGraphExpanded) {
         applyFixedGraphRect(container, {
           left: 0,
@@ -2049,7 +2449,7 @@
           size: state.isGraphExpanded ? expandedSize : getCurrentGraphViewportSize(),
           expansionProgress: state.isGraphExpanded ? 1 : 0
         });
-        centerMobileFocusedGraphNode(0);
+        ensureMobileFocusedGraphNodeVisible(0);
       });
     });
   }
@@ -2057,27 +2457,16 @@
   function initGraphControls() {
     const expandBtn = getEl('btn-graph-expand');
     if (expandBtn) {
-      expandBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleGraphExpand(true);
-      });
-    }
-
-    const mobileGraphCloseBtn = getEl('btn-mobile-graph-close');
-    if (mobileGraphCloseBtn) {
-      const claimGraphCloseControl = (e) => {
+      const claimGraphMorphControl = (e) => {
         if (e) e.stopPropagation();
         cancelGraphCameraTransition();
-        graphState.focusedNode = null;
-        graphState.hoverNode = null;
-        hideBoundlessInspector();
+        cancelMobileGraphFocusTransition();
       };
-      // Claim the pointer before the fullscreen inspector can interpret the
-      // same release as its "enter article" gesture.
-      mobileGraphCloseBtn.addEventListener('pointerdown', claimGraphCloseControl);
-      mobileGraphCloseBtn.addEventListener('click', (e) => {
-        claimGraphCloseControl(e);
-        toggleGraphExpand(false);
+      expandBtn.addEventListener('pointerdown', claimGraphMorphControl);
+      expandBtn.addEventListener('click', (e) => {
+        claimGraphMorphControl(e);
+        if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') return;
+        toggleGraphExpand(state.graphPhase === 'small');
       });
     }
 
@@ -2269,14 +2658,26 @@
     }
   }
 
-  function closeMobileSidebar() {
+  function closeMobileSidebar(options = {}) {
     const sidebar = getEl('wiki-sidebar');
     const backdrop = getEl('sidebar-backdrop');
     if (sidebar) {
+      const suppressTransition = options.animate === false;
+      if (suppressTransition) sidebar.classList.add('is-transition-suppressed');
       sidebar.classList.remove('is-open');
+      if (suppressTransition) {
+        // Commit the hidden state while the fullscreen graph still covers it,
+        // then restore the drawer's normal transition for the next gesture.
+        sidebar.getBoundingClientRect();
+        requestAnimationFrame(() => sidebar.classList.remove('is-transition-suppressed'));
+      }
     }
     if (backdrop) {
       backdrop.classList.remove('is-visible');
+    }
+    if (isMobileGraphViewport() && !state.isGraphExpanded && state.graphPhase === 'small') {
+      state.graphReturnSurface = 'article';
+      setMobileGraphExpansionProgress(0, false);
     }
   }
 
@@ -2286,6 +2687,10 @@
     flushPendingGraphData();
     if (sidebar) sidebar.classList.add('is-open');
     if (backdrop) backdrop.classList.add('is-visible');
+    if (isMobileGraphViewport() && !state.isGraphExpanded && state.graphPhase === 'small') {
+      state.graphReturnSurface = 'sidebar';
+      setMobileGraphExpansionProgress(0, false);
+    }
   }
 
   function toggleMobileSidebar() {

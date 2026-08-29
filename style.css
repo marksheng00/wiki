@@ -380,9 +380,14 @@ svg.lucide, i[data-lucide] {
   position: absolute;
   bottom: 0;
   right: 0;
+  width: 10px;
+  height: 10px;
   display: block; /* Restore SVG */
   transition: transform 160ms ease;
   transform-origin: bottom right;
+}
+.graph-control-mobile-morph {
+  display: none;
 }
 .sidebar-graph-container:hover .btn-graph-expand {
   opacity: 0.75;
@@ -499,10 +504,6 @@ svg.lucide, i[data-lucide] {
 }
 
 .sidebar-graph-container.is-expanded .btn-graph-expand {
-  display: none;
-}
-
-.btn-mobile-graph-close {
   display: none;
 }
 
@@ -1221,7 +1222,6 @@ details.toc-cat-details:not([open]) > summary::after {
    ========================================================================== */
 @media (min-width: 769px) {
   .mobile-sidebar-header,
-  .btn-mobile-graph-close,
   .btn-mobile-graph-launcher,
   .boundless-node-inspector {
     display: none !important;
@@ -1303,6 +1303,9 @@ details.toc-cat-details:not([open]) > summary::after {
     opacity: 1;
     pointer-events: auto;
   }
+  .wiki-sidebar.is-transition-suppressed {
+    transition: none !important;
+  }
 
   .wiki-sidebar-sticky {
     height: 100%;
@@ -1370,6 +1373,47 @@ details.toc-cat-details:not([open]) > summary::after {
     touch-action: pan-y;
   }
 
+  /* One persistent mobile graph control. Its 48px hit target stays attached
+     to the animated canvas while the two strokes morph from corner to X. */
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand,
+  .sidebar-graph-container.is-expanded .btn-graph-expand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    right: var(--mobile-graph-control-right, 0px);
+    bottom: var(--mobile-graph-control-bottom, 0px);
+    z-index: 900;
+    opacity: var(--mobile-graph-control-opacity, 0.35);
+    color: var(--text-secondary);
+    color: color-mix(
+      in srgb,
+      var(--text-muted) calc((1 - var(--mobile-graph-expansion-progress, 0)) * 100%),
+      var(--text-secondary)
+    );
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: none;
+  }
+  .sidebar-graph-container .btn-graph-expand svg,
+  .sidebar-graph-container .btn-graph-expand:hover svg {
+    position: absolute;
+    right: var(--mobile-graph-control-glyph-inset, 0px);
+    bottom: var(--mobile-graph-control-glyph-inset, 0px);
+    width: 22px;
+    height: 22px;
+    transform: none;
+    transition: none;
+  }
+  .sidebar-graph-container .graph-control-desktop-l {
+    display: none;
+  }
+  .sidebar-graph-container .graph-control-mobile-morph {
+    display: inline;
+  }
+
   .sidebar-graph-container .graph-tooltip {
     display: none !important;
   }
@@ -1402,6 +1446,9 @@ details.toc-cat-details:not([open]) > summary::after {
     cursor: pointer;
     opacity: 0.85;
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
+  }
+  .btn-mobile-graph-launcher.is-graph-morphing {
+    transition: none;
   }
   .btn-mobile-graph-launcher:active {
     transform: scale(0.92);
@@ -1473,31 +1520,13 @@ details.toc-cat-details:not([open]) > summary::after {
     background: var(--bg-page);
   }
 
-  /* Close Button for Expanded Fullscreen Graph: 100% Zero-Border Pure Icon matching Launcher */
-  .sidebar-graph-container.is-expanded .btn-mobile-graph-close {
-    display: flex;
-    position: fixed;
-    bottom: calc(1.25rem + env(safe-area-inset-bottom));
-    right: 1.25rem;
-    z-index: 900;
-    width: 42px;
-    height: 42px;
+  /* The small-window corner control remains the close control throughout the
+     fullscreen morph; no second button is introduced at the destination. */
+  .sidebar-graph-container.is-expanded .btn-graph-expand {
     background: transparent !important;
-    color: var(--text-primary);
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
-    -webkit-tap-highlight-color: transparent;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0.85;
-    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
-  }
-  .sidebar-graph-container.is-expanded .btn-mobile-graph-close:active {
-    transform: scale(0.92);
-    color: var(--accent);
-    opacity: 1;
   }
 
   /* StoryFlow rows switch to clean mobile cards */
@@ -1542,13 +1571,17 @@ details.toc-cat-details:not([open]) > summary::after {
     pointer-events: none;
     cursor: pointer;
     user-select: none;
-    transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 240ms cubic-bezier(0.16, 1, 0.3, 1), transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
     transform: translateY(16px);
   }
   .boundless-node-inspector.is-active {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: var(--mobile-inspector-opacity, 1);
+    transform: translateY(var(--mobile-inspector-shift, 0));
     pointer-events: auto;
+  }
+  .sidebar-graph-container.is-viewport-transitioning .boundless-node-inspector {
+    transition: none;
+    pointer-events: none;
   }
 
   .boundless-title {

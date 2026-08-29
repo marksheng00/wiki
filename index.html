@@ -16,7 +16,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=46" />
+  <link rel="stylesheet" href="./style.css?v=53" />
 </head>
 <body>
 
@@ -100,17 +100,18 @@
         <!-- 1. BALANCED TOPOLOGY CANVAS -->
         <div class="sidebar-graph-slot" id="sidebar-graph-slot">
           <div class="sidebar-graph-container" id="sidebar-graph-container">
-            <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 9h8V1" />
+            <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="graph-control-desktop-l" d="M2.4 21.6h19.2V2.4" />
+                <g class="graph-control-mobile-morph">
+                  <line id="graph-control-morph-a" x1="14.1818" y1="22.9091" x2="22.9091" y2="22.9091" stroke-width="1.6364" />
+                  <line id="graph-control-morph-b" x1="22.9091" y1="14.1818" x2="22.9091" y2="22.9091" stroke-width="1.6364" />
+                </g>
               </svg>
-            </button>
-            <button class="btn-mobile-graph-close" id="btn-mobile-graph-close" aria-label="Close graph explorer">
-              <i data-lucide="x" style="width:20px;height:20px;"></i>
             </button>
             <div class="topology-pure-canvas" id="canvas-sidebar-graph"></div>
             <!-- Mobile node action stage shares the graph stacking context so
-                 canvas < inspector < close button is structurally guaranteed. -->
+                 canvas < inspector < morph control is structurally guaranteed. -->
             <div class="boundless-node-inspector" id="boundless-node-inspector">
               <h3 class="boundless-title" id="boundless-title">Winston Smith</h3>
               <div class="boundless-gesture-hint" id="boundless-gesture-hint">
@@ -697,6 +698,6 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
-  <script src="./app.js?v=40" defer></script>
+  <script src="./app.js?v=52" defer></script>
 </body>
 </html>

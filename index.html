@@ -16,7 +16,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=53" />
+  <link rel="stylesheet" href="./style.css?v=55" />
 </head>
 <body>
 
@@ -110,14 +110,6 @@
               </svg>
             </button>
             <div class="topology-pure-canvas" id="canvas-sidebar-graph"></div>
-            <!-- Mobile node action stage shares the graph stacking context so
-                 canvas < inspector < morph control is structurally guaranteed. -->
-            <div class="boundless-node-inspector" id="boundless-node-inspector">
-              <h3 class="boundless-title" id="boundless-title">Winston Smith</h3>
-              <div class="boundless-gesture-hint" id="boundless-gesture-hint">
-                <i data-lucide="chevron-up" style="width: 14px; height: 14px;"></i>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -687,6 +679,30 @@
 
   </div>
 
+  <!-- Mobile graph and entity article share one reversible vertical space. -->
+  <section id="mobile-graph-continuum" class="mobile-graph-continuum" aria-hidden="true">
+    <div id="mobile-graph-continuum-stage" class="mobile-graph-continuum-stage">
+      <div id="mobile-graph-continuum-graph-slot" class="mobile-graph-continuum-graph-slot"></div>
+    </div>
+
+    <article id="mobile-graph-continuum-article" class="mobile-graph-continuum-article" aria-hidden="true">
+      <header class="article-masthead mobile-continuum-masthead">
+        <h1 id="mobile-continuum-title" class="article-h1 mobile-continuum-title"></h1>
+      </header>
+
+      <aside id="mobile-continuum-media" class="entity-floating-media mobile-continuum-media">
+        <div class="entity-media-wrap mobile-continuum-media-wrap">
+          <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
+        </div>
+        <a href="https://app.readifyai.com" class="infobox-cta-link entity-cta-link mobile-continuum-cta" target="_blank" rel="noopener">
+          <span>Read original at Readify</span><i data-lucide="arrow-up-right" class="cta-hover-icon"></i>
+        </a>
+      </aside>
+
+      <div id="mobile-continuum-markdown" class="prose markdown-prose mobile-continuum-markdown"></div>
+    </article>
+  </section>
+
   <button id="btn-back-to-top" class="btn-top" aria-label="Back to top">
     <i data-lucide="arrow-up" style="width:18px;height:18px;"></i>
   </button>
@@ -698,6 +714,6 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
-  <script src="./app.js?v=52" defer></script>
+  <script src="./app.js?v=55" defer></script>
 </body>
 </html>

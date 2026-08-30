@@ -36,6 +36,7 @@
     initHeaderControls();
     initIcons();
     initDetailsAnimation();
+    initMobileGraphContinuum();
     initMobileGestures();
   }
 
@@ -148,7 +149,6 @@
     } else {
       cancelMobileGraphFocusTransition();
     }
-    hideBoundlessInspector();
     if (state.isGraphExpanded || state.graphPhase !== 'small') {
       await toggleGraphExpand(false, { duration: window.innerWidth <= 768 ? 180 : 420 });
     }
@@ -365,6 +365,12 @@
     mobileFocusTransition: null,
     mobileExpansionProgress: 0,
     mobileNodeGestureUntil: 0,
+    continuumEntityId: null,
+    continuumPhase: 'graph',
+    continuumSpringFrame: null,
+    continuumGesture: null,
+    continuumScrollFrame: null,
+    continuumSettleTimer: null,
     resizeFrame: null,
     resizePending: false,
     containerTransitionPromise: Promise.resolve()
@@ -377,6 +383,10 @@
   const MOBILE_GRAPH_FOCUS_MIN_RADIUS_PX = 18;
   const MOBILE_GRAPH_FOCUS_MAX_RADIUS_PX = 30;
   const MOBILE_GRAPH_CONTROL_ICON_INSET_PX = 13;
+  const MOBILE_CONTINUUM_SPRING_STIFFNESS = 210;
+  const MOBILE_CONTINUUM_SPRING_DAMPING = 29;
+  const MOBILE_CONTINUUM_RELEASE_VELOCITY = 420;
+  const MOBILE_CONTINUUM_HEADER_REVEAL_START = 0.62;
   const MOBILE_GRAPH_CONTROL_SHAPES = {
     // The corner geometry is the desktop 10px L mapped into the bottom-right
     // of a fixed 22px icon viewport, including its 1.5px rendered stroke.
@@ -906,14 +916,13 @@
       return;
     }
 
-    if (graphState.focusedNode && graphState.focusedNode.id === node.id) {
-      await navigateFromGraphNode(node.id);
-      return;
-    }
+    // The mobile small graph is a preview. Fullscreen selection extends the
+    // current space with the real entity article instead of navigating away.
+    if (!isMobileExpandedGraphInteraction()) return;
 
     graphState.hoverNode = node;
+    showMobileGraphContinuumArticle(node);
     transitionMobileGraphFocus(state.sidebarGraph, node);
-    showBoundlessInspector(node);
   }
 
   function getExpandedGraphSize() {
@@ -1100,65 +1109,6 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function getMobileGraphSafeRect(size) {
-    const container = getEl('sidebar-graph-container');
-    const containerRect = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
-    const visualViewport = window.visualViewport;
-    const viewportLeft = visualViewport ? visualViewport.offsetLeft : 0;
-    const viewportTop = visualViewport ? visualViewport.offsetTop : 0;
-    const visibleWidth = Math.min(size.width, visualViewport ? visualViewport.width : size.width);
-    const visibleHeight = Math.min(size.height, visualViewport ? visualViewport.height : size.height);
-    const localLeft = Math.max(0, viewportLeft - containerRect.left);
-    const localTop = Math.max(0, viewportTop - containerRect.top);
-    const horizontalInset = Math.max(36, Math.min(52, visibleWidth * 0.12));
-    const topInset = Math.max(64, Math.min(96, visibleHeight * 0.10));
-    const bottomInset = Math.max(88, Math.min(120, visibleHeight * 0.12));
-    const inspector = getEl('boundless-node-inspector');
-    const inspectorRect = inspector ? inspector.getBoundingClientRect() : null;
-    const inspectorTop = inspectorRect && inspectorRect.height
-      ? inspectorRect.top - containerRect.top
-      : localTop + visibleHeight;
-    const top = localTop + topInset;
-    const bottom = Math.max(top, Math.min(
-      localTop + visibleHeight - bottomInset,
-      inspectorTop - 28
-    ));
-    return {
-      left: localLeft + horizontalInset,
-      right: localLeft + visibleWidth - horizontalInset,
-      top,
-      bottom
-    };
-  }
-
-  function getMobileFocusSafeCamera(
-    graph,
-    baseCamera,
-    isExpanded = state.isGraphExpanded,
-    focusedNode = graphState.focusedNode
-  ) {
-    if (!isMobileGraphViewport()
-      || !graph
-      || !baseCamera
-      || !focusedNode
-      || !isExpanded) return baseCamera;
-    const home = graphState.activeTargetPositions.get(focusedNode.id) || focusedNode;
-    if (!Number.isFinite(home.x) || !Number.isFinite(home.y)) return baseCamera;
-    const size = getCurrentGraphViewportSize();
-    const safeRect = getMobileGraphSafeRect(size);
-    const zoom = Math.max(0.01, baseCamera.zoom || 1);
-    const screenX = (home.x - baseCamera.x) * zoom + size.width / 2;
-    const screenY = (home.y - baseCamera.y) * zoom + size.height / 2;
-    const safeX = Math.max(safeRect.left, Math.min(safeRect.right, screenX));
-    const safeY = Math.max(safeRect.top, Math.min(safeRect.bottom, screenY));
-    if (Math.abs(safeX - screenX) < 0.5 && Math.abs(safeY - screenY) < 0.5) return baseCamera;
-    return {
-      x: home.x - (safeX - size.width / 2) / zoom,
-      y: home.y - (safeY - size.height / 2) / zoom,
-      zoom
-    };
-  }
-
   function mobileGraphFocusEase(progress) {
     if (progress >= 1) return 1;
     const response = 4.6;
@@ -1189,10 +1139,10 @@
       graphState.activeTargetPositions
     );
     const startCamera = getCurrentGraphCamera(graph) || fittedCamera;
-    const focusBaseCamera = nextNode && startCamera ? startCamera : fittedCamera;
-    const targetCamera = nextNode
-      ? getMobileFocusSafeCamera(graph, focusBaseCamera, state.isGraphExpanded, nextNode)
-      : fittedCamera;
+    // Selection is content state, not camera state. A tap must never relocate
+    // the graph; only clearing the selection returns a user-panned view to the
+    // authoritative fitted camera.
+    const targetCamera = nextNode ? startCamera : fittedCamera;
     const cameraNeedsMotion = startCamera && targetCamera && (
       Math.abs(startCamera.x - targetCamera.x) > 0.001
       || Math.abs(startCamera.y - targetCamera.y) > 0.001
@@ -1242,16 +1192,6 @@
     return true;
   }
 
-  function ensureMobileFocusedGraphNodeVisible(duration = 0) {
-    const graph = state.sidebarGraph;
-    const node = graphState.focusedNode;
-    if (!isMobileGraphViewport() || !state.isGraphExpanded || !graph || !node) return false;
-    const camera = getCurrentGraphCamera(graph);
-    if (!camera) return false;
-    animateGraphCamera(graph, getMobileFocusSafeCamera(graph, camera), duration);
-    return true;
-  }
-
   function fitGraphToViewport(graph, duration = 0, options = {}) {
     const expansionProgress = options.expansionProgress === undefined
       ? (state.isGraphExpanded ? 1 : 0)
@@ -1287,7 +1227,7 @@
         toExpansion,
         graphState.activeTargetPositions
       );
-      applyGraphCamera(graph, getMobileFocusSafeCamera(graph, fitCamera, toExpansion === 1));
+      applyGraphCamera(graph, fitCamera);
       if (onProgress) onProgress(toExpansion);
       return Promise.resolve(initialTarget);
     }
@@ -1314,7 +1254,7 @@
           toExpansion,
           graphState.activeTargetPositions
         );
-        const targetCamera = getMobileFocusSafeCamera(graph, fitCamera, toExpansion === 1);
+        const targetCamera = fitCamera;
         if (startCamera && targetCamera) {
           applyGraphCamera(graph, {
             x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
@@ -1761,7 +1701,7 @@
           if (graphState.focusedNode) {
             graphState.hoverNode = null;
             if (isMobileDevice) {
-              hideBoundlessInspector();
+              hideMobileGraphContinuumArticle();
               transitionMobileGraphFocus(Graph, null, 220);
             } else {
               graphState.focusedNode = null;
@@ -1994,14 +1934,12 @@
     const glyphInset = returnsToArticle
       ? MOBILE_GRAPH_CONTROL_ICON_INSET_PX
       : MOBILE_GRAPH_CONTROL_ICON_INSET_PX * normalized;
-    const inspectorProgress = Math.max(0, Math.min(1, (normalized - 0.45) / 0.55));
     container.style.setProperty('--mobile-graph-expansion-progress', String(normalized));
     container.style.setProperty('--mobile-graph-control-right', `${controlRight}px`);
     container.style.setProperty('--mobile-graph-control-bottom', `${controlBottom}px`);
     container.style.setProperty('--mobile-graph-control-opacity', String(controlOpacity));
+    container.style.setProperty('--mobile-graph-effective-control-opacity', String(controlOpacity));
     container.style.setProperty('--mobile-graph-control-glyph-inset', `${glyphInset}px`);
-    container.style.setProperty('--mobile-inspector-opacity', String(inspectorProgress));
-    container.style.setProperty('--mobile-inspector-shift', `${16 * (1 - inspectorProgress)}px`);
     container.classList.toggle('is-viewport-transitioning', transitioning);
     setMobileGraphControlShape(normalized);
 
@@ -2020,6 +1958,415 @@
       launcher.style.opacity = String(returnsToArticle ? 0.85 * (1 - launcherHandoff) : 0);
       launcher.style.pointerEvents = isStableSmall && returnsToArticle ? '' : 'none';
     }
+  }
+
+  function isMobileGraphContinuumActive() {
+    const continuum = getEl('mobile-graph-continuum');
+    return Boolean(
+      isMobileGraphViewport()
+      && state.isGraphExpanded
+      && continuum
+      && continuum.classList.contains('is-active')
+    );
+  }
+
+  function getMobileGraphContinuumArticleOffset() {
+    const continuum = getEl('mobile-graph-continuum');
+    const article = getEl('mobile-graph-continuum-article');
+    if (!continuum || !article || !continuum.classList.contains('has-article')) return 0;
+    // The article is a direct child of the scroll container. offsetTop is its
+    // stable layout seam and deliberately ignores the short reveal transform;
+    // using a visual rect here would make the physical boundary drift while
+    // the article is appearing.
+    return Math.max(1, article.offsetTop);
+  }
+
+  function getMobileGraphContinuumHeaderHeight() {
+    const header = document.querySelector('.wiki-header');
+    return Math.max(0, (header && header.getBoundingClientRect().height) || 52);
+  }
+
+  function getMobileGraphContinuumAnchor() {
+    const articleOffset = getMobileGraphContinuumArticleOffset();
+    if (!articleOffset) return 0;
+    // At the reading boundary the real article stops immediately below the
+    // existing global header, producing the exact geometry of a normal page.
+    return Math.max(1, articleOffset - getMobileGraphContinuumHeaderHeight());
+  }
+
+  function updateMobileGraphContinuumHeader(progress) {
+    const reveal = Math.max(0, Math.min(
+      1,
+      (progress - MOBILE_CONTINUUM_HEADER_REVEAL_START)
+        / (1 - MOBILE_CONTINUUM_HEADER_REVEAL_START)
+    ));
+    const isActive = reveal > 0.001;
+    const isStableReading = progress >= 0.995
+      && !graphState.continuumGesture
+      && !graphState.continuumSpringFrame;
+    document.body.classList.toggle('mobile-continuum-header-active', isActive);
+    if (isActive) {
+      document.body.style.setProperty('--mobile-continuum-header-opacity', String(reveal));
+      document.body.style.setProperty('--mobile-continuum-header-shift', `${-8 * (1 - reveal)}px`);
+    } else {
+      document.body.style.removeProperty('--mobile-continuum-header-opacity');
+      document.body.style.removeProperty('--mobile-continuum-header-shift');
+    }
+    // Visibility follows the continuous scroll, while hit testing belongs only
+    // to the settled reading state. This keeps the emerging header out of the
+    // active finger path without adding a second timer-driven state machine.
+    document.body.classList.toggle(
+      'mobile-continuum-header-interactive',
+      isActive && isStableReading
+    );
+  }
+
+  function cancelMobileGraphContinuumSpring() {
+    if (graphState.continuumSpringFrame) cancelAnimationFrame(graphState.continuumSpringFrame);
+    graphState.continuumSpringFrame = null;
+  }
+
+  function clearMobileGraphContinuumSettleTimer() {
+    if (graphState.continuumSettleTimer) clearTimeout(graphState.continuumSettleTimer);
+    graphState.continuumSettleTimer = null;
+  }
+
+  function updateMobileGraphContinuumProgress() {
+    const continuum = getEl('mobile-graph-continuum');
+    const container = getEl('sidebar-graph-container');
+    if (!continuum || !container || !continuum.classList.contains('is-active')) return;
+
+    const anchor = getMobileGraphContinuumAnchor();
+    const progress = anchor > 0
+      ? Math.max(0, Math.min(1, continuum.scrollTop / anchor))
+      : 0;
+    const graphOpacity = 1 - 0.18 * progress;
+    const graphScale = 1 - 0.018 * progress;
+    const graphShift = -18 * progress;
+    const baseControlOpacity = parseFloat(
+      container.style.getPropertyValue('--mobile-graph-control-opacity') || '1'
+    );
+    const controlFade = 1 - Math.max(0, Math.min(1, (progress - 0.08) / 0.52));
+    const articleOffset = getMobileGraphContinuumArticleOffset();
+    const controlLift = articleOffset > 0
+      ? Math.max(0, continuum.clientHeight - articleOffset + Math.min(anchor, continuum.scrollTop))
+      : 0;
+
+    continuum.style.setProperty('--mobile-continuum-progress', String(progress));
+    container.style.setProperty('--mobile-continuum-graph-opacity', String(graphOpacity));
+    container.style.setProperty('--mobile-continuum-graph-scale', String(graphScale));
+    container.style.setProperty('--mobile-continuum-graph-shift', `${graphShift}px`);
+    container.style.setProperty('--mobile-continuum-control-lift', `${controlLift}px`);
+    container.style.setProperty(
+      '--mobile-graph-effective-control-opacity',
+      String(baseControlOpacity * controlFade)
+    );
+    container.classList.toggle('is-continuum-obscured', progress >= 0.96);
+    updateMobileGraphContinuumHeader(progress);
+
+    const expandButton = getEl('btn-graph-expand');
+    if (expandButton && state.graphPhase === 'expanded') {
+      expandButton.style.pointerEvents = controlFade > 0.12 ? 'auto' : 'none';
+      expandButton.tabIndex = controlFade > 0.12 ? 0 : -1;
+    }
+
+    if (!continuum.classList.contains('has-article')) {
+      graphState.continuumPhase = 'graph';
+    } else if (progress >= 0.985) {
+      graphState.continuumPhase = 'reading';
+    } else {
+      graphState.continuumPhase = 'preview';
+    }
+  }
+
+  function scheduleMobileGraphContinuumProgress() {
+    if (graphState.continuumScrollFrame) return;
+    graphState.continuumScrollFrame = requestAnimationFrame(() => {
+      graphState.continuumScrollFrame = null;
+      updateMobileGraphContinuumProgress();
+    });
+  }
+
+  function springMobileGraphContinuumTo(target, initialVelocity = 0) {
+    const continuum = getEl('mobile-graph-continuum');
+    if (!continuum) return;
+    cancelMobileGraphContinuumSpring();
+    clearMobileGraphContinuumSettleTimer();
+
+    const anchor = getMobileGraphContinuumAnchor();
+    const safeTarget = Math.max(0, Math.min(anchor || target, target));
+    const reducedMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      continuum.scrollTop = safeTarget;
+      updateMobileGraphContinuumProgress();
+      return;
+    }
+
+    let position = continuum.scrollTop;
+    let velocity = Math.max(-1800, Math.min(1800, initialVelocity));
+    let previousTime = performance.now();
+    const tick = (now) => {
+      const deltaSeconds = Math.min(0.032, Math.max(0.001, (now - previousTime) / 1000));
+      previousTime = now;
+      const acceleration = (
+        -MOBILE_CONTINUUM_SPRING_STIFFNESS * (position - safeTarget)
+        -MOBILE_CONTINUUM_SPRING_DAMPING * velocity
+      );
+      velocity += acceleration * deltaSeconds;
+      position += velocity * deltaSeconds;
+      position = Math.max(0, Math.min(continuum.scrollHeight - continuum.clientHeight, position));
+      continuum.scrollTop = position;
+      updateMobileGraphContinuumProgress();
+
+      if (Math.abs(position - safeTarget) <= 0.5 && Math.abs(velocity) <= 5) {
+        continuum.scrollTop = safeTarget;
+        graphState.continuumSpringFrame = null;
+        updateMobileGraphContinuumProgress();
+        return;
+      }
+      graphState.continuumSpringFrame = requestAnimationFrame(tick);
+    };
+    graphState.continuumSpringFrame = requestAnimationFrame(tick);
+  }
+
+  function settleMobileGraphContinuumBoundary(releaseVelocity = 0, direction = null) {
+    const continuum = getEl('mobile-graph-continuum');
+    const anchor = getMobileGraphContinuumAnchor();
+    if (!continuum || !anchor || continuum.scrollTop <= 0 || continuum.scrollTop >= anchor) return;
+    const progress = continuum.scrollTop / anchor;
+    let target = progress >= 0.5 ? anchor : 0;
+    if (direction === 'forward') {
+      target = progress >= 0.24 || releaseVelocity >= MOBILE_CONTINUUM_RELEASE_VELOCITY
+        ? anchor
+        : 0;
+    } else if (direction === 'reverse') {
+      target = progress <= 0.76 || releaseVelocity <= -MOBILE_CONTINUUM_RELEASE_VELOCITY
+        ? 0
+        : anchor;
+    }
+    springMobileGraphContinuumTo(target, releaseVelocity);
+  }
+
+  function activateMobileGraphContinuum() {
+    const continuum = getEl('mobile-graph-continuum');
+    if (!continuum) return null;
+    // Fullscreen graph/article is the sole visible mobile surface. Preserve
+    // graphReturnSurface as navigation history, but never preserve a live
+    // `is-open` drawer underneath: later z-index changes must not reveal stale
+    // UI state. Centralizing the invariant here also covers viewport host sync.
+    closeMobileSidebar({ animate: false });
+    cancelMobileGraphContinuumSpring();
+    clearMobileGraphContinuumSettleTimer();
+    continuum.scrollTop = 0;
+    continuum.style.overflowY = 'hidden';
+    continuum.classList.remove('has-article', 'is-article-ready', 'is-replacing');
+    continuum.classList.add('is-active');
+    continuum.setAttribute('aria-hidden', 'false');
+    const article = getEl('mobile-graph-continuum-article');
+    if (article) article.setAttribute('aria-hidden', 'true');
+    graphState.continuumEntityId = null;
+    graphState.continuumPhase = 'graph';
+    updateMobileGraphContinuumProgress();
+    return continuum;
+  }
+
+  function stabilizeMobileGraphContinuum() {
+    const continuum = getEl('mobile-graph-continuum');
+    if (!continuum) return;
+    continuum.style.overflowY = '';
+    updateMobileGraphContinuumProgress();
+  }
+
+  function hideMobileGraphContinuumArticle() {
+    const continuum = getEl('mobile-graph-continuum');
+    const article = getEl('mobile-graph-continuum-article');
+    if (!continuum) return;
+    cancelMobileGraphContinuumSpring();
+    clearMobileGraphContinuumSettleTimer();
+    continuum.scrollTop = 0;
+    continuum.classList.remove('has-article', 'is-article-ready', 'is-replacing');
+    if (article) article.setAttribute('aria-hidden', 'true');
+    graphState.continuumEntityId = null;
+    graphState.continuumPhase = 'graph';
+    updateMobileGraphContinuumProgress();
+  }
+
+  function prepareMobileGraphContinuumForCollapse() {
+    const continuum = getEl('mobile-graph-continuum');
+    if (!continuum) return;
+    hideMobileGraphContinuumArticle();
+    continuum.style.overflowY = 'hidden';
+  }
+
+  function deactivateMobileGraphContinuum() {
+    const continuum = getEl('mobile-graph-continuum');
+    const container = getEl('sidebar-graph-container');
+    if (!continuum) return;
+    hideMobileGraphContinuumArticle();
+    continuum.classList.remove('is-active');
+    continuum.setAttribute('aria-hidden', 'true');
+    continuum.style.overflowY = '';
+    updateMobileGraphContinuumHeader(0);
+    if (container) {
+      container.classList.remove('is-continuum-obscured');
+      container.style.removeProperty('--mobile-continuum-graph-opacity');
+      container.style.removeProperty('--mobile-continuum-graph-scale');
+      container.style.removeProperty('--mobile-continuum-graph-shift');
+      container.style.removeProperty('--mobile-continuum-control-lift');
+      container.style.setProperty(
+        '--mobile-graph-effective-control-opacity',
+        container.style.getPropertyValue('--mobile-graph-control-opacity') || '0.35'
+      );
+    }
+  }
+
+  function syncExpandedGraphHostForViewport() {
+    if (!state.isGraphExpanded || state.graphPhase !== 'expanded') return;
+    const container = getEl('sidebar-graph-container');
+    const continuum = getEl('mobile-graph-continuum');
+    const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
+    if (!container || !continuum || !mobileSlot) return;
+
+    const isInMobileHost = mobileSlot.contains(container);
+    if (isMobileGraphViewport()) {
+      if (!continuum.classList.contains('is-active')) activateMobileGraphContinuum();
+      if (!isInMobileHost) mobileSlot.appendChild(container);
+      stabilizeMobileGraphContinuum();
+      return;
+    }
+
+    if (isInMobileHost || continuum.classList.contains('is-active')) {
+      document.body.appendChild(container);
+      deactivateMobileGraphContinuum();
+      graphState.focusedNode = null;
+      graphState.hoverNode = null;
+      clearMobileGraphFocusVisuals();
+    }
+  }
+
+  function showMobileGraphContinuumArticle(node) {
+    const continuum = getEl('mobile-graph-continuum');
+    const article = getEl('mobile-graph-continuum-article');
+    if (!node || !node.id || !article || !isMobileGraphContinuumActive()) return false;
+
+    const model = getEntityArticleModel(node.id);
+    if (!model) return false;
+    const isReplacing = Boolean(
+      graphState.continuumEntityId
+      && graphState.continuumEntityId !== model.id
+    );
+    cancelMobileGraphContinuumSpring();
+    clearMobileGraphContinuumSettleTimer();
+    continuum.scrollTop = 0;
+    if (isReplacing) continuum.classList.add('is-replacing');
+
+    renderEntityArticleInto(model, {
+      title: getEl('mobile-continuum-title'),
+      media: getEl('mobile-continuum-media'),
+      image: getEl('mobile-continuum-image'),
+      markdown: getEl('mobile-continuum-markdown')
+    });
+
+    graphState.continuumEntityId = model.id;
+    graphState.continuumPhase = 'preview';
+    article.setAttribute('aria-hidden', 'false');
+    continuum.classList.add('has-article');
+    if (!continuum.classList.contains('is-article-ready')) {
+      article.getBoundingClientRect();
+      requestAnimationFrame(() => continuum.classList.add('is-article-ready'));
+    }
+    requestAnimationFrame(() => {
+      if (graphState.continuumEntityId !== model.id) return;
+      continuum.classList.remove('is-replacing');
+      updateMobileGraphContinuumProgress();
+    });
+    initIcons();
+    return true;
+  }
+
+  function initMobileGraphContinuum() {
+    const continuum = getEl('mobile-graph-continuum');
+    const article = getEl('mobile-graph-continuum-article');
+    if (!continuum || !article) return;
+
+    continuum.addEventListener('scroll', () => {
+      scheduleMobileGraphContinuumProgress();
+      clearMobileGraphContinuumSettleTimer();
+      if (graphState.continuumGesture || graphState.continuumSpringFrame) return;
+      graphState.continuumSettleTimer = setTimeout(() => {
+        graphState.continuumSettleTimer = null;
+        settleMobileGraphContinuumBoundary();
+      }, 140);
+    }, { passive: true });
+
+    article.addEventListener('touchstart', (event) => {
+      if (!isMobileGraphContinuumActive()
+        || !continuum.classList.contains('has-article')
+        || event.touches.length !== 1) return;
+      document.body.classList.remove('mobile-continuum-header-interactive');
+      cancelMobileGraphContinuumSpring();
+      clearMobileGraphContinuumSettleTimer();
+      const anchor = getMobileGraphContinuumAnchor();
+      const touch = event.touches[0];
+      const scrollTop = continuum.scrollTop;
+      graphState.continuumGesture = {
+        mode: scrollTop < anchor - 2 ? 'forward' : (scrollTop <= anchor + 2 ? 'pending' : 'native'),
+        anchor,
+        startY: touch.clientY,
+        startX: touch.clientX,
+        startScrollTop: scrollTop,
+        lastY: touch.clientY,
+        lastTime: performance.now(),
+        velocity: 0
+      };
+    }, { passive: true });
+
+    article.addEventListener('touchmove', (event) => {
+      const gesture = graphState.continuumGesture;
+      if (!gesture || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const deltaY = touch.clientY - gesture.startY;
+      const deltaX = touch.clientX - gesture.startX;
+      if (gesture.mode === 'pending' && Math.abs(deltaY) > 4) {
+        gesture.mode = deltaY > 0 && Math.abs(deltaY) > Math.abs(deltaX) * 0.9
+          ? 'reverse'
+          : 'native';
+      }
+      if (gesture.mode !== 'forward' && gesture.mode !== 'reverse') return;
+      if (Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        gesture.mode = 'native';
+        return;
+      }
+
+      event.preventDefault();
+      const baseProgress = gesture.anchor > 0 ? gesture.startScrollTop / gesture.anchor : 0;
+      const resistance = gesture.mode === 'forward'
+        ? 0.56 + 0.34 * baseProgress
+        : 0.56 + 0.34 * (1 - baseProgress);
+      const desired = gesture.startScrollTop - deltaY * resistance;
+      continuum.scrollTop = Math.max(0, Math.min(gesture.anchor, desired));
+      const now = performance.now();
+      const elapsed = Math.max(8, now - gesture.lastTime);
+      gesture.velocity = -((touch.clientY - gesture.lastY) / elapsed) * 1000 * resistance;
+      gesture.lastY = touch.clientY;
+      gesture.lastTime = now;
+      updateMobileGraphContinuumProgress();
+    }, { passive: false });
+
+    const endBoundaryGesture = () => {
+      const gesture = graphState.continuumGesture;
+      graphState.continuumGesture = null;
+      if (!gesture) return;
+      if (gesture.mode === 'forward' || gesture.mode === 'reverse') {
+        settleMobileGraphContinuumBoundary(gesture.velocity, gesture.mode);
+      } else {
+        settleMobileGraphContinuumBoundary();
+      }
+      updateMobileGraphContinuumProgress();
+    };
+    article.addEventListener('touchend', endBoundaryGesture, { passive: true });
+    article.addEventListener('touchcancel', endBoundaryGesture, { passive: true });
   }
 
   function toggleGraphExpand(forceState, options = {}) {
@@ -2072,9 +2419,12 @@
             height: size.height
           };
         };
-        document.body.appendChild(container);
-        const openedFromMobileSidebar = isMobile && state.graphReturnSurface === 'sidebar';
-        if (!openedFromMobileSidebar) closeMobileSidebar();
+        const mobileContinuum = isMobile ? activateMobileGraphContinuum() : null;
+        const expansionHost = mobileContinuum
+          ? getEl('mobile-graph-continuum-graph-slot')
+          : document.body;
+        (expansionHost || document.body).appendChild(container);
+        if (!isMobile) closeMobileSidebar();
         container.classList.add('is-expanded');
         document.body.classList.add('graph-is-expanded');
         // Interaction-mode changes can reset ForceGraph's zoom transform.
@@ -2095,17 +2445,20 @@
           isMobile ? (progress) => setMobileGraphExpansionProgress(progress, true) : null
         );
         state.graphPhase = 'expanded';
-        if (isMobile) setMobileGraphExpansionProgress(1, false);
+        if (isMobile) {
+          setMobileGraphExpansionProgress(1, false);
+          stabilizeMobileGraphContinuum();
+        }
         configureGraphPhysics(state.sidebarGraph, true);
       } else {
         state.graphPhase = 'collapsing';
         if (isMobile) {
           cancelMobileGraphFocusTransition();
+          prepareMobileGraphContinuumForCollapse();
           setMobileGraphExpansionProgress(1, true);
         } else {
           graphState.focusedNode = null;
           graphState.hoverNode = null;
-          hideBoundlessInspector();
         }
         const returnsToArticleLauncher = isMobile && state.graphReturnSurface === 'article' && launcher;
         if (isMobile && state.graphReturnSurface === 'sidebar') {
@@ -2133,7 +2486,6 @@
           graphState.focusedNode = null;
           graphState.hoverNode = null;
           clearMobileGraphFocusVisuals();
-          hideBoundlessInspector();
           setMobileGraphExpansionProgress(0, false);
         }
         slot.appendChild(container);
@@ -2141,6 +2493,7 @@
         document.body.classList.remove('graph-is-expanded');
         resetGraphContainerStyles(container);
         state.graphPhase = 'small';
+        if (isMobile) deactivateMobileGraphContinuum();
         if (launcher) {
           launcher.classList.remove('is-graph-morphing');
           launcher.style.opacity = '';
@@ -2166,7 +2519,6 @@
   async function navigateFromGraphNode(entityId, options = {}) {
     const collapseGraph = options.collapseGraph !== false;
     const isMobile = window.innerWidth <= 768;
-    hideBoundlessInspector();
     const preserveFocusThroughCollapse = isMobile
       && collapseGraph
       && (state.isGraphExpanded || state.graphPhase !== 'small');
@@ -2191,56 +2543,12 @@
     openEntityArticle(entityId, { animateGraph: !isMobile });
   }
 
-  function showBoundlessInspector(node) {
-    const inspector = getEl('boundless-node-inspector');
-    if (!inspector || !node) return;
-
-    const title = getEl('boundless-title');
-    if (title) {
-      const label = node.label || node.id;
-      title.textContent = label;
-
-      // Intelligent Dynamic Auto-Fit: dynamically downscales for long or multi-line entity titles
-      if (label.length > 36) {
-        title.style.fontSize = '1.15rem';
-        title.style.lineHeight = '1.25';
-      } else if (label.length > 20) {
-        title.style.fontSize = '1.45rem';
-        title.style.lineHeight = '1.2';
-      } else {
-        title.style.fontSize = '';
-        title.style.lineHeight = '';
-      }
-    }
-
-    const enterArticle = async (e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      const suppressUntil = Number(inspector.dataset.suppressClickUntil || 0);
-      if (suppressUntil) delete inspector.dataset.suppressClickUntil;
-      if (performance.now() < suppressUntil) {
-        return;
-      }
-      await navigateFromGraphNode(node.id);
-    };
-
-    inspector.onclick = enterArticle;
-    inspector.classList.add('is-active');
-    initIcons();
-  }
-
-  function hideBoundlessInspector() {
-    const inspector = getEl('boundless-node-inspector');
-    if (inspector) inspector.classList.remove('is-active');
-  }
-
   /**
    * Mobile Native Gesture Engine (手势滑动操控系统)
    * 1. Horizontal Drawer: Left-to-Right Swipe to Open, Right-to-Left to Close
    * 2. Pull-Down in Default State: Top Pull-Down on Sidebar / Small Graph to Expand Fullscreen
-   * 3. Bottom 36% Hero Action Stage: Dedicated Touch Capture for Swipe-Up to Read & Tap to Read
+   * The graph/article seam has its own boundary gesture engine and is not
+   * handled here, so navigation gestures never compete with graph gestures.
    */
   function initMobileGestures() {
     // Strictly mobile-only gesture engine (<= 768px)
@@ -2264,6 +2572,7 @@
     document.addEventListener('touchend', (e) => {
       if (!isTrackingGlobal || e.changedTouches.length !== 1) return;
       isTrackingGlobal = false;
+      if (isMobileGraphContinuumActive()) return;
 
       const touch = e.changedTouches[0];
       const deltaX = touch.clientX - touchStartX;
@@ -2326,49 +2635,8 @@
       }, { passive: true });
     }
 
-    // 3. Dedicated Bottom 36% Hero Action Stage Touch Handling (专属大窗手势底栏)
-    const boundlessInspector = getEl('boundless-node-inspector');
-    if (boundlessInspector) {
-      let inspStartY = 0;
-      let inspStartX = 0;
-      let inspStartTime = 0;
-
-      boundlessInspector.addEventListener('touchstart', (e) => {
-        if (e.touches.length !== 1) return;
-        inspStartX = e.touches[0].clientX;
-        inspStartY = e.touches[0].clientY;
-        inspStartTime = Date.now();
-      }, { passive: true });
-
-      boundlessInspector.addEventListener('touchend', (e) => {
-        if (e.changedTouches.length !== 1) return;
-        const deltaY = e.changedTouches[0].clientY - inspStartY;
-        const deltaX = e.changedTouches[0].clientX - inspStartX;
-        const elapsed = Date.now() - inspStartTime;
-        const absY = Math.abs(deltaY);
-        const absX = Math.abs(deltaX);
-
-        if (absY > 25 && absY > absX * 1.1 && elapsed < 600) {
-          // This swipe owns the gesture. Ignore only the compatibility click
-          // that some touch browsers synthesize after touchend.
-          boundlessInspector.dataset.suppressClickUntil = String(performance.now() + 600);
-          if (deltaY < 0) {
-            // Swipe UP in bottom zone: Immediately enter entity article!
-            if (graphState.focusedNode) {
-              const focusedId = graphState.focusedNode.id;
-              navigateFromGraphNode(focusedId);
-            } else {
-              toggleGraphExpand(false);
-            }
-          } else if (deltaY > 35) {
-            // Swipe DOWN: Collapse graph
-            toggleGraphExpand(false);
-          }
-        }
-      }, { passive: true });
-    }
-
-    // 4. Global Fullscreen Graph Swipe Collapse
+    // 3. Legacy fullscreen graph swipe collapse. The continuous mobile reader
+    // explicitly owns vertical movement, so this path is disabled there.
     const graphContainer = getEl('sidebar-graph-container');
     if (graphContainer) {
       let graphTouchStartY = 0;
@@ -2384,6 +2652,7 @@
 
       graphContainer.addEventListener('touchend', (e) => {
         if (!state.isGraphExpanded || e.changedTouches.length !== 1) return;
+        if (isMobileGraphContinuumActive()) return;
         if (performance.now() < graphState.mobileNodeGestureUntil) return;
         const deltaY = e.changedTouches[0].clientY - graphTouchStartY;
         const deltaX = e.changedTouches[0].clientX - graphTouchStartX;
@@ -2421,6 +2690,7 @@
       const container = getEl('sidebar-graph-container');
       const canvasContainer = getEl('canvas-sidebar-graph');
       if (!container || !canvasContainer) return;
+      syncExpandedGraphHostForViewport();
       const expandedSize = getExpandedGraphSize();
       if (isMobileGraphViewport()) {
         setMobileGraphExpansionProgress(state.isGraphExpanded ? 1 : 0, false);
@@ -2449,9 +2719,23 @@
           size: state.isGraphExpanded ? expandedSize : getCurrentGraphViewportSize(),
           expansionProgress: state.isGraphExpanded ? 1 : 0
         });
-        ensureMobileFocusedGraphNodeVisible(0);
+        if (isMobileGraphContinuumActive()) updateMobileGraphContinuumProgress();
       });
     });
+  }
+
+  function scrollReaderToTop() {
+    const continuum = getEl('mobile-graph-continuum');
+    if (isMobileGraphContinuumActive() && continuum) {
+      const articleAnchor = getMobileGraphContinuumAnchor();
+      if (articleAnchor && continuum.scrollTop > articleAnchor + 2) {
+        continuum.scrollTo({ top: articleAnchor, behavior: 'smooth' });
+      } else {
+        springMobileGraphContinuumTo(0);
+      }
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function initGraphControls() {
@@ -2481,14 +2765,13 @@
 
     const backToTopBtn = getEl('btn-back-to-top');
     if (backToTopBtn) {
-      backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+      backToTopBtn.addEventListener('click', scrollReaderToTop);
     }
 
     // Click outside large window to close
     document.addEventListener('click', (e) => {
       if (!state.isGraphExpanded) return;
+      if (isMobileGraphContinuumActive()) return;
       const container = getEl('sidebar-graph-container');
       if (container && !container.contains(e.target)) {
         toggleGraphExpand(false);
@@ -2536,16 +2819,80 @@
     closeMobileSidebar();
   }
 
-  function openEntityArticle(entityId, options = {}) {
+  function getEntityArticleModel(entityId) {
+    if (!entityId) return null;
     const knowledgeIndex = getKnowledgeIndex();
     const resolvedEntityId = resolveEntityId(entityId, knowledgeIndex) || entityId;
-    entityId = resolvedEntityId;
-    state.currentEntityId = resolvedEntityId;
+    const foundNode = knowledgeIndex && knowledgeIndex.nodesById.get(resolvedEntityId);
+    const label = foundNode ? foundNode.label : resolvedEntityId;
+    const category = ((foundNode && foundNode.type) || 'Characters').replace(/s$/, '');
+    const images = (window.WIKI_STORE && window.WIKI_STORE.images) || {};
+    const imagePath = images[label] || images[resolvedEntityId] || images[entityId] || null;
+
+    if (!window.__entityMdCache) window.__entityMdCache = new Map();
+    const cacheKey = `${state.lang}_${resolvedEntityId}`;
+    let html = window.__entityMdCache.get(cacheKey);
+    if (html === undefined) {
+      const articles = (window.WIKI_STORE && window.WIKI_STORE.articles) || {};
+      let markdown = articles[label] || articles[resolvedEntityId] || articles[entityId];
+      if (!markdown) {
+        markdown = `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
+      }
+
+      const cleanMarkdown = markdown
+        .replace(/^#\s+[^\n]+\n*/, '')
+        .replace(/>\s+\*\*分类\/标签\*\*:[^\n]*\n*/gi, '')
+        .replace(/>\s+\*\*源文件\*\*:[^\n]*\n*/gi, '')
+        .replace(/^---\s*\n*/gm, '')
+        .replace(/^#\s+[^\n]+\n*/, '')
+        .replace(/##\s+Related StoryFlow[\s\S]*$/i, '')
+        .trim();
+      html = window.marked && window.marked.parse
+        ? window.marked.parse(cleanMarkdown)
+        : `<p>${cleanMarkdown.replace(/\n\n/g, '</p><p>')}</p>`;
+      window.__entityMdCache.set(cacheKey, html);
+    }
+
+    return {
+      id: resolvedEntityId,
+      label,
+      category,
+      imagePath,
+      html
+    };
+  }
+
+  function renderEntityArticleInto(model, targets) {
+    if (!model || !targets) return false;
+    if (targets.category) targets.category.textContent = model.category;
+    if (targets.title) targets.title.textContent = model.label;
+    if (targets.markdown) targets.markdown.innerHTML = model.html;
+
+    if (targets.media && targets.image) {
+      if (model.imagePath) {
+        targets.image.src = model.imagePath;
+        targets.image.alt = model.label;
+        targets.media.style.display = 'block';
+        targets.media.setAttribute('aria-hidden', 'false');
+      } else {
+        targets.image.removeAttribute('src');
+        targets.image.alt = '';
+        targets.media.style.display = 'none';
+        targets.media.setAttribute('aria-hidden', 'true');
+      }
+    }
+    return true;
+  }
+
+  function openEntityArticle(entityId, options = {}) {
+    const model = getEntityArticleModel(entityId);
+    if (!model) return;
+    entityId = model.id;
+    state.currentEntityId = model.id;
 
     // Reset global graph state to prevent ghost/orphaned nodes from dimming the new graph
     graphState.focusedNode = null;
     graphState.hoverNode = null;
-    hideBoundlessInspector();
 
     // Reset sidebar scroll top to strictly prevent slot from shifting upwards
     const stickyWrap = document.querySelector('.wiki-sidebar-sticky');
@@ -2569,66 +2916,13 @@
       : options.animateGraph;
     scheduleGraphForPage(entityId, { animate: animateGraph });
 
-    const foundNode = knowledgeIndex && knowledgeIndex.nodesById.get(resolvedEntityId);
-    const foundCat = (foundNode && foundNode.type) || 'Characters';
-
-    const label = foundNode ? foundNode.label : entityId;
-
-    const catEl = getEl('view-entity-cat');
-    if (catEl) catEl.textContent = foundCat.replace(/s$/, '');
-
-    const titleEl = getEl('view-entity-title');
-    if (titleEl) titleEl.textContent = label;
-
-    // Load Entity Image (Pure Figure, No Artificial Text Labels)
-    const images = (window.WIKI_STORE && window.WIKI_STORE.images) || {};
-    const imgPath = images[label] || images[entityId];
-    const mediaEl = getEl('view-entity-media');
-    const imgEl = getEl('view-entity-img');
-
-    if (mediaEl && imgEl) {
-      if (imgPath) {
-        imgEl.src = imgPath;
-        imgEl.alt = label;
-        mediaEl.style.display = 'block';
-      } else {
-        mediaEl.style.display = 'none';
-      }
-    }
-
-    const mdEl = getEl('view-entity-markdown');
-    if (mdEl) {
-      if (!window.__entityMdCache) window.__entityMdCache = new Map();
-      const cacheKey = `${state.lang}_${entityId}`;
-      if (window.__entityMdCache.has(cacheKey)) {
-        mdEl.innerHTML = window.__entityMdCache.get(cacheKey);
-      } else {
-        const articles = (window.WIKI_STORE && window.WIKI_STORE.articles) || {};
-        let md = articles[label] || articles[entityId];
-        if (!md) {
-          md = `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
-        }
-
-        // Clean internal raw extraction metadata, duplicate top h1, and dangling empty Related StoryFlow footer
-        let cleanMd = md
-          .replace(/^#\s+[^\n]+\n*/, '')
-          .replace(/>\s+\*\*分类\/标签\*\*:[^\n]*\n*/gi, '')
-          .replace(/>\s+\*\*源文件\*\*:[^\n]*\n*/gi, '')
-          .replace(/^---\s*\n*/gm, '')
-          .replace(/^#\s+[^\n]+\n*/, '')
-          .replace(/##\s+Related StoryFlow[\s\S]*$/i, '')
-          .trim();
-
-        let parsed = '';
-        if (window.marked && window.marked.parse) {
-          parsed = window.marked.parse(cleanMd);
-        } else {
-          parsed = `<p>${cleanMd.replace(/\n\n/g, '</p><p>')}</p>`;
-        }
-        window.__entityMdCache.set(cacheKey, parsed);
-        mdEl.innerHTML = parsed;
-      }
-    }
+    renderEntityArticleInto(model, {
+      category: getEl('view-entity-cat'),
+      title: getEl('view-entity-title'),
+      media: getEl('view-entity-media'),
+      image: getEl('view-entity-img'),
+      markdown: getEl('view-entity-markdown')
+    });
 
     showArticleView('view-entity');
   }
@@ -2774,12 +3068,6 @@
       });
     }
 
-    const btnBackToTop = getEl('btn-back-to-top');
-    if (btnBackToTop) {
-      btnBackToTop.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
   }
 
   if (document.readyState === 'loading') {

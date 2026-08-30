@@ -1286,6 +1286,10 @@ details.toc-cat-details:not([open]) > summary::after {
     will-change: transform, opacity;
   }
   body.mobile-continuum-header-interactive .wiki-header {
+    pointer-events: none;
+  }
+  body.mobile-continuum-header-interactive .wiki-header a,
+  body.mobile-continuum-header-interactive .wiki-header button {
     pointer-events: auto;
   }
   body.mobile-continuum-header-active .wiki-sidebar {
@@ -1474,6 +1478,11 @@ details.toc-cat-details:not([open]) > summary::after {
   .btn-mobile-graph-launcher.is-graph-morphing {
     transition: none;
   }
+  /* The continuum's second floor is a real article surface. Reuse the normal
+     article launcher above that surface, while keeping it below the drawer. */
+  .btn-mobile-graph-launcher.is-continuum-reading {
+    z-index: 740;
+  }
   .btn-mobile-graph-launcher:active {
     transform: scale(0.92);
     color: var(--accent);
@@ -1603,7 +1612,7 @@ details.toc-cat-details:not([open]) > summary::after {
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100dvh;
+    height: var(--mobile-continuum-viewport-height, 100dvh);
     pointer-events: none;
   }
   .mobile-graph-continuum-graph-slot {
@@ -1613,17 +1622,19 @@ details.toc-cat-details:not([open]) > summary::after {
   }
   .mobile-graph-continuum .sidebar-graph-container.is-expanded {
     position: absolute !important;
+    height: var(--mobile-continuum-viewport-height, 100dvh);
     z-index: auto !important;
     isolation: auto;
     pointer-events: auto;
   }
-  .mobile-graph-continuum .sidebar-graph-container.is-expanded .topology-pure-canvas {
-    opacity: var(--mobile-continuum-graph-opacity, 1);
-    transform:
-      translate(-50%, calc(-50% + var(--mobile-continuum-graph-shift, 0px)))
-      scale(var(--mobile-continuum-graph-scale, 1));
-    transform-origin: center center;
-    will-change: transform, opacity;
+  /* After a node exposes its article, empty canvas space becomes part of the
+     native vertical continuum. ForceGraph still owns actual node drags; its
+     inline canvas policy must not capture background swipes. */
+  .mobile-graph-continuum.has-article .sidebar-graph-container.is-expanded,
+  .mobile-graph-continuum.has-article .sidebar-graph-container.is-expanded .topology-pure-canvas,
+  .mobile-graph-continuum.has-article .sidebar-graph-container.is-expanded .force-graph-container,
+  .mobile-graph-continuum.has-article .sidebar-graph-container.is-expanded canvas {
+    touch-action: pan-y !important;
   }
   .mobile-graph-continuum .sidebar-graph-container.is-expanded.is-continuum-obscured {
     pointer-events: none;

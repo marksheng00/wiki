@@ -2245,6 +2245,10 @@
     const progress = anchor > 0
       ? Math.max(0, Math.min(1, continuum.scrollTop / anchor))
       : 0;
+    // One physical progress value drives every depth cue. The graph remains a
+    // live, stable rear floor while the opaque article sheet moves over it;
+    // only a restrained parallax/scale response is needed to establish depth.
+    const depthProgress = Math.max(0, Math.min(1, (progress - 0.04) / 0.96));
     const baseControlOpacity = parseFloat(
       container.style.getPropertyValue('--mobile-graph-control-opacity') || '1'
     );
@@ -2255,6 +2259,18 @@
       : 0;
 
     continuum.style.setProperty('--mobile-continuum-progress', String(progress));
+    continuum.style.setProperty(
+      '--mobile-continuum-graph-shift',
+      `${-14 * depthProgress}px`
+    );
+    continuum.style.setProperty(
+      '--mobile-continuum-graph-scale',
+      String(1 - 0.016 * depthProgress)
+    );
+    continuum.style.setProperty(
+      '--mobile-continuum-graph-opacity',
+      String(1 - 0.18 * depthProgress)
+    );
     container.style.setProperty('--mobile-continuum-control-lift', `${controlLift}px`);
     container.style.setProperty(
       '--mobile-graph-effective-control-opacity',
@@ -2432,7 +2448,6 @@
     continuum.addEventListener('scroll', () => {
       scheduleMobileGraphContinuumProgress();
     }, { passive: true });
-
   }
 
   function toggleGraphExpand(forceState, options = {}) {

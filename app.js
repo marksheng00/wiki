@@ -149,6 +149,8 @@
       && sidebar
       && sidebar.classList.contains('is-open')
     );
+    const sidebarOwnsOverlayGraph = isSidebarNavigation
+      && isMobileGraphSidebarOverlayLeaseActive();
     if (!isClosingExpandedMobileGraph) {
       graphState.focusedNode = null;
       graphState.hoverNode = null;
@@ -164,7 +166,9 @@
         // watch the hidden graph shrink. Commit that swap atomically before the
         // next paint. A choice made inside the opaque drawer may safely keep the
         // short host handoff behind it.
-        duration: directReadingNavigation ? 0 : (window.innerWidth <= 768 ? 180 : 420),
+        duration: directReadingNavigation || sidebarOwnsOverlayGraph
+          ? 0
+          : (window.innerWidth <= 768 ? 180 : 420),
         destination: isSidebarNavigation ? 'sidebar' : 'article'
       });
     }
@@ -394,6 +398,8 @@
     continuumPreviewPeek: null,
     continuumRenderResizeTimer: null,
     continuumRenderResizePending: false,
+    sidebarOverlayLease: null,
+    sidebarOverlayLeaseRestore: null,
     resizeFrame: null,
     resizeRevision: 0,
     resizePending: false,
@@ -790,7 +796,8 @@
   function isMobileExpandedGraphInteraction() {
     return isMobileGraphViewport()
       && state.isGraphExpanded
-      && state.graphPhase === 'expanded';
+      && state.graphPhase === 'expanded'
+      && !isMobileGraphSidebarOverlayLeaseActive();
   }
 
   function snapshotGraphNodes(graph) {
@@ -1196,7 +1203,8 @@
     // gestures that could write competing positions or transforms.
     const canInteract = isExpanded
       && state.graphPhase === 'expanded'
-      && !graphState.layoutTransition;
+      && !graphState.layoutTransition
+      && !isMobileGraphSidebarOverlayLeaseActive();
     const continuum = getEl('mobile-graph-continuum');
     const articleOwnsVerticalGesture = isMobileGraphViewport()
       && continuum
@@ -2290,6 +2298,266 @@
       && !floorGesture;
   }
 
+  function isMobileGraphSidebarOverlayLeaseActive() {
+    return Boolean(graphState.sidebarOverlayLease);
+  }
+
+  function cancelMobileGraphSidebarOverlayLeaseRestore() {
+    const pending = graphState.sidebarOverlayLeaseRestore;
+    if (!pending) return;
+    graphState.sidebarOverlayLeaseRestore = null;
+    document.body.classList.remove('mobile-sidebar-graph-returning');
+    if (pending.sidebar && pending.onTransitionFinish) {
+      pending.sidebar.classList.remove('is-closing');
+      pending.sidebar.inert = false;
+      pending.sidebar.removeEventListener('transitionend', pending.onTransitionFinish);
+    }
+    if (pending.timer) clearTimeout(pending.timer);
+  }
+
+  function getCssTimeMs(value) {
+    const token = String(value || '').trim();
+    const amount = parseFloat(token);
+    if (!Number.isFinite(amount)) return 0;
+    return token.endsWith('ms') ? amount : amount * 1000;
+  }
+
+  function getTransformTransitionBudgetMs(element) {
+    const style = getComputedStyle(element);
+    const properties = style.transitionProperty.split(',').map((value) => value.trim());
+    const durations = style.transitionDuration.split(',').map(getCssTimeMs);
+    const delays = style.transitionDelay.split(',').map(getCssTimeMs);
+    const count = Math.max(properties.length, durations.length, delays.length);
+    let budget = 0;
+    for (let index = 0; index < count; index += 1) {
+      const property = properties[index % properties.length];
+      if (property !== 'all' && property !== 'transform') continue;
+      budget = Math.max(
+        budget,
+        durations[index % durations.length] + delays[index % delays.length]
+      );
+    }
+    return Math.max(0, budget);
+  }
+
+  function scheduleMobileGraphSidebarOverlayLeaseRestore(sidebar, lease) {
+    if (!sidebar || !lease) return;
+    cancelMobileGraphSidebarOverlayLeaseRestore();
+    const pending = {
+      sidebar,
+      lease,
+      timer: null,
+      onTransitionFinish: null
+    };
+    const complete = () => {
+      if (graphState.sidebarOverlayLeaseRestore !== pending) return;
+      cancelMobileGraphSidebarOverlayLeaseRestore();
+      if (graphState.sidebarOverlayLease === lease
+        && !sidebar.classList.contains('is-open')) {
+        finishMobileGraphSidebarOverlayLease();
+      }
+    };
+    pending.onTransitionFinish = (event) => {
+      if (event.target !== sidebar || event.propertyName !== 'transform') return;
+      const rect = sidebar.getBoundingClientRect();
+      if (!sidebar.classList.contains('is-open') && rect.right <= 1) complete();
+    };
+    sidebar.addEventListener('transitionend', pending.onTransitionFinish);
+    graphState.sidebarOverlayLeaseRestore = pending;
+    document.body.classList.add('mobile-sidebar-graph-returning');
+    sidebar.inert = true;
+    pending.timer = setTimeout(() => {
+      if (graphState.sidebarOverlayLeaseRestore !== pending) return;
+      if (graphState.sidebarOverlayLease === lease
+        && !sidebar.classList.contains('is-open')) {
+        complete();
+      } else {
+        cancelMobileGraphSidebarOverlayLeaseRestore();
+      }
+    }, getTransformTransitionBudgetMs(sidebar) + 80);
+  }
+
+  function layoutMobileGraphSidebarOverlayPreview(lease = graphState.sidebarOverlayLease) {
+    if (!lease || graphState.sidebarOverlayLease !== lease || !state.sidebarGraph) return false;
+    const slot = getEl('sidebar-graph-slot');
+    const container = getEl('sidebar-graph-container');
+    if (!slot || !container || !slot.contains(container)) return false;
+
+    const slotRect = getGraphSlotContentRect(slot);
+    const previewSize = {
+      width: Math.max(1, slotRect.width),
+      height: Math.max(1, slotRect.height)
+    };
+    syncGraphRenderSize(state.sidebarGraph, previewSize);
+    const previewCamera = getGraphCameraForViewport(
+      state.sidebarGraph,
+      previewSize,
+      0,
+      graphState.activeTargetPositions
+    );
+    applyGraphCamera(state.sidebarGraph, previewCamera);
+    requestGraphRedraw(state.sidebarGraph);
+    return true;
+  }
+
+  function beginMobileGraphSidebarOverlayLease() {
+    if (graphState.sidebarOverlayLease) {
+      cancelMobileGraphSidebarOverlayLeaseRestore();
+      return true;
+    }
+    if (!isMobileGraphViewport()
+      || !state.isGraphExpanded
+      || state.graphPhase !== 'expanded'
+      || !isMobileGraphContinuumStableReading()) return false;
+
+    const container = getEl('sidebar-graph-container');
+    const slot = getEl('sidebar-graph-slot');
+    const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
+    if (!container || !slot || !mobileSlot || !mobileSlot.contains(container)) return false;
+
+    cancelGraphCameraTransition();
+    settleGraphLayoutTransitionNodes();
+    const expandedSize = getExpandedGraphSize(true);
+    const lease = {
+      expandedCamera: getCurrentGraphCamera(state.sidebarGraph),
+      expandedSize: { width: expandedSize.width, height: expandedSize.height }
+    };
+    graphState.sidebarOverlayLease = lease;
+
+    // The drawer borrows the one persistent Canvas before its first visible
+    // frame. The continuum and its article remain mounted and keep every bit of
+    // reading state; only graph presentation ownership changes temporarily.
+    slot.appendChild(container);
+    container.classList.add('is-sidebar-overlay-preview');
+    container.classList.remove('is-continuum-obscured');
+    container.style.removeProperty('--mobile-continuum-control-lift');
+    resetGraphContainerStyles(container);
+    setMobileGraphExpansionProgress(0, false, 'sidebar');
+    configureGraphPhysics(state.sidebarGraph, false);
+    layoutMobileGraphSidebarOverlayPreview(lease);
+
+    // Opening the drawer changes its transformed coordinate space, but not the
+    // graph's identity. Re-read the final slot geometry on the next paint.
+    requestAnimationFrame(() => {
+      if (graphState.sidebarOverlayLease !== lease) return;
+      layoutMobileGraphSidebarOverlayPreview(lease);
+    });
+    return true;
+  }
+
+  function finishMobileGraphSidebarOverlayLease(options = {}) {
+    const lease = graphState.sidebarOverlayLease;
+    if (!lease) return null;
+    cancelMobileGraphSidebarOverlayLeaseRestore();
+    const restoreExpanded = options.restoreExpanded !== false;
+    const container = getEl('sidebar-graph-container');
+    const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
+    graphState.sidebarOverlayLease = null;
+    if (container) container.classList.remove('is-sidebar-overlay-preview');
+
+    if (restoreExpanded && !isMobileGraphViewport()) {
+      syncExpandedGraphHostForViewport();
+      return lease;
+    }
+    if (!restoreExpanded
+      || !container
+      || !mobileSlot
+      || !state.isGraphExpanded
+      || state.graphPhase !== 'expanded') return lease;
+
+    mobileSlot.appendChild(container);
+    resetGraphContainerStyles(container);
+    container.classList.add('is-expanded');
+    const expandedSize = getExpandedGraphSize(true);
+    applyFixedGraphRect(container, {
+      left: 0,
+      top: 0,
+      width: expandedSize.width,
+      height: expandedSize.height
+    });
+    syncGraphRenderSize(state.sidebarGraph, expandedSize);
+
+    const viewportChanged = !lease.expandedSize
+      || Math.abs(expandedSize.width - lease.expandedSize.width) > 1
+      || Math.abs(expandedSize.height - lease.expandedSize.height) > 1;
+    const expandedCamera = viewportChanged
+      ? getGraphCameraForViewport(
+        state.sidebarGraph,
+        expandedSize,
+        1,
+        graphState.activeTargetPositions
+      )
+      : lease.expandedCamera;
+    applyGraphCamera(state.sidebarGraph, expandedCamera);
+    setMobileGraphExpansionProgress(1, false, state.graphReturnSurface);
+    configureGraphPhysics(state.sidebarGraph, true);
+    updateMobileGraphContinuumProgress();
+    requestGraphRedraw(state.sidebarGraph);
+
+    // ForceGraph may rebuild its backing transform after a width/height write.
+    // Reassert the same saved camera once, only if this lease was not reopened.
+    requestAnimationFrame(() => {
+      if (graphState.sidebarOverlayLease
+        || !state.isGraphExpanded
+        || state.graphPhase !== 'expanded'
+        || !mobileSlot.contains(container)) return;
+      applyGraphCamera(state.sidebarGraph, expandedCamera);
+      requestGraphRedraw(state.sidebarGraph);
+    });
+    return lease;
+  }
+
+  function expandMobileGraphSidebarOverlayLease(duration = 420) {
+    const lease = graphState.sidebarOverlayLease;
+    const container = getEl('sidebar-graph-container');
+    const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
+    if (!lease || !container || !mobileSlot || state.graphPhase !== 'expanded') {
+      return Promise.resolve();
+    }
+
+    graphState.containerTransitionPromise = (async () => {
+      const startRect = container.getBoundingClientRect();
+      const startCamera = getCurrentGraphCamera(state.sidebarGraph);
+      state.graphPhase = 'expanding';
+      state.graphReturnSurface = 'sidebar';
+      setMobileGraphExpansionProgress(0, true, 'sidebar');
+      hideMobileGraphContinuumArticle();
+
+      // The opaque drawer is committed closed in the same task that transfers
+      // the Canvas, so neither host can expose an empty frame between them.
+      closeMobileSidebar({ animate: false, restoreGraphLease: false });
+      finishMobileGraphSidebarOverlayLease({ restoreExpanded: false });
+      mobileSlot.appendChild(container);
+      resetGraphContainerStyles(container);
+      container.classList.add('is-expanded');
+      applyFixedGraphRect(container, startRect);
+
+      const expandedSize = getExpandedGraphSize(true);
+      syncGraphRenderSize(state.sidebarGraph, expandedSize);
+      applyGraphCamera(state.sidebarGraph, startCamera);
+      configureGraphPhysics(state.sidebarGraph, true);
+      const getExpandedTarget = () => {
+        const size = getExpandedGraphSize(true);
+        return { left: 0, top: 0, width: size.width, height: size.height };
+      };
+      await morphGraphViewport(
+        container,
+        state.sidebarGraph,
+        startRect,
+        getExpandedTarget,
+        duration,
+        1,
+        (progress) => setMobileGraphExpansionProgress(progress, true, 'sidebar')
+      );
+      state.graphPhase = 'expanded';
+      setMobileGraphExpansionProgress(1, false, 'sidebar');
+      configureGraphPhysics(state.sidebarGraph, true);
+      stabilizeMobileGraphContinuum();
+      if (graphState.resizePending) scheduleGraphResizeSync();
+    })();
+    return graphState.containerTransitionPromise;
+  }
+
   function updateMobileGraphContinuumHeader(progress) {
     const reveal = getMobileGraphContinuumChromeReveal(progress);
     const isActive = reveal > 0.001;
@@ -2346,9 +2614,6 @@
     // cue. No class, scroll offset, or independent CSS transition may move a
     // second surface on its own.
     const depthProgress = Math.max(0, Math.min(1, (progress - 0.04) / 0.96));
-    const baseControlOpacity = parseFloat(
-      container.style.getPropertyValue('--mobile-graph-control-opacity') || '1'
-    );
     const controlFade = 1 - Math.max(0, Math.min(1, (progress - 0.08) / 0.52));
     const controlLift = hasArticle
       ? geometry.previewPeek + Math.max(0, Math.min(geometry.travel, position))
@@ -2368,12 +2633,18 @@
       '--mobile-continuum-graph-opacity',
       String(1 - 0.18 * depthProgress)
     );
-    container.style.setProperty('--mobile-continuum-control-lift', `${controlLift}px`);
-    container.style.setProperty(
-      '--mobile-graph-effective-control-opacity',
-      String(baseControlOpacity * controlFade)
-    );
-    container.classList.toggle('is-continuum-obscured', progress >= 0.96);
+    const continuumOwnsGraph = continuum.contains(container);
+    if (continuumOwnsGraph) {
+      const baseControlOpacity = parseFloat(
+        container.style.getPropertyValue('--mobile-graph-control-opacity') || '1'
+      );
+      container.style.setProperty('--mobile-continuum-control-lift', `${controlLift}px`);
+      container.style.setProperty(
+        '--mobile-graph-effective-control-opacity',
+        String(baseControlOpacity * controlFade)
+      );
+      container.classList.toggle('is-continuum-obscured', progress >= 0.96);
+    }
     continuum.classList.toggle('is-settling', graphState.continuumMotionTarget !== null);
     continuum.classList.toggle('is-tracking', Boolean(
       graphState.continuumGesture && graphState.continuumGesture.owner === 'floor'
@@ -2383,7 +2654,7 @@
     updateMobileGraphContinuumLauncher(progress, hasArticle);
 
     const expandButton = getEl('btn-graph-expand');
-    if (expandButton && state.graphPhase === 'expanded') {
+    if (expandButton && continuumOwnsGraph && state.graphPhase === 'expanded') {
       const floorIsIdle = graphState.continuumMotionTarget === null
         && !(graphState.continuumGesture && graphState.continuumGesture.owner === 'floor');
       const closeIsInteractive = controlFade > 0.12
@@ -2655,6 +2926,14 @@
     const continuum = getEl('mobile-graph-continuum');
     const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
     if (!container || !continuum || !mobileSlot) return;
+
+    // A foreground drawer temporarily owns the one Canvas while the second-floor
+    // article remains alive underneath. Mobile resize synchronization must not
+    // steal that lease back; crossing out of the mobile viewport ends it first.
+    if (isMobileGraphSidebarOverlayLeaseActive()) {
+      if (isMobileGraphViewport()) return;
+      finishMobileGraphSidebarOverlayLease({ restoreExpanded: false });
+    }
 
     const isInMobileHost = mobileSlot.contains(container);
     if (isMobileGraphViewport()) {
@@ -2946,6 +3225,10 @@
       const collapseDestination = isMobile && !targetState
         ? (requestedDestination || state.graphReturnSurface)
         : null;
+      const consumesSidebarOverlayLease = isMobile
+        && !targetState
+        && collapseDestination === 'sidebar'
+        && isMobileGraphSidebarOverlayLeaseActive();
       const launcher = getEl('btn-mobile-graph-launcher');
       // Window morphing owns the camera. Finish only the current node geometry
       // first so page-layout and viewport-layout animations can never compete.
@@ -3030,16 +3313,29 @@
         }
         const startRect = container.getBoundingClientRect();
         const returnsToArticleLauncher = isMobile && collapseDestination === 'article' && launcher;
+        const sidebarWasOpen = Boolean(sidebar && sidebar.classList.contains('is-open'));
+        const revealsSidebarGraph = isMobile
+          && collapseDestination === 'sidebar'
+          && !sidebarWasOpen;
         if (isMobile && collapseDestination === 'sidebar') {
-          // During a graph handoff, the viewport morph is the sole motion
-          // owner. Put the destination drawer at its final geometry without a
-          // competing translate animation, then freeze the slot rect below.
+          // The drawer establishes the final coordinate system immediately.
+          // Its own translate must not compete with the one Canvas morph.
           if (!sidebar || !sidebar.classList.contains('is-open')) openMobileSidebar({ animate: false });
         } else if (returnsToArticleLauncher && sidebar && sidebar.classList.contains('is-open')) {
           closeMobileSidebar({ animate: false });
         }
+
+        if (revealsSidebarGraph && sidebar) {
+          // FLIP host handoff: use a viewport-level portal while the one Canvas
+          // shrinks over the already committed drawer. This avoids both the
+          // drawer's transformed fixed-position coordinate system and the
+          // scroll clipping inside its final slot.
+          document.body.appendChild(container);
+          container.classList.add('is-sidebar-handoff');
+          applyFixedGraphRect(container, startRect);
+        }
         configureGraphPhysics(state.sidebarGraph, false);
-        const collapseTarget = (
+        const getCollapseTarget = () => (
           returnsToArticleLauncher
             ? getMobileLauncherGraphRect(launcher)
             : getGraphSlotContentRect(slot)
@@ -3048,8 +3344,8 @@
           container,
           state.sidebarGraph,
           startRect,
-          () => collapseTarget,
-          transitionDuration,
+          getCollapseTarget,
+          consumesSidebarOverlayLease ? 0 : transitionDuration,
           0,
           isMobile
             ? (progress) => setMobileGraphExpansionProgress(progress, true, collapseDestination)
@@ -3063,8 +3359,14 @@
           state.graphReturnSurface = collapseDestination;
           setMobileGraphExpansionProgress(0, false, collapseDestination);
         }
-        slot.appendChild(container);
+        if (container.parentElement !== slot) slot.appendChild(container);
+        container.classList.remove('is-sidebar-handoff');
         container.classList.remove('is-expanded');
+        if (consumesSidebarOverlayLease) {
+          // The borrowed preview is already the destination small graph. Consume
+          // the lease atomically after the zero-duration state commit.
+          finishMobileGraphSidebarOverlayLease({ restoreExpanded: false });
+        }
         document.body.classList.remove('graph-is-expanded');
         resetGraphContainerStyles(container);
         state.graphPhase = 'small';
@@ -3339,6 +3641,18 @@
       const container = getEl('sidebar-graph-container');
       const canvasContainer = getEl('canvas-sidebar-graph');
       if (!container || !canvasContainer) return;
+      if (isMobileGraphViewport() && isMobileGraphSidebarOverlayLeaseActive()) {
+        const lease = graphState.sidebarOverlayLease;
+        setMobileGraphExpansionProgress(0, false, 'sidebar');
+        configureGraphPhysics(state.sidebarGraph, false);
+        layoutMobileGraphSidebarOverlayPreview(lease);
+        requestAnimationFrame(() => {
+          if (resizeRevision !== graphState.resizeRevision
+            || graphState.sidebarOverlayLease !== lease) return;
+          layoutMobileGraphSidebarOverlayPreview(lease);
+        });
+        return;
+      }
       const continuumWasActive = isMobileGraphContinuumActive();
       syncExpandedGraphHostForViewport();
       const expandedSize = getExpandedGraphSize();
@@ -3402,6 +3716,10 @@
       expandBtn.addEventListener('click', (e) => {
         claimGraphMorphControl(e);
         if (state.graphPhase !== 'small' && state.graphPhase !== 'expanded') return;
+        if (isMobileGraphSidebarOverlayLeaseActive()) {
+          expandMobileGraphSidebarOverlayLease();
+          return;
+        }
         toggleGraphExpand(state.graphPhase === 'small');
       });
     }
@@ -3413,10 +3731,13 @@
         if (isMobileGraphContinuumActive()) {
           const continuum = getEl('mobile-graph-continuum');
           if (continuum && continuum.classList.contains('has-article')) {
-            // The explicit graph shortcut moves the same physical sheet while
-            // preserving the reader's place. A node replacement, not a floor
-            // transition, is what establishes a new article scroll origin.
-            startMobileGraphContinuumSettle(0, 0);
+            // The persistent shortcut is a direct entry into the standalone
+            // fullscreen explorer, not a request to park the current article as
+            // a second-floor preview. Remove that floor state and return the
+            // graph selection to its neutral presentation.
+            hideMobileGraphContinuumArticle();
+            graphState.hoverNode = null;
+            transitionMobileGraphFocus(state.sidebarGraph, null, 220);
             return;
           }
           return;
@@ -3443,6 +3764,10 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && state.isGraphExpanded) {
+        if (isMobileGraphSidebarOverlayLeaseActive()) {
+          requestMobileSidebarState(false);
+          return;
+        }
         toggleGraphExpand(false);
       }
     });
@@ -3621,15 +3946,32 @@
   function closeMobileSidebar(options = {}) {
     const sidebar = getEl('wiki-sidebar');
     const backdrop = getEl('sidebar-backdrop');
+    const suppressTransition = options.animate === false;
+    const lease = graphState.sidebarOverlayLease;
+    const defersGraphRestore = Boolean(
+      options.restoreGraphLease !== false
+      && lease
+      && sidebar
+      && sidebar.classList.contains('is-open')
+      && !suppressTransition
+    );
+    if (options.restoreGraphLease !== false && !defersGraphRestore) {
+      // An atomic/no-motion close returns ownership before the same task hides
+      // the drawer. Animated closes keep the Canvas inside until it is offscreen.
+      finishMobileGraphSidebarOverlayLease();
+    }
     if (sidebar) {
-      const suppressTransition = options.animate === false;
       if (suppressTransition) sidebar.classList.add('is-transition-suppressed');
+      if (defersGraphRestore) sidebar.classList.add('is-closing');
       sidebar.classList.remove('is-open');
       if (suppressTransition) {
         // Commit the hidden state while the fullscreen graph still covers it,
         // then restore the drawer's normal transition for the next gesture.
         sidebar.getBoundingClientRect();
         requestAnimationFrame(() => sidebar.classList.remove('is-transition-suppressed'));
+      }
+      if (defersGraphRestore) {
+        scheduleMobileGraphSidebarOverlayLeaseRestore(sidebar, lease);
       }
     }
     if (backdrop) {
@@ -3646,6 +3988,10 @@
     const backdrop = getEl('sidebar-backdrop');
     flushPendingGraphData();
     if (sidebar) {
+      // Acquire foreground graph ownership before the drawer becomes visible.
+      // For ordinary articles/small graphs the invariant is inapplicable and
+      // this is intentionally a no-op.
+      beginMobileGraphSidebarOverlayLease();
       const suppressTransition = options.animate === false;
       if (suppressTransition) sidebar.classList.add('is-transition-suppressed');
       sidebar.classList.add('is-open');
@@ -3686,8 +4032,9 @@
           if (canOverlayReadingSurface) {
             // The second floor is a normal reading surface. Its header opens the
             // drawer above it, exactly like a normal article, and closing the
-            // drawer returns to the same reading position. No graph collapse or
-            // article disappearance belongs to this navigation action.
+            // drawer returns to the same reading position. The drawer borrows
+            // the one graph Canvas for its preview; it does not collapse the
+            // graph or discard the article.
             openMobileSidebar();
             return Promise.resolve();
           }

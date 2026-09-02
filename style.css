@@ -1324,6 +1324,19 @@ details.toc-cat-details:not([open]) > summary::after {
     opacity: 1;
     pointer-events: auto;
   }
+  .wiki-sidebar.is-closing {
+    z-index: 800;
+    pointer-events: none;
+  }
+  body.mobile-sidebar-graph-returning::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 801;
+    background: transparent;
+    pointer-events: auto;
+    touch-action: none;
+  }
   .wiki-sidebar.is-transition-suppressed {
     transition: none !important;
   }
@@ -1561,6 +1574,13 @@ details.toc-cat-details:not([open]) > summary::after {
     box-shadow: none !important;
   }
 
+  /* Viewport-level FLIP portal used only while fullscreen graph contracts into
+     an already committed drawer. It stays above the drawer without inheriting
+     the drawer's transformed coordinate system or scroll clipping. */
+  body > .sidebar-graph-container.is-expanded.is-sidebar-handoff {
+    z-index: 810 !important;
+  }
+
   /* StoryFlow rows switch to clean mobile cards */
   .storyflow-editorial-row {
     flex-direction: column;
@@ -1643,6 +1663,38 @@ details.toc-cat-details:not([open]) > summary::after {
   }
   .mobile-graph-continuum .sidebar-graph-container.is-expanded.is-continuum-obscured {
     pointer-events: none;
+  }
+
+  /* While the second-floor reader stays alive below the drawer, the drawer
+     leases the same persistent Canvas as its small preview. This explicit host
+     mode overrides fullscreen geometry without changing the global expanded
+     state or creating a second graph instance. */
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview {
+    --mobile-continuum-control-lift: 0px;
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    background: transparent;
+    touch-action: pan-y !important;
+  }
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview::before {
+    display: none;
+  }
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview .topology-pure-canvas {
+    background: var(--bg-subtle);
+  }
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview .topology-pure-canvas,
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview .force-graph-container,
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview canvas {
+    touch-action: pan-y !important;
+    pointer-events: none !important;
   }
 
   .mobile-graph-continuum-article {

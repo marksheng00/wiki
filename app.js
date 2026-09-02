@@ -1229,6 +1229,25 @@
     };
   }
 
+  function getMobileSidebarGraphSize() {
+    const slot = getEl('sidebar-graph-slot');
+    if (!slot) return getCurrentGraphViewportSize();
+    const rect = getGraphSlotContentRect(slot);
+    return {
+      width: Math.max(1, rect.width || slot.clientWidth || 268),
+      height: Math.max(1, rect.height || slot.clientHeight || 145)
+    };
+  }
+
+  function getGraphRenderSizeForPresentation(options = {}) {
+    if (options.renderSize) return options.renderSize;
+    if (!isMobileGraphViewport()) return getExpandedGraphSize(false);
+    const expandedPresentation = options.expandedPresentation === undefined
+      ? (state.isGraphExpanded && !isMobileGraphSidebarOverlayLeaseActive())
+      : options.expandedPresentation;
+    return expandedPresentation ? getExpandedGraphSize(true) : getMobileSidebarGraphSize();
+  }
+
   function syncGraphRenderSize(graph, requestedSize = getExpandedGraphSize()) {
     const surface = getEl('canvas-sidebar-graph');
     if (!surface) return false;
@@ -1842,7 +1861,7 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function applyGraphData(graph, graphData, animate = true) {
+  function applyGraphData(graph, graphData, animate = true, options = {}) {
     if (!graph) return;
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     cancelGraphCameraTransition();
@@ -1870,8 +1889,10 @@
 
     const camera = getGraphCameraForViewport(
       graph,
-      getCurrentGraphViewportSize(),
-      state.isGraphExpanded ? 1 : 0,
+      options.viewportSize || getCurrentGraphViewportSize(),
+      options.expansionProgress === undefined
+        ? (state.isGraphExpanded ? 1 : 0)
+        : options.expansionProgress,
       graphData.layout && graphData.layout.targetPositions
     );
     transitionGraphToLayout(graph, graphData.layout, camera, transitionDuration);
@@ -1881,14 +1902,16 @@
     const container = getEl('canvas-sidebar-graph');
     if (!window.ForceGraph || !container) return;
 
-    const renderSize = getExpandedGraphSize();
-    syncGraphRenderSize(null, renderSize);
+    const renderSize = getGraphRenderSizeForPresentation(options);
     // The outgoing frame is only the animation source. Destination geometry is
     // computed solely from that destination's data and never learned from it.
     const visiblePose = captureVisibleGraphPose();
     const graphData = buildGraphDataForEntity(focusEntityId || state.currentEntityId, visiblePose);
 
     if (!state.sidebarGraph) {
+      // Before construction there is no renderer to resize; initialize both the
+      // host CSS size and the bookkeeping that the new ForceGraph will inherit.
+      syncGraphRenderSize(null, renderSize);
       container.innerHTML = '';
       container.addEventListener('mouseleave', () => {
         graphState.hoverNode = null;
@@ -2073,10 +2096,10 @@
       state.sidebarGraph = Graph;
       initGraphPointerIntent(container);
       graphState.renderSize = { width: Math.round(renderSize.width), height: Math.round(renderSize.height) };
-      applyGraphData(Graph, graphData, false);
+      applyGraphData(Graph, graphData, false, options);
     } else {
       syncGraphRenderSize(state.sidebarGraph, renderSize);
-      applyGraphData(state.sidebarGraph, graphData, options.animate !== false);
+      applyGraphData(state.sidebarGraph, graphData, options.animate !== false, options);
     }
   }
 
@@ -2097,11 +2120,12 @@
     initBalancedTopologyGraph(entityId, options);
   }
 
-  function flushPendingGraphData() {
-    if (!graphState.hasPendingData) return;
+  function flushPendingGraphData(options = {}) {
+    if (!graphState.hasPendingData) return false;
     const entityId = graphState.pendingEntityId;
     graphState.hasPendingData = false;
-    initBalancedTopologyGraph(entityId, { animate: false });
+    initBalancedTopologyGraph(entityId, { ...options, animate: false });
+    return true;
   }
 
   function applyFixedGraphRect(container, rect) {
@@ -2119,6 +2143,87 @@
     ['position', 'inset', 'left', 'top', 'width', 'height', 'margin', 'zIndex', 'background'].forEach((property) => {
       container.style[property] = '';
     });
+  }
+
+  /**
+   * Reconcile the one mobile Canvas with the canonical small-window state.
+   * Page data, DOM ownership, backing-store size and camera are committed as
+   * one presentation; none of the sidebar/launcher entry points owns a private
+   * recovery path.
+   */
+  function commitMobileSmallGraphPresentation(options = {}) {
+    if (!isMobileGraphViewport()
+      || state.isGraphExpanded
+      || state.graphPhase !== 'small') return false;
+
+    const sidebar = getEl('wiki-sidebar');
+    const slot = getEl('sidebar-graph-slot');
+    const container = getEl('sidebar-graph-container');
+    if (!slot || !container) return false;
+
+    cancelMobileGraphSidebarOverlayLeaseRestore();
+    if (isMobileGraphSidebarOverlayLeaseActive()) {
+      finishMobileGraphSidebarOverlayLease({ restoreExpanded: false });
+    }
+    if (container.parentElement !== slot) slot.appendChild(container);
+    container.classList.remove(
+      'is-expanded',
+      'is-sidebar-handoff',
+      'is-sidebar-overlay-preview',
+      'is-continuum-obscured',
+      'is-viewport-transitioning'
+    );
+    resetGraphContainerStyles(container);
+    document.body.classList.remove('graph-is-expanded', 'mobile-sidebar-graph-returning');
+    if (sidebar) {
+      sidebar.classList.remove('is-closing');
+      sidebar.inert = false;
+    }
+    const continuum = getEl('mobile-graph-continuum');
+    if (continuum && continuum.classList.contains('is-active')) {
+      deactivateMobileGraphContinuum();
+    }
+
+    const surface = options.surface || state.graphReturnSurface;
+    setMobileGraphExpansionProgress(0, false, surface);
+    const previewSize = getMobileSidebarGraphSize();
+    if (options.flushPendingData !== false) {
+      flushPendingGraphData({
+        renderSize: previewSize,
+        viewportSize: previewSize,
+        expansionProgress: 0,
+        expandedPresentation: false
+      });
+    }
+    if (!state.sidebarGraph) return true;
+
+    cancelGraphCameraTransition();
+    settleGraphLayoutTransitionNodes();
+    syncGraphRenderSize(state.sidebarGraph, previewSize);
+    configureGraphPhysics(state.sidebarGraph, false);
+    fitGraphToViewport(state.sidebarGraph, 0, {
+      size: previewSize,
+      expansionProgress: 0
+    });
+    requestGraphRedraw(state.sidebarGraph);
+
+    // ForceGraph may rebuild its transform after a backing-store resize. Refit
+    // once after layout, guarded by the same canonical presentation state.
+    const revision = graphState.dataRevision;
+    requestAnimationFrame(() => {
+      if (revision !== graphState.dataRevision
+        || state.isGraphExpanded
+        || state.graphPhase !== 'small'
+        || container.parentElement !== slot) return;
+      const settledSize = getMobileSidebarGraphSize();
+      syncGraphRenderSize(state.sidebarGraph, settledSize);
+      fitGraphToViewport(state.sidebarGraph, 0, {
+        size: settledSize,
+        expansionProgress: 0
+      });
+      requestGraphRedraw(state.sidebarGraph);
+    });
+    return true;
   }
 
   function getGraphSlotContentRect(slot) {
@@ -2696,12 +2801,35 @@
     updateMobileGraphContinuumProgress();
   }
 
+  function commitMobileGraphContinuumReadingContext() {
+    const continuum = getEl('mobile-graph-continuum');
+    const entityId = graphState.continuumEntityId;
+    if (!isMobileGraphViewport()
+      || !continuum
+      || !continuum.classList.contains('has-article')
+      || !entityId
+      || entityId === state.currentEntityId) return false;
+
+    // Reaching the article floor is the semantic navigation boundary. At this
+    // point the sheet fully covers the graph, so promote its transient entity
+    // to the canonical page and rebuild that entity's graph without exposing a
+    // second visual transition. A mere node peek/background cancellation never
+    // reaches this commit point and therefore cannot navigate by accident.
+    cancelMobileGraphFocusTransition();
+    clearActiveNav();
+    openEntityArticle(entityId, { animateGraph: false });
+    return state.currentEntityId === entityId;
+  }
+
   function finishMobileGraphContinuumSettle(target) {
     graphState.continuumMotionFrame = null;
     graphState.continuumMotionTarget = null;
     graphState.continuumVelocity = 0;
     graphState.continuumPosition = target;
     updateMobileGraphContinuumProgress();
+    if (isMobileGraphContinuumStableReading()) {
+      commitMobileGraphContinuumReadingContext();
+    }
   }
 
   function startMobileGraphContinuumSettle(targetPosition, initialVelocity = 0) {
@@ -3234,7 +3362,21 @@
       // first so page-layout and viewport-layout animations can never compete.
       cancelGraphCameraTransition();
       settleGraphLayoutTransitionNodes();
-      if (targetState && isMobile) flushPendingGraphData();
+      if (targetState && isMobile) {
+        // Expansion always starts from one fully committed sidebar presentation.
+        // The pending page graph is then allocated for the destination backing
+        // store while retaining the small-window camera as the morph source.
+        commitMobileSmallGraphPresentation({
+          flushPendingData: false,
+          surface: state.graphReturnSurface
+        });
+        flushPendingGraphData({
+          renderSize: getExpandedGraphSize(true),
+          viewportSize: getMobileSidebarGraphSize(),
+          expansionProgress: 0,
+          expandedPresentation: true
+        });
+      }
       const sidebar = getEl('wiki-sidebar');
       if (targetState && isMobile) {
         state.graphReturnSurface = sidebar && sidebar.classList.contains('is-open') ? 'sidebar' : 'article';
@@ -3376,13 +3518,10 @@
           launcher.style.opacity = '';
           launcher.style.pointerEvents = '';
         }
-        // The launcher-origin preview collapses into an article-only control.
-        // Once it is offscreen, prepare the sidebar camera for its next reveal.
-        if (returnsToArticleLauncher) {
-          const slotRect = getGraphSlotContentRect(slot);
-          fitGraphToViewport(state.sidebarGraph, 0, {
-            size: { width: slotRect.width || 268, height: slotRect.height || 145 },
-            expansionProgress: 0
+        if (isMobile) {
+          commitMobileSmallGraphPresentation({
+            flushPendingData: false,
+            surface: collapseDestination
           });
         }
       }
@@ -3650,6 +3789,15 @@
           if (resizeRevision !== graphState.resizeRevision
             || graphState.sidebarOverlayLease !== lease) return;
           layoutMobileGraphSidebarOverlayPreview(lease);
+        });
+        return;
+      }
+      if (isMobileGraphViewport()
+        && !state.isGraphExpanded
+        && state.graphPhase === 'small') {
+        commitMobileSmallGraphPresentation({
+          flushPendingData: false,
+          surface: state.graphReturnSurface
         });
         return;
       }
@@ -3986,7 +4134,11 @@
   function openMobileSidebar(options = {}) {
     const sidebar = getEl('wiki-sidebar');
     const backdrop = getEl('sidebar-backdrop');
-    flushPendingGraphData();
+    const committedSmallGraph = commitMobileSmallGraphPresentation({
+      flushPendingData: true,
+      surface: 'sidebar'
+    });
+    if (!committedSmallGraph) flushPendingGraphData();
     if (sidebar) {
       // Acquire foreground graph ownership before the drawer becomes visible.
       // For ordinary articles/small graphs the invariant is inapplicable and

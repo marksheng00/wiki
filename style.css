@@ -945,6 +945,30 @@ details.toc-cat-details:not([open]) > summary::after {
   border: none;
 }
 
+/* P2: Bidirectional Entity Mentions */
+.entity-mention-chip {
+  color: var(--accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 3.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1px 3px;
+  margin: 0 1px;
+  border-radius: 4px;
+  background: transparent;
+  transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+.entity-mention-chip:hover {
+  background: rgba(37, 99, 235, 0.10);
+  text-decoration: underline solid;
+}
+[data-theme="dark"] .entity-mention-chip:hover {
+  background: rgba(96, 165, 250, 0.15);
+}
+[data-theme="sepia"] .entity-mention-chip:hover {
+  background: rgba(160, 90, 44, 0.12);
+}
+
 
 
 /* ==========================================================================
@@ -1712,7 +1736,8 @@ details.toc-cat-details:not([open]) > summary::after {
     padding: 1.25rem 1.25rem calc(6rem + env(safe-area-inset-bottom));
     box-sizing: border-box;
     overflow-x: hidden;
-    overflow-y: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     scrollbar-width: none;
     background: var(--bg-page);
@@ -1724,14 +1749,13 @@ details.toc-cat-details:not([open]) > summary::after {
     pointer-events: auto;
     touch-action: pan-y;
     transition: opacity 180ms ease-out;
-    will-change: transform, opacity;
+    will-change: transform;
   }
   .mobile-graph-continuum-article::-webkit-scrollbar {
     display: none;
   }
   .mobile-graph-continuum.is-article-resting .mobile-graph-continuum-article {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    /* Continuous scroll layer preserved without layout re-allocation */
   }
   [data-theme="dark"] .mobile-graph-continuum-article {
     box-shadow: 0 -22px 52px rgba(0, 0, 0, 0.42);

@@ -1488,6 +1488,12 @@
     };
   }
 
+  // Left edge of the centered page on wide screens (0 when the page is full-width).
+  function getDesktopPageInsetLeft() {
+    const sidebar = getEl('wiki-sidebar');
+    return sidebar ? parseFloat(getComputedStyle(sidebar).left) || 0 : 0;
+  }
+
   function getExpandedGraphSize(isMobile = isMobileGraphViewport()) {
     if (isMobile) {
       const height = graphState.continuumViewportHeight || getMobileVisualViewportHeight();
@@ -4073,7 +4079,7 @@
           // one host/geometry handoff after the current interpolation completes.
           const size = getExpandedGraphSize(isMobile);
           return {
-            left: 0,
+            left: isMobile ? 0 : getDesktopPageInsetLeft(),
             top: isMobile ? 0 : 52,
             width: size.width,
             height: size.height
@@ -4500,7 +4506,7 @@
       }
       if (state.isGraphExpanded) {
         applyFixedGraphRect(container, {
-          left: 0,
+          left: isMobileGraphViewport() ? 0 : getDesktopPageInsetLeft(),
           top: isMobileGraphViewport() ? 0 : 52,
           width: expandedSize.width,
           height: expandedSize.height

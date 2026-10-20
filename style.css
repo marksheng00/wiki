@@ -1267,28 +1267,56 @@ details.toc-cat-details:not([open]) > summary::after {
    Responsive Multi-Device Adaptations
    ========================================================================== */
 
-/* Mid-range Desktop & Tablet Viewports (769px - 1440px): Sidebar & Collision Protection */
-@media (min-width: 769px) and (max-width: 1440px) {
+/* Desktop, laptop and tablet (>= 769px) share one layout: a fixed-width
+   sidebar plus a reading column capped at --main-max, centered as one page.
+   Narrow screens shrink the sidebar; wide screens center the whole page so
+   the sidebar always stays beside the text. */
+@media (min-width: 769px) {
+  :root {
+    --sidebar-w: 320px;
+    --main-max: 860px;
+    --page-inset: max(0px, calc((100vw - var(--sidebar-w) - var(--main-max)) / 2));
+  }
+  .wiki-header {
+    padding-left: calc(var(--page-inset) + 2rem);
+    padding-right: calc(var(--page-inset) + 2rem);
+  }
   .wiki-sidebar {
-    width: 280px;
-    min-width: 280px;
-    padding: 2.5rem 1rem 2rem 1.5rem;
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    left: var(--page-inset);
+  }
+  .wiki-main-article,
+  .wiki-main-article.wide-stage {
+    width: calc(100% - var(--page-inset) - var(--sidebar-w));
+    margin-left: calc(var(--page-inset) + var(--sidebar-w));
+    margin-right: 0;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
   .wiki-main-article {
-    max-width: 820px;
-    padding-left: 295px;
-    padding-right: 2rem;
+    max-width: var(--main-max);
+  }
+  .wiki-main-article.wide-stage {
+    max-width: 980px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1440px) {
+  :root {
+    --sidebar-w: 280px;
+  }
+  .wiki-sidebar {
+    padding: 2.5rem 1rem 2rem 1.5rem;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1180px) {
-  .wiki-sidebar {
-    width: 260px;
-    min-width: 260px;
+  :root {
+    --sidebar-w: 260px;
   }
-  .wiki-main-article {
-    max-width: 100%;
-    padding-left: 275px;
+  .wiki-main-article,
+  .wiki-main-article.wide-stage {
     padding-right: 1.75rem;
   }
 }

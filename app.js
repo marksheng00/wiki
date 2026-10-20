@@ -254,7 +254,7 @@
         // short host handoff behind it.
         duration: directReadingNavigation || sidebarOwnsOverlayGraph
           ? 0
-          : motion.ms(isMobileGraphViewport() ? '--dropdown-close-dur' : '--panel-close-dur'),
+          : graphMs(isMobileGraphViewport() ? 180 : 420),
         destination: isSidebarNavigation ? 'sidebar' : 'article'
       });
     }
@@ -528,6 +528,7 @@
 
   const DESKTOP_GRAPH_CLICK_SLOP_PX = 9;
   const MOBILE_GRAPH_TAP_SLOP_PX = 10;
+  const MOBILE_GRAPH_FOCUS_DURATION_MS = 240;
   const MOBILE_GRAPH_FOCUS_SCALE = 1.75;
   const MOBILE_GRAPH_FOCUS_MIN_GROWTH_PX = 10;
   const MOBILE_GRAPH_FOCUS_MAX_GROWTH_PX = 22;
@@ -1228,6 +1229,23 @@
   }
 
 
+  // Graph motion keeps its original feel (420ms smoothstep, springy mobile
+  // focus); only reduced motion turns it off.
+  function graphMs(ms) {
+    return prefersReducedMotion() ? 0 : ms;
+  }
+
+  function smoothstep(linear) {
+    return linear * linear * (3 - 2 * linear);
+  }
+
+  function mobileGraphFocusEase(progress) {
+    if (progress >= 1) return 1;
+    const response = 4.6;
+    const curve = (value) => 1 - (1 + response * value) * Math.exp(-response * value);
+    return curve(progress) / curve(1);
+  }
+
   function prefersReducedMotion() {
     return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
@@ -1494,7 +1512,7 @@
     if (!graphState.focusedNode) return;
     graphState.hoverNode = null;
     if (isMobileGraphViewport()) {
-      transitionMobileGraphFocus(state.sidebarGraph, null, motion.ms('--duration-fast'));
+      transitionMobileGraphFocus(state.sidebarGraph, null, graphMs(220));
       return;
     }
     graphState.focusedNode = null;
@@ -1898,7 +1916,7 @@
     const tick = (now) => {
       if (graphState.cameraTransition !== transition) return;
       const linear = clamp01((now - startedAt) / duration);
-      const eased = easeSmoothOut(linear);
+      const eased = smoothstep(linear);
       applyGraphCamera(graph, lerpGraphCamera(startCamera, targetCamera, eased));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -1909,7 +1927,7 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function transitionMobileGraphFocus(graph, nextNode, duration = motion.ms('--duration-fast')) {
+  function transitionMobileGraphFocus(graph, nextNode, duration = graphMs(MOBILE_GRAPH_FOCUS_DURATION_MS)) {
     if (!isMobileGraphViewport() || !graph) return false;
     const data = graph.graphData ? graph.graphData() : null;
     const nodes = data?.nodes || [];
@@ -1970,7 +1988,7 @@
     const tick = (now) => {
       if (graphState.mobileFocusTransition !== transition) return;
       const linear = clamp01((now - startedAt) / duration);
-      apply(easeSmoothOut(linear));
+      apply(mobileGraphFocusEase(linear));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
       } else {
@@ -2023,7 +2041,7 @@
         const linear = clamp01((now - startedAt) / duration);
         // Smooth acceleration and deceleration keeps the interpolation visible
         // instead of completing most of the distance in the first few frames.
-        const eased = easeSmoothOut(linear);
+        const eased = smoothstep(linear);
         if (onProgress) onProgress(toExpansion === 1 ? eased : 1 - eased);
         const target = getTargetRect();
         const rect = {};
@@ -2490,7 +2508,7 @@
     const tick = (now) => {
       if (graphState.layoutTransition !== transition || graphState.dataRevision !== transition.revision) return;
       const linear = clamp01((now - startedAt) / duration);
-      const eased = easeSmoothOut(linear);
+      const eased = smoothstep(linear);
       apply(eased);
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -2534,7 +2552,7 @@
     graphState.pointerGesture = null;
     graphState.pointerGestureRevision += 1;
     ++graphState.dataRevision;
-    const transitionDuration = animate && !reducedMotion ? motion.ms('--resize-dur') : 0;
+    const transitionDuration = animate && !reducedMotion ? 420 : 0;
     graphState.activeTargetPositions = graphData.layout?.targetPositions || new Map();
     state.graphContext = graphData.context;
 
@@ -3369,7 +3387,7 @@
     return lease;
   }
 
-  function expandMobileGraphSidebarOverlayLease(duration = motion.ms('--panel-open-dur')) {
+  function expandMobileGraphSidebarOverlayLease(duration = graphMs(420)) {
     const lease = graphState.sidebarOverlayLease;
     const container = getEl('sidebar-graph-container');
     const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
@@ -4117,7 +4135,7 @@
     const targetState = typeof forceState === 'boolean' ? forceState : !state.isGraphExpanded;
     const transitionDuration = Number.isFinite(options.duration)
       ? Math.max(0, options.duration)
-      : motion.ms(targetState ? '--panel-open-dur' : '--panel-close-dur');
+      : graphMs(420);
     const isStable = state.graphPhase === 'small' || state.graphPhase === 'expanded';
     if (targetState === state.isGraphExpanded && isStable) return Promise.resolve();
     if (!isStable) {
@@ -4377,7 +4395,7 @@
     }
     if (collapseGraph && (state.isGraphExpanded || state.graphPhase !== 'small')) {
       await toggleGraphExpand(false, {
-        duration: motion.ms(isMobile ? '--dropdown-close-dur' : '--panel-close-dur'),
+        duration: graphMs(isMobile ? 180 : 420),
         destination: 'article'
       });
     }

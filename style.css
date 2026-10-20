@@ -819,14 +819,23 @@ svg.lucide, i[data-lucide] {
   background: transparent;
 }
 
-/* Desktop: the expanded graph is a floating panel, white with the modal
-   shadow and the 24px radius of a stage. */
-@media (min-width: 769px) {
-  .sidebar-graph-container.is-expanded {
-    border-radius: 24px;
-    background: var(--tt-bg);
-    box-shadow: var(--modal-shadow);
-  }
+/* Expanded graph: a soft backdrop that fades out toward the right and
+   bottom edges, so the graph floats over the page with no hard box. */
+.sidebar-graph-container.is-expanded::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  background: rgba(var(--bg-page-rgb), 0.94);
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 45%, transparent 100%),
+                      linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, black 0%, black 45%, transparent 100%),
+              linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+  mask-composite: intersect;
 }
 
 /* Layer 2 (Topmost Graph Canvas): 100% Solid & Crisp Nodes, Zero Mask */
@@ -2765,4 +2774,45 @@ img[data-reveal="pending"].is-swapping {
   text-align: center;
   font-size: var(--text-ui);
   color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Infobox beside the text (desktop): the cover or still floats right and the
+   article starts on the first screen, as before the redesign. The stage panel
+   shrinks to a framed image with the facts or the Readify button under it.
+   ========================================================================== */
+@media (min-width: 769px) {
+  #view-book,
+  #view-entity {
+    --prose-w: none;
+  }
+  .wiki-infobox.detail-stage,
+  #view-entity .entity-floating-media {
+    float: right;
+    display: block;
+    width: clamp(220px, 34%, 300px);
+    min-height: 0;
+    padding: 0;
+    margin: 4px 0 24px 32px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+  #view-entity .entity-floating-media[style*="none"] {
+    display: none;
+  }
+  .wiki-infobox .infobox-media,
+  #view-entity .entity-media-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+  }
+  .wiki-infobox .book-stage-side {
+    width: 100%;
+    margin-top: 16px;
+  }
+  #view-entity .entity-cta-link {
+    margin-top: 16px;
+  }
 }

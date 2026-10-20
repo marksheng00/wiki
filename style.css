@@ -1997,7 +1997,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     color: color-mix(
       in srgb,
       var(--text-muted) calc((1 - var(--mobile-graph-expansion-progress, 0)) * 100%),
-      var(--text-secondary)
+      var(--text-primary)
     );
     pointer-events: auto;
     touch-action: manipulation;
@@ -3380,4 +3380,74 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   }
   .entity-sibling:active { background: var(--bg-hover-strong); }
   .entity-sibling[aria-current="page"] { background: var(--bg-pressed); font-weight: 500; }
+}
+
+/* Menu button, as on transitions.dev: two lines that slide together and
+   cross into an ✕. The header stays above the open menu, so the same
+   button closes it; the menu's own header is only a spacer. */
+.nav-burger-box {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+.nav-burger:hover .nav-burger-box,
+.nav-burger[aria-expanded="true"] .nav-burger-box { color: var(--text-primary); }
+.nav-burger-line {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: center;
+  transition:
+    top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+}
+.nav-burger-line--top { top: 5px; }
+.nav-burger-line--bottom { top: 9.5px; }
+.nav-burger[aria-expanded="true"] .nav-burger-line {
+  top: 7.25px;
+  transition:
+    top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-burger[aria-expanded="true"] .nav-burger-line--top { transform: rotate(45deg); }
+.nav-burger[aria-expanded="true"] .nav-burger-line--bottom { transform: rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger-line { transition: none !important; }
+}
+@media (max-width: 768px) {
+  body.menu-open .wiki-header {
+    z-index: 820;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .mobile-sidebar-header > * { visibility: hidden; }
+}
+
+/* Fullscreen graph close (and its back-to-article chevron): the same round
+   td icon button as the header. The grey disc fades in with the morph, so the
+   small preview keeps its bare corner mark. */
+@media (max-width: 768px) {
+  .sidebar-graph-container.is-expanded .btn-graph-expand::before {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-hover);
+    opacity: var(--mobile-graph-expansion-progress, 1);
+    transition: background-color 0.15s ease;
+  }
+  .sidebar-graph-container.is-expanded .btn-graph-expand:hover::before { background: var(--bg-hover-strong); }
+  .sidebar-graph-container.is-expanded .btn-graph-expand:active::before { background: var(--bg-pressed); }
+  .sidebar-graph-container.is-expanded .btn-graph-expand svg,
+  .sidebar-graph-container.is-expanded .btn-graph-expand:hover svg { background: transparent; }
 }

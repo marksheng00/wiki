@@ -6554,6 +6554,18 @@
     const btnToggleSidebar = getEl('btn-toggle-sidebar');
     if (btnToggleSidebar) {
       btnToggleSidebar.addEventListener('click', toggleMobileSidebar);
+      // transitions.dev menu button: the header stays above the open menu and
+      // the same button morphs from two lines into a cross, then back.
+      const drawer = getEl('wiki-sidebar');
+      const syncBurger = () => {
+        const open = Boolean(drawer?.classList.contains('is-open')) && isMobileGraphViewport();
+        document.body.classList.toggle('menu-open', open);
+        btnToggleSidebar.setAttribute('aria-expanded', String(open));
+        btnToggleSidebar.setAttribute('aria-label', t(open ? 'Close menu' : 'Open menu'));
+      };
+      if (drawer) new MutationObserver(syncBurger).observe(drawer, { attributes: true, attributeFilter: ['class'] });
+      window.addEventListener('readipedia:lang', syncBurger);
+      syncBurger();
     }
 
     // Desktop: the button left of the logo folds the sidebar away and back.
@@ -6583,6 +6595,7 @@
     if (wikiLogo) {
       wikiLogo.addEventListener('click', (e) => {
         e.preventDefault();
+        if (document.body.classList.contains('menu-open')) requestMobileSidebarState(false);
         openBookOverview();
       });
     }

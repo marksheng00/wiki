@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=124" />
+  <link rel="stylesheet" href="./style.css?v=126" />
 </head>
 <body>
 
@@ -86,8 +86,11 @@
           <i data-lucide="sun" data-icon-state="dark" style="width:16px;height:16px;"></i>
         </span>
       </button>
-      <button class="btn-sidebar-toggle icon-btn nav-burger" id="btn-toggle-sidebar" type="button" aria-label="Open menu">
-        <i data-lucide="menu" style="width:18px;height:18px;"></i>
+      <button class="btn-sidebar-toggle icon-btn nav-burger" id="btn-toggle-sidebar" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="wiki-sidebar">
+        <span class="nav-burger-box" aria-hidden="true">
+          <span class="nav-burger-line nav-burger-line--top"></span>
+          <span class="nav-burger-line nav-burger-line--bottom"></span>
+        </span>
       </button>
     </div>
   </header>
@@ -833,6 +836,6 @@
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./data/wiki_store_zh.js?v=1" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=117" defer></script>
+  <script src="./app.js?v=118" defer></script>
 </body>
 </html>

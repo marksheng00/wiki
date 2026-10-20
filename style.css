@@ -3521,7 +3521,16 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
    rounded corner into a stray tick. Use the desktop corner arc, bent to the
    same 14px radius, until the graph expands and the morph takes over. */
 @media (max-width: 768px) {
-  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
+  /* The menu can also borrow the open graph (is-sidebar-overlay-preview);
+     it must look exactly like the plain preview. */
+  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview {
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand::before { display: none; }
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand > svg:not(.graph-expand-icon),
+  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
+  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand .graph-expand-icon,
   .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand .graph-expand-icon,
   .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover .graph-expand-icon {
     display: block;

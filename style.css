@@ -2896,48 +2896,47 @@ img[data-reveal="pending"].is-swapping {
   #view-entity .entity-floating-media.is-imageless .entity-media-stack { width: 100%; }
 }
 
-/* Graph preview: the expand control is a small rounded button inset from
-   the preview's rounded corner (desktop; phones keep the morphing corner). */
+/* Graph preview: the expand control is a short arc that follows the
+   preview's rounded corner, inset a little, like the resize corner of a
+   window on iPad. It thickens and darkens on hover (desktop; phones keep the
+   morphing corner). */
 .btn-graph-expand .graph-expand-icon { display: none; }
 @media (min-width: 769px) {
   .sidebar-graph-container:not(.is-expanded) .btn-graph-expand {
-    right: 8px;
-    bottom: 8px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background: var(--surface-btn-bg);
-    box-shadow: var(--surface-btn-shadow);
-    color: var(--text-secondary);
-    opacity: 0;
-    transition: opacity var(--motion-hover), background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
+    right: 0;
+    bottom: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 0 0 14px 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    opacity: .55;
+    transition: opacity var(--motion-hover), color var(--motion-hover);
   }
-  .sidebar-graph-container:not(.is-expanded):hover .btn-graph-expand,
+  .sidebar-graph-container:not(.is-expanded):hover .btn-graph-expand { opacity: .85; }
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover,
   .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:focus-visible {
     opacity: 1;
-  }
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover {
-    background: var(--surface-btn-hover);
     color: var(--text-primary);
-  }
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:active {
-    transform: scale(var(--scale-medium));
   }
   .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
   .btn-graph-expand .graph-expand-icon,
   .btn-graph-expand:hover .graph-expand-icon {
     display: block;
-    position: static;
-    width: 14px;
-    height: 14px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    height: 24px;
     transform: none;
+    stroke-width: 2.4;
+    transition: stroke-width var(--duration-fast) var(--ease-smooth-out);
   }
-}
-@media (hover: none) and (min-width: 769px) {
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand { opacity: 1; }
+  .btn-graph-expand:hover .graph-expand-icon { stroke-width: 2.8; }
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:active .graph-expand-icon {
+    transform: translate(1px, 1px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .readify-cta:hover .readify-cta-arrow,

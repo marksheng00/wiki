@@ -2914,7 +2914,7 @@ img[data-reveal="pending"].is-swapping {
     border: 0;
     background: transparent;
     color: var(--text-muted);
-    opacity: .6;
+    opacity: .5;
     cursor: pointer;
     z-index: 11;
     -webkit-tap-highlight-color: transparent;
@@ -2924,12 +2924,12 @@ img[data-reveal="pending"].is-swapping {
     display: block;
     width: 40px;
     height: 40px;
-    stroke-width: 2.4;
-    transition: stroke-width var(--duration-fast) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-smooth-out);
+    stroke-width: 1.75;
+    transition: stroke-width var(--duration-fast) var(--ease-smooth-out);
   }
   .sidebar-graph-slot:hover .graph-corner-arc { opacity: .9; }
-  .graph-corner-arc:hover { opacity: 1; color: var(--text-primary); }
-  .graph-corner-arc:hover svg { stroke-width: 2.8; transform: translate(1px, 1px); }
+  .graph-corner-arc:hover { opacity: 1; color: var(--text-secondary); }
+  .graph-corner-arc:hover svg { stroke-width: 2.25; }
   .sidebar-graph-slot:has(.sidebar-graph-container.is-expanded) .graph-corner-arc,
   body.graph-is-expanded .graph-corner-arc { opacity: 0; pointer-events: none; }
 }

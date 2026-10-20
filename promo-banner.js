@@ -1,8 +1,7 @@
-// Promo card: bilingual A/B copy, the countdown, close, and remembering the close.
+// Promo card: bilingual A/B copy, the countdown and close.
 // The markup lives in index.html; a tiny inline script in <head> adds
-// html.has-promo unless the reader closed the card within the last day.
+// html.has-promo on every load; closing only hides it until the next refresh.
 (function () {
-  var KEY = 'readipedia-promo-closed-at';
   var bar = document.getElementById('promo-bar');
   if (!bar) return;
 
@@ -130,7 +129,6 @@
   }
 
   function close() {
-    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* storage blocked */ }
     track('close');
     clearInterval(timer);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -32,13 +32,8 @@
   <link rel="stylesheet" href="./promo-banner.css?v=3" />
   <script>
     (function () {
-      // Closing hides the promo card for a day; ?promo=<variant> always shows it.
-      var closed = false;
-      try {
-        var at = Number(localStorage.getItem('readipedia-promo-closed-at'));
-        closed = at > 0 && Date.now() - at < 864e5;
-      } catch (e) {}
-      if (!closed || /[?&]promo=/.test(location.search)) document.documentElement.classList.add('has-promo');
+      // The promo card shows on every page load; closing it only hides it until the next refresh.
+      document.documentElement.classList.add('has-promo');
     })();
   </script>
 </head>
@@ -732,6 +727,6 @@
   <script src="./data/library.js?v=2" defer></script>
   <script src="./library.js?v=14" defer></script>
   <script src="./app.js?v=131" defer></script>
-  <script src="./promo-banner.js?v=4" defer></script>
+  <script src="./promo-banner.js?v=5" defer></script>
 </body>
 </html>

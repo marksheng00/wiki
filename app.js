@@ -4292,7 +4292,7 @@
       const deltaY = touch.clientY - touchStartY;
       const elapsed = Date.now() - touchStartTime;
 
-      const isMobile = window.innerWidth <= 1080;
+      const isMobile = isMobileGraphViewport();
       if (!isMobile) return;
 
       const absX = Math.abs(deltaX);
@@ -5106,7 +5106,7 @@
   function requestMobileSidebarState(desiredOpen) {
     const execute = () => {
       const sidebar = getEl('wiki-sidebar');
-      if (!sidebar || window.innerWidth > 1080) return Promise.resolve();
+      if (!sidebar || !isMobileGraphViewport()) return Promise.resolve();
 
       // User intent must never mutate the drawer halfway through a graph-host
       // transfer. Replay the explicit desired state after the current transfer;
@@ -5149,13 +5149,11 @@
 
   function toggleMobileSidebar() {
     const sidebar = getEl('wiki-sidebar');
-    const isMobile = window.innerWidth <= 1080;
     if (sidebar) {
-      if (isMobile) {
+      if (isMobileGraphViewport()) {
         return requestMobileSidebarState(!sidebar.classList.contains('is-open'));
-      } else {
-        sidebar.classList.toggle('collapsed');
       }
+      document.body.classList.toggle('sidebar-collapsed', sidebar.classList.toggle('collapsed'));
     }
   }
 

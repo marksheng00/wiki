@@ -301,10 +301,14 @@ svg.lucide, i[data-lucide] {
   padding: 2.5rem 1.25rem 2rem 2rem;
   transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* Collapsing fades the sidebar out in place (a small nudge, never off the
+   page) while the reading column glides to the page center. */
 .wiki-sidebar.collapsed {
-  transform: translateX(-100%);
+  transform: translateX(max(-12px, calc(-1 * var(--page-inset, 0px))));
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transition: transform 220ms ease, opacity 220ms ease, visibility 0s linear 220ms;
 }
 
 .wiki-sidebar-sticky {
@@ -1272,10 +1276,14 @@ details.toc-cat-details:not([open]) > summary::after {
    Narrow screens shrink the sidebar; wide screens center the whole page so
    the sidebar always stays beside the text. */
 @media (min-width: 769px) {
-  :root {
+  body {
     --sidebar-w: 320px;
     --main-max: 860px;
     --page-inset: max(0px, calc((100vw - var(--sidebar-w) - var(--main-max)) / 2));
+    --main-left: calc(var(--page-inset) + var(--sidebar-w));
+  }
+  body.sidebar-collapsed {
+    --main-left: max(0px, calc((100vw - var(--main-max)) / 2));
   }
   .wiki-header {
     padding-left: calc(var(--page-inset) + 2rem);
@@ -1288,9 +1296,10 @@ details.toc-cat-details:not([open]) > summary::after {
   }
   .wiki-main-article,
   .wiki-main-article.wide-stage {
-    width: calc(100% - var(--page-inset) - var(--sidebar-w));
-    margin-left: calc(var(--page-inset) + var(--sidebar-w));
+    width: calc(100% - var(--main-left));
+    margin-left: var(--main-left);
     margin-right: 0;
+    transition: margin-left 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1);
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1303,7 +1312,7 @@ details.toc-cat-details:not([open]) > summary::after {
 }
 
 @media (min-width: 769px) and (max-width: 1440px) {
-  :root {
+  body {
     --sidebar-w: 280px;
   }
   .wiki-sidebar {
@@ -1312,7 +1321,7 @@ details.toc-cat-details:not([open]) > summary::after {
 }
 
 @media (min-width: 769px) and (max-width: 1180px) {
-  :root {
+  body {
     --sidebar-w: 260px;
   }
   .wiki-main-article,

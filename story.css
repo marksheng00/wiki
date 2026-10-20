@@ -1,35 +1,15 @@
 /* Storyline and StoryFlow pages (story.js). Built only from the tokens and
    components in style.css: detail head, grey stage, prose, cards, back link. */
 
-/* ---------- Storylines: one screening room ----------
-   The picture, its text laid over it, and the strip of scenes reuse the
-   theater components in style.css (.liblib-fused-*, .filmstrip-*). */
+/* ---------- Storylines ----------
+   The theater components live in style.css (.liblib-fused-*, .filmstrip-*).
+   Here only: the picture never pushes the thumbnails off the first screen,
+   and touch swipes sideways go to story.js. */
 .sl-viewport {
-  /* Picture and strip always fit on one screen; a long scene scrolls
-     inside the text box over the picture. */
   max-height: calc(100dvh - var(--header-h) - 210px);
   min-height: 320px;
   touch-action: pan-y;
-  user-select: none;
-  cursor: grab;
 }
-.sl-viewport:active { cursor: grabbing; }
-.sl-viewport img { pointer-events: none; }
-.sl-viewport .liblib-narrative-scrollbox { user-select: text; cursor: auto; }
-.sl-viewport .liblib-hero-desc p { white-space: pre-line; }
-.sl-thumb { padding: 0; background: none; font: inherit; -webkit-tap-highlight-color: transparent; }
-.sl-thumb:focus-visible { opacity: 1; box-shadow: 0 0 0 2px var(--brand-blue); }
-
-/* A changed scene cross-fades in place. */
-@media (prefers-reduced-motion: no-preference) {
-  .sl-viewport.is-swapping img,
-  .sl-viewport.is-swapping .liblib-narrative-scrollbox { animation: sl-swap var(--duration-medium) var(--ease-smooth-out); }
-}
-@keyframes sl-swap {
-  from { opacity: 0; filter: blur(3px); }
-  to { opacity: 1; filter: blur(0); }
-}
-
 @media (max-width: 768px) {
   .sl-viewport { max-height: calc(100dvh - var(--header-h) - 190px); }
 }

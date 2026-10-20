@@ -1,8 +1,7 @@
 /* Storyline and StoryFlow pages.
  *
- *   #view-storyline        one screening page: the current scene (picture and
- *                          text) with every scene as a card in a strip below;
- *                          swipe the picture, use the arrow keys or pick a card
+ *   #view-storyline        one screening page: the scene's picture with its
+ *                          text over it, every scene as a thumbnail below
  *   #storyline/<index>     the same page, opened at that scene
  *   #view-storyflow        the StoryFlow cards (markup in index.html)
  *   #storyflow/<id>        one StoryFlow read as one article
@@ -44,22 +43,6 @@
     return window.WIKI_STORE?.master?.storylines || [];
   }
 
-  // A scene in the current language: the Chinese title, date and text replace
-  // the English ones when Chinese is on and a translation exists.
-  function sceneAt(pos) {
-    const evt = scenes()[pos];
-    if (!evt) return null;
-    const zh = isZh() ? window.WIKI_STORE_ZH?.storylines?.find((s) => s.index === evt.index) : null;
-    return {
-      pos,
-      index: evt.index,
-      date: zh?.date || evt.date || '',
-      title: zh?.title || evt.title || '',
-      description: zh?.description || evt.description || '',
-      image: evt.local_image || localImage(evt.image_url)
-    };
-  }
-
   function scenePosByIndex(index) {
     return scenes().findIndex((s) => String(s.index) === String(index));
   }
@@ -86,102 +69,49 @@
     return text.split(/\n{2,}/).map((p) => `<p>${esc(p)}</p>`).join('');
   }
 
-  function paragraphs(text) {
-    return String(text || '')
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((p) => `<p>${esc(p)}</p>`)
-      .join('');
-  }
-
-  const capitalise = (s) => (isZh() ? s : s.charAt(0).toUpperCase() + s.slice(1));
-
   /* ---------- Storylines: one screening room ----------
-   * Three things: see the picture, read its text (laid over the picture),
-   * change scene (swipe the picture or pick a thumbnail in the strip below).
+   * Three things: see the picture, read its text (over the picture), change
+   * scene. app.js plays the scene (the original td theater: soft swap, text
+   * reveal, sliding indicator, arrow keys); this file adds the thumbnails,
+   * swipe on touch screens and the #storyline/<index> address.
    */
 
-  let currentScenePos = 0;
-  let stripBuilt = false;
-
+  // Thumbnails go in before app.js starts, so its indicator and reveals find them.
   function buildStrip() {
-    const strip = el('sl-strip');
-    if (!strip) return;
-    const total = scenes().length;
-    let html = '';
-    for (let i = 0; i < total; i++) {
-      const s = sceneAt(i);
-      html += `<button type="button" class="filmstrip-thumb sl-thumb" data-pos="${i}" title="${esc(s.title)}" aria-label="${esc(s.title)}"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></button>`;
-    }
-    strip.innerHTML = html;
-    stripBuilt = true;
+    const track = el('liblib-filmstrip-track');
+    if (!track || track.querySelector('.filmstrip-thumb')) return;
+    track.insertAdjacentHTML('afterbegin', scenes().map((s, i) =>
+      `<div class="filmstrip-thumb" data-idx="${i}" title="${esc(s.title)}"><img src="${esc(s.local_image || localImage(s.image_url))}" alt="${esc(s.title)}" loading="lazy" /></div>`
+    ).join(''));
   }
-
-  function renderScene(pos, options = {}) {
-    const s = sceneAt(pos);
-    if (!s) return false;
-    const changed = pos !== currentScenePos;
-    currentScenePos = pos;
-    if (!stripBuilt) buildStrip();
-
-    const img = el('sl-img');
-    if (img.getAttribute('src') !== s.image) img.src = s.image;
-    img.alt = s.title;
-    el('sl-date').textContent = capitalise(s.date);
-    el('sl-title').textContent = s.title;
-    el('sl-text').innerHTML = paragraphs(s.description);
-    el('sl-scroll').scrollTop = 0;
-    if (changed && !options.instant) {
-      const stage = el('sl-stage');
-      stage.classList.remove('is-swapping');
-      void stage.offsetWidth;
-      stage.classList.add('is-swapping');
-    }
-
-    const strip = el('sl-strip');
-    let active = null;
-    strip.querySelectorAll('.sl-thumb').forEach((card) => {
-      const on = Number(card.dataset.pos) === pos;
-      card.classList.toggle('active', on);
-      card.setAttribute('aria-current', on ? 'true' : 'false');
-      if (on) active = card;
-    });
-    if (active && strip.clientWidth) {
-      const left = active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2;
-      strip.scrollTo({ left, behavior: options.instant ? 'auto' : 'smooth' });
-    }
-    return true;
-  }
-
-  // Moving between scenes rewrites the address in place, so Back leaves the
-  // page instead of stepping back through every scene.
-  function goTo(pos) {
-    if (pos < 0 || pos >= scenes().length || pos === currentScenePos) return;
-    renderScene(pos);
-    const id = `storyline/${scenes()[pos].index}`;
-    try { history.replaceState({ type: 'story', id, timestamp: Date.now() }, '', `#${id}`); } catch (e) { /* ignore */ }
-  }
+  buildStrip();
 
   function bindTheater() {
-    const strip = el('sl-strip');
-    strip?.addEventListener('click', (e) => {
-      const card = e.target.closest('.sl-thumb');
-      if (card) goTo(Number(card.dataset.pos));
-    });
-
-    // Swipe the picture left or right to change scene.
-    const media = el('sl-stage');
+    // Swipe the picture left or right on a touch screen.
+    const stage = el('sl-stage');
     let start = null;
-    media?.addEventListener('pointerdown', (e) => { start = { x: e.clientX, y: e.clientY }; });
-    media?.addEventListener('pointerup', (e) => {
+    stage?.addEventListener('pointerdown', (e) => {
+      start = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY };
+    });
+    stage?.addEventListener('pointerup', (e) => {
       if (!start) return;
       const dx = e.clientX - start.x;
       const dy = e.clientY - start.y;
       start = null;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(currentScenePos + (dx < 0 ? 1 : -1));
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      const next = (bridge().currentScene?.() ?? 0) + (dx < 0 ? 1 : -1);
+      if (next >= 0 && next < scenes().length) bridge().setScene?.(next);
     });
-    media?.addEventListener('pointercancel', () => { start = null; });
+    stage?.addEventListener('pointercancel', () => { start = null; });
+
+    // Changing scene rewrites the address in place, so Back leaves the page
+    // instead of stepping back through every scene.
+    document.addEventListener('readipedia:scene', (e) => {
+      if (!isShown('view-storyline')) return;
+      const id = `storyline/${e.detail.index}`;
+      if (location.hash === `#${id}`) return;
+      try { history.replaceState({ type: 'story', id, timestamp: Date.now() }, '', `#${id}`); } catch (err) { /* ignore */ }
+    });
   }
 
   /* ---------- page 3: StoryFlow cards (markup lives in index.html) ---------- */
@@ -265,9 +195,9 @@
     if (pos < 0) return false;
     await bridge().prepare?.();
     activateNav('btn-storylines-hub');
-    bridge().showView?.('view-storyline', { fromHistory: true });
-    renderScene(pos, { instant: true });
     if (!options.fromHistory) bridge().pushHistory?.(`storyline/${scenes()[pos].index}`);
+    bridge().showView?.('view-storyline', { fromHistory: true });
+    bridge().setScene?.(pos);
     return true;
   }
 
@@ -299,8 +229,6 @@
   }
 
   function bind() {
-    buildStrip();
-    renderScene(0, { instant: true });
     bindTheater();
     wireFlowCards();
 
@@ -313,17 +241,8 @@
       }
     });
 
-    window.addEventListener('keydown', (e) => {
-      if (!isShown('view-storyline') || e.altKey || e.metaKey || e.ctrlKey) return;
-      if (/input|textarea|select/i.test(document.activeElement?.tagName || '')) return;
-      if (e.key === 'ArrowLeft') goTo(currentScenePos - 1);
-      if (e.key === 'ArrowRight') goTo(currentScenePos + 1);
-    });
-
     document.addEventListener('readipedia:entity', (e) => appendRelatedFlows(e.detail));
     document.addEventListener('readipedia:lang', () => {
-      buildStrip();
-      renderScene(currentScenePos, { instant: true });
       if (isShown('view-story-flow') && currentFlowId) renderFlow(currentFlowId);
     });
   }

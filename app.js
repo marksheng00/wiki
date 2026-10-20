@@ -445,6 +445,8 @@
     initMobileGestures();
     // story.js renders the storyline and StoryFlow pages through these.
     window.ReadipediaBridge = {
+      setScene: (pos) => setStorylineScene(pos),
+      currentScene: () => state.currentStorylineIndex,
       isZh,
       prepare: prepareForPageNavigation,
       clearActiveNav,
@@ -903,6 +905,7 @@
       }
     }
     moveFilmstripIndicator(activeThumb);
+    document.dispatchEvent(new CustomEvent('readipedia:scene', { detail: { pos: index, index: evt.index } }));
 
     if (sceneChanged) {
       // A picture already in cache swaps instantly; give it the same soft

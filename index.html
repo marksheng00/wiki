@@ -27,7 +27,7 @@
     })();
   </script>
   <link rel="stylesheet" href="./style.css?v=152" />
-  <link rel="stylesheet" href="./story.css?v=6" />
+  <link rel="stylesheet" href="./story.css?v=7" />
   <link rel="stylesheet" href="./library.css?v=10" />
   <link rel="stylesheet" href="./promo-banner.css?v=3" />
   <script>
@@ -549,17 +549,19 @@
             <h1 class="article-h1 detail-title">Storylines</h1>
           </div>
         </header>
-        <section class="liblib-fused-viewport sl-viewport" id="sl-stage" aria-live="polite">
-          <img id="sl-img" src="" alt="" decoding="async" draggable="false" />
-          <div class="liblib-fused-overlay">
-            <div class="liblib-narrative-scrollbox" id="sl-scroll">
-              <div class="liblib-fused-meta"><span class="liblib-date" id="sl-date"></span></div>
-              <h2 class="liblib-hero-title" id="sl-title"></h2>
-              <div class="liblib-hero-desc" id="sl-text"></div>
+        <div class="liblib-theater-stage">
+          <div class="liblib-fused-viewport sl-viewport" id="sl-stage">
+            <img id="storyline-hero-img" src="" alt="" decoding="async" draggable="false" />
+            <div class="liblib-fused-overlay">
+              <div class="liblib-narrative-scrollbox" id="liblib-narrative-scrollbox">
+                <div class="liblib-fused-meta"><span class="liblib-date" id="storyline-hero-date"></span></div>
+                <h2 class="liblib-hero-title" id="storyline-hero-title"></h2>
+                <div class="liblib-hero-desc" id="storyline-hero-desc"></div>
+              </div>
             </div>
           </div>
-        </section>
-        <div class="liblib-filmstrip-wrap"><div class="liblib-filmstrip-track" id="sl-strip" role="list"></div></div>
+          <div class="liblib-filmstrip-wrap"><div class="liblib-filmstrip-track" id="liblib-filmstrip-track"></div></div>
+        </div>
       </article>
 
       <!-- 4. STORYFLOW (Thematic Pathways Portal) -->
@@ -723,10 +725,10 @@
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
   <script src="./data/storyflows_complete.js?v=1" defer></script>
   <script src="./data/entity_storyflows.js?v=1" defer></script>
-  <script src="./story.js?v=6" defer></script>
+  <script src="./story.js?v=7" defer></script>
   <script src="./data/library.js?v=2" defer></script>
   <script src="./library.js?v=14" defer></script>
-  <script src="./app.js?v=131" defer></script>
+  <script src="./app.js?v=133" defer></script>
   <script src="./promo-banner.js?v=5" defer></script>
 </body>
 </html>

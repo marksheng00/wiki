@@ -2943,3 +2943,67 @@ img[data-reveal="pending"].is-swapping {
   .readify-cta:hover .readify-cta-arrow,
   .detail-back:hover .detail-back-icon { transform: none; }
 }
+
+/* Book contents, nested under Overview in the sidebar. It opens while the
+   book page is showing; a dark bar slides along the rail to the section in
+   view. */
+.book-toc {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows var(--acc-collapse) var(--ease-smooth-out), opacity var(--acc-collapse) var(--ease-smooth-out);
+}
+.book-toc.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-duration: var(--acc-expand);
+}
+.book-toc-inner {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 6px 20px;
+  padding-left: 1px;
+}
+.book-toc-inner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--border-hairline, rgba(0, 0, 0, .08));
+}
+.book-toc-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 28px;
+  background: var(--text-primary);
+  transition: transform var(--tabs-dur, 250ms) var(--tabs-ease, ease), height var(--tabs-dur, 250ms) var(--tabs-ease, ease);
+}
+.book-toc-link {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--motion-hover);
+}
+.book-toc-link:hover { color: var(--text-primary); text-decoration: none; }
+.book-toc-link.is-current { color: var(--text-primary); font-weight: 500; }
+@media (max-width: 768px) {
+  .book-toc-link { height: 40px; font-size: 16px; }
+  .book-toc-indicator { height: 40px; }
+}
+.book-cta-beam { margin-top: 4px; }
+.book-media-stack .infobox-media { margin-bottom: 0; }
+.book-toc:not(.is-open) .book-toc-inner { visibility: hidden; transition: visibility 0s var(--acc-collapse); }

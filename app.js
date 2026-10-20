@@ -124,7 +124,7 @@
     initImageReveals();
     initBackToTopVisibility();
     initEntityArrows();
-    initBookTabs();
+    initBookToc();
     initSearchPalette();
     initFooterLinks();
     initReadifyCtas();
@@ -5028,7 +5028,7 @@
       targetEl.style.display = 'block';
       targetEl.classList.add('active');
     }
-    if (targetViewId === 'view-book') getEl('book-tabs')?.__place?.();
+    getEl('book-toc')?.__sync?.(targetViewId === 'view-book');
 
     const mainArticle = document.querySelector('.wiki-main-article');
     if (mainArticle) {
@@ -5434,62 +5434,81 @@
     });
   }
 
-  /* Book sections as sliding tabs (transitions.dev tabs pattern): the white
-     pill travels to the chosen tab, and follows the section in view. */
-  function initBookTabs() {
-    const tabs = getEl('book-tabs');
-    if (!tabs) return;
-    const buttons = Array.from(tabs.querySelectorAll('.detail-tab'));
-    const indicator = tabs.querySelector('.detail-tabs-indicator');
+  /* Book contents in the sidebar: nested under Overview while the book is
+     open, it stays on screen as you read, and a bar marks the section in view. */
+  function initBookToc() {
+    const toc = getEl('book-toc');
+    if (!toc) return;
+    const links = Array.from(toc.querySelectorAll('.book-toc-link'));
+    const indicator = toc.querySelector('.book-toc-indicator');
     let lockUntil = 0;
 
-    const select = (button, instant = false) => {
-      buttons.forEach((b) => b.setAttribute('aria-selected', String(b === button)));
-      if (!indicator || !button) return;
+    const mark = (link, instant = false) => {
+      links.forEach((l) => {
+        l.classList.toggle('is-current', l === link);
+        if (l === link) l.setAttribute('aria-current', 'location');
+        else l.removeAttribute('aria-current');
+      });
+      if (!indicator || !link) return;
       if (instant) indicator.style.transition = 'none';
-      indicator.style.width = `${button.offsetWidth}px`;
-      indicator.style.transform = `translateX(${button.offsetLeft}px)`;
+      indicator.style.height = `${link.offsetHeight}px`;
+      indicator.style.transform = `translateY(${link.offsetTop}px)`;
       if (instant) {
         indicator.getBoundingClientRect();
         indicator.style.transition = '';
       }
     };
 
-    buttons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const section = getEl(button.dataset.target);
-        select(button);
-        if (!section) return;
-        lockUntil = performance.now() + 900;
-        const top = section.getBoundingClientRect().top + window.scrollY - getHeaderHeight() - 24;
-        window.scrollTo({ top: button === buttons[0] ? 0 : top, behavior: scrollBehavior() });
+    const scrollToSection = (link) => {
+      const section = getEl(link.dataset.target);
+      if (!section) return;
+      lockUntil = performance.now() + 900;
+      mark(link);
+      const top = link === links[0]
+        ? 0
+        : section.getBoundingClientRect().top + window.scrollY - getHeaderHeight() - 24;
+      window.scrollTo({ top, behavior: scrollBehavior() });
+    };
+
+    links.forEach((link) => {
+      link.addEventListener('click', async (event) => {
+        event.preventDefault();
+        const view = getEl('view-book');
+        if (!view?.classList.contains('active')) {
+          getEl('btn-book-home')?.click();
+          setTimeout(() => scrollToSection(link), 350);
+          return;
+        }
+        scrollToSection(link);
+        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
       });
     });
 
     let frame = 0;
     const spy = () => {
       frame = 0;
-      const view = getEl('view-book');
-      if (!view?.classList.contains('active') || performance.now() < lockUntil) return;
+      if (!toc.classList.contains('is-open') || performance.now() < lockUntil) return;
       const line = getHeaderHeight() + 120;
-      let current = buttons[0];
-      buttons.forEach((button) => {
-        const section = getEl(button.dataset.target);
-        if (section && section.getBoundingClientRect().top <= line) current = button;
+      let current = links[0];
+      links.forEach((link) => {
+        const section = getEl(link.dataset.target);
+        if (section && section.getBoundingClientRect().top <= line) current = link;
       });
-      if (current.getAttribute('aria-selected') !== 'true') select(current);
+      if (!current.classList.contains('is-current')) mark(current);
     };
     window.addEventListener('scroll', () => {
       if (!frame) frame = requestAnimationFrame(spy);
     }, { passive: true });
-    window.addEventListener('resize', () => {
-      const active = buttons.find((b) => b.getAttribute('aria-selected') === 'true') || buttons[0];
-      select(active, true);
-    });
-    const place = () => select(buttons.find((b) => b.getAttribute('aria-selected') === 'true') || buttons[0], true);
+    const place = () => mark(links.find((l) => l.classList.contains('is-current')) || links[0], true);
+    window.addEventListener('resize', place);
     if (document.fonts?.ready) document.fonts.ready.then(place);
     requestAnimationFrame(place);
-    tabs.__place = place;
+
+    toc.__sync = (open) => {
+      toc.classList.toggle('is-open', open);
+      if (open) requestAnimationFrame(() => { place(); spy(); });
+    };
+    toc.__sync(Boolean(getEl('view-book')?.classList.contains('active')));
   }
 
   /* Search palette (Ctrl K): pages and every entity, filtered as you type. */

@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=100" />
+  <link rel="stylesheet" href="./style.css?v=101" />
 </head>
 <body>
 
@@ -121,6 +121,16 @@
           <a href="#" class="nav-hub-item docs-link active" id="btn-book-home" data-view="view-book">
             <span class="docs-link-label">Overview</span>
           </a>
+          <div class="book-toc is-open" id="book-toc">
+            <nav class="book-toc-inner" aria-label="On this page">
+              <span class="book-toc-indicator" aria-hidden="true"></span>
+              <a href="#sec-overview" class="book-toc-link is-current" data-target="sec-overview">Introduction</a>
+              <a href="#sec-plot" class="book-toc-link" data-target="sec-plot">Plot</a>
+              <a href="#sec-themes" class="book-toc-link" data-target="sec-themes">Themes</a>
+              <a href="#sec-background" class="book-toc-link" data-target="sec-background">Legacy</a>
+              <a href="#sec-author" class="book-toc-link" data-target="sec-author">Author</a>
+            </nav>
+          </div>
           <a href="#" class="nav-hub-item docs-link" id="btn-storylines-hub" data-view="view-storyline">
             <span class="docs-link-label">Storylines</span><span class="docs-count">89</span>
           </a>
@@ -355,19 +365,7 @@
           <div class="detail-title-row">
             <h1 class="article-h1 detail-title" id="article-h1">Nineteen Eighty-Four</h1>
           </div>
-          <p class="detail-sub">A dystopian novel by George Orwell, first published in 1949.</p>
         </header>
-
-        <div class="detail-actions">
-          <div class="detail-tabs" id="book-tabs" role="tablist" aria-label="Sections">
-            <span class="detail-tabs-indicator" aria-hidden="true"></span>
-            <button class="detail-tab" type="button" role="tab" aria-selected="true" data-target="sec-overview">Overview</button>
-            <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-plot">Plot</button>
-            <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-themes">Themes</button>
-            <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-background">Legacy</button>
-            <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-author">Author</button>
-          </div>
-        </div>
 
         <!-- Book stage: cover, facts and the Readify link -->
         <aside class="wiki-infobox detail-stage book-stage">
@@ -375,7 +373,6 @@
             <div class="infobox-media">
               <img src="./assets/images/book-doc-books-001-1984-4b9fbb7c4955-cover.jpg" alt="Nineteen Eighty-Four original cover" fetchpriority="high" decoding="async" />
             </div>
-            <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
           </div>
           <div class="book-stage-side">
           <div class="infobox-meta">
@@ -385,6 +382,7 @@
             <div class="infobox-meta-row"><span>Genre</span><strong>Dystopian, Satire</strong></div>
             <div class="infobox-meta-row"><span>Published</span><strong>8 June 1949</strong></div>
           </div>
+            <span class="cta-beam entity-cta-beam book-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
           </div>
         </aside>
 
@@ -784,6 +782,6 @@
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=103" defer></script>
+  <script src="./app.js?v=104" defer></script>
 </body>
 </html>

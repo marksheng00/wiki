@@ -128,6 +128,7 @@
     initSearchPalette();
     initFooterLinks();
     initReadifyCtas();
+    initReadifyApps();
     initEntityBackLink();
 
     // A view id in the URL is also an element id; keep the browser from
@@ -5737,6 +5738,112 @@
     document.querySelectorAll('.cta-beam').forEach((el) => window.BorderBeam.mount(el));
   }
 
+  /* Readify apps. Fill in each store or download link here; an app with no
+     link yet stays listed but does nothing, and the header button falls back
+     to the web app. */
+  const READIFY_APPS = {
+    mac: '',
+    windows: '',
+    ios: '',
+    android: '',
+    extension: '',
+    web: 'https://app.readifyai.com'
+  };
+
+  function detectReadifyPlatform() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.userAgentData?.platform || navigator.platform || '';
+    if (/iPhone|iPad|iPod/i.test(ua) || (/Mac/i.test(platform) && navigator.maxTouchPoints > 1)) return 'ios';
+    if (/Android/i.test(ua)) return 'android';
+    if (/Mac/i.test(platform) || /Macintosh/i.test(ua)) return 'mac';
+    if (/Win/i.test(platform) || /Windows/i.test(ua)) return 'windows';
+    return null;
+  }
+
+  function initReadifyApps() {
+    const device = detectReadifyPlatform();
+    document.querySelectorAll('[data-app]').forEach((link) => {
+      const url = READIFY_APPS[link.dataset.app];
+      if (url) {
+        link.href = url;
+      } else {
+        link.href = '#';
+        link.removeAttribute('target');
+        link.setAttribute('aria-disabled', 'true');
+        link.addEventListener('click', (e) => e.preventDefault());
+      }
+      if (link.dataset.app === device) {
+        link.classList.add('is-device');
+        const hint = link.querySelector('.apps-item-hint');
+        if (hint) hint.textContent = 'This device';
+      }
+    });
+
+    // The header button offers the download for the reader's own device.
+    const cta = getEl('nav-get-app');
+    const label = getEl('nav-get-app-label');
+    const labels = { mac: 'Download for Mac', windows: 'Download for Windows', ios: 'Get the app', android: 'Get the app' };
+    if (cta && label) {
+      if (device && READIFY_APPS[device] && labels[device]) {
+        cta.href = READIFY_APPS[device];
+        label.textContent = labels[device];
+      } else {
+        cta.href = READIFY_APPS.web;
+        label.textContent = 'Open Readify';
+        cta.classList.add('no-icon');
+      }
+    }
+
+    // Download menu: opens on hover or click, closes on leave, Esc or a click elsewhere.
+    const wrap = getEl('nav-apps');
+    const button = getEl('btn-nav-apps');
+    const panel = getEl('nav-apps-panel');
+    if (!wrap || !button || !panel) return;
+    let openTimer = 0;
+    let closeTimer = 0;
+    let settleTimer = 0;
+    const open = () => {
+      clearTimeout(closeTimer);
+      clearTimeout(settleTimer);
+      panel.classList.remove('is-closing');
+      panel.classList.add('is-open');
+      button.setAttribute('aria-expanded', 'true');
+    };
+    const close = () => {
+      clearTimeout(openTimer);
+      if (!panel.classList.contains('is-open')) return;
+      panel.classList.add('is-closing');
+      panel.classList.remove('is-open');
+      button.setAttribute('aria-expanded', 'false');
+      settleTimer = setTimeout(() => panel.classList.remove('is-closing'), motion.ms('--dropdown-close-dur'));
+    };
+    const canHover = window.matchMedia?.('(hover: hover)').matches;
+    if (canHover) {
+      wrap.addEventListener('pointerenter', () => {
+        clearTimeout(closeTimer);
+        openTimer = setTimeout(open, 80);
+      });
+      wrap.addEventListener('pointerleave', () => {
+        clearTimeout(openTimer);
+        closeTimer = setTimeout(close, 160);
+      });
+    }
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (panel.classList.contains('is-open')) close();
+      else open();
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('is-open')) {
+        close();
+        button.focus();
+      }
+    });
+  }
+
   function initEntityBackLink() {
     const link = getEl('btn-entity-back');
     if (!link) return;
@@ -5979,6 +6086,17 @@
     const btnToggleSidebar = getEl('btn-toggle-sidebar');
     if (btnToggleSidebar) {
       btnToggleSidebar.addEventListener('click', toggleMobileSidebar);
+    }
+
+    // Desktop: the button left of the logo folds the sidebar away and back.
+    const btnCollapseSidebar = getEl('btn-collapse-sidebar');
+    if (btnCollapseSidebar) {
+      btnCollapseSidebar.addEventListener('click', () => {
+        toggleMobileSidebar();
+        const collapsed = getEl('wiki-sidebar')?.classList.contains('collapsed');
+        btnCollapseSidebar.setAttribute('aria-expanded', String(!collapsed));
+        btnCollapseSidebar.setAttribute('aria-label', collapsed ? 'Show sidebar' : 'Hide sidebar');
+      });
     }
 
     const btnSidebarClose = getEl('btn-sidebar-close');

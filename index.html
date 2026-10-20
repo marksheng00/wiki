@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=110" />
+  <link rel="stylesheet" href="./style.css?v=113" />
 </head>
 <body>
 
@@ -24,21 +24,34 @@
   <!-- Site header: brand and product links on the left, search and settings on the right -->
   <header class="wiki-header site-nav">
     <div class="wiki-header-left">
+      <button class="btn-sidebar-collapse icon-btn" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
+        <i data-lucide="menu" style="width:18px;height:18px;"></i>
+      </button>
       <a href="#" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
         <span class="brand-mark" aria-hidden="true"><i data-lucide="book-open-text" style="width:20px;height:20px;"></i></span>
         <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
       </a>
 
       <nav class="wiki-header-center site-nav-menu" aria-label="Readify apps">
-        <a href="#" class="nav-pill">iOS</a>
-        <a href="#" class="nav-pill">Android</a>
-        <a href="#" class="nav-pill">Web</a>
-        <a href="#" class="nav-pill">Extension</a>
-        <div class="wiki-qr-container">
-          <button class="nav-pill" type="button" aria-label="Scan to download">Download<i data-lucide="chevron-down" class="nav-pill-chevron"></i></button>
-          <div class="wiki-qr-popover">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=333333&bgcolor=ffffff&data=https://app.readifyai.com" alt="QR Code" class="qr-img" />
-            <div class="qr-label">Scan to download</div>
+        <div class="nav-apps" id="nav-apps">
+          <button class="nav-pill" id="btn-nav-apps" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="nav-apps-panel">Download<i data-lucide="chevron-down" class="nav-pill-chevron"></i></button>
+          <div class="nav-apps-panel" id="nav-apps-panel">
+            <div class="apps-list">
+              <p class="apps-group-label">Desktop</p>
+              <a href="#" class="apps-item" data-app="mac" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="laptop"></i></span><span class="apps-item-text"><span class="apps-item-name">macOS</span><span class="apps-item-hint">Apple silicon and Intel</span></span></a>
+              <a href="#" class="apps-item" data-app="windows" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="monitor"></i></span><span class="apps-item-text"><span class="apps-item-name">Windows</span><span class="apps-item-hint">Windows 10 and later</span></span></a>
+              <p class="apps-group-label">Mobile</p>
+              <a href="#" class="apps-item" data-app="ios" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="smartphone"></i></span><span class="apps-item-text"><span class="apps-item-name">iOS</span><span class="apps-item-hint">iPhone and iPad</span></span></a>
+              <a href="#" class="apps-item" data-app="android" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="tablet-smartphone"></i></span><span class="apps-item-text"><span class="apps-item-name">Android</span><span class="apps-item-hint">Phones and tablets</span></span></a>
+              <p class="apps-group-label">Browser</p>
+              <a href="#" class="apps-item" data-app="extension" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="puzzle"></i></span><span class="apps-item-text"><span class="apps-item-name">Extension</span><span class="apps-item-hint">Chrome and Edge</span></span></a>
+              <a href="#" class="apps-item" data-app="web" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="globe"></i></span><span class="apps-item-text"><span class="apps-item-name">Web app</span><span class="apps-item-hint">Nothing to install</span></span></a>
+            </div>
+            <div class="apps-qr">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=333333&bgcolor=ffffff&data=https://app.readifyai.com" alt="QR code for the Readify app" class="qr-img" loading="lazy" />
+              <p class="apps-qr-title">On your phone?</p>
+              <p class="apps-qr-text">Scan to get Readify for iOS or Android.</p>
+            </div>
           </div>
         </div>
       </nav>
@@ -50,7 +63,7 @@
         <span class="nav-search-label">Search</span>
         <kbd class="nav-search-kbd">Ctrl K</kbd>
       </button>
-      <a href="https://app.readifyai.com" class="nav-get-pro" target="_blank" rel="noopener">Open Readify</a>
+      <a href="https://app.readifyai.com" class="nav-get-pro" id="nav-get-app" target="_blank" rel="noopener"><i data-lucide="arrow-down-to-line" class="nav-get-pro-icon"></i><span id="nav-get-app-label">Open Readify</span></a>
       <div class="wiki-lang-container" id="lang-menu-container">
         <button id="btn-lang" class="icon-btn-pill" type="button" aria-label="Switch language">
           <i data-lucide="languages" style="width:16px;height:16px;"></i>
@@ -349,6 +362,16 @@
 
             </div>
           </details>
+
+          <div class="drawer-apps">
+            <div class="docs-group-label">Get Readify</div>
+          <a href="#" class="docs-link drawer-app" data-app="mac" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="laptop"></i>macOS</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="windows" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="monitor"></i>Windows</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="ios" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="smartphone"></i>iOS</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="android" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="tablet-smartphone"></i>Android</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="extension" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="puzzle"></i>Browser extension</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="web" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="globe"></i>Web app</span><span class="apps-item-badge">This device</span></a>
+          </div>
 
         </nav>
 
@@ -720,10 +743,12 @@
           </div>
           <div class="footer-col">
             <p class="footer-col-title">Apps</p>
-            <a href="#">iOS</a>
-            <a href="#">Android</a>
-            <a href="#">Web</a>
-            <a href="#">Extension</a>
+            <a href="#" data-app="mac" target="_blank" rel="noopener">macOS</a>
+            <a href="#" data-app="windows" target="_blank" rel="noopener">Windows</a>
+            <a href="#" data-app="ios" target="_blank" rel="noopener">iOS</a>
+            <a href="#" data-app="android" target="_blank" rel="noopener">Android</a>
+            <a href="#" data-app="extension" target="_blank" rel="noopener">Browser extension</a>
+            <a href="#" data-app="web" target="_blank" rel="noopener">Web app</a>
           </div>
           <div class="footer-col">
             <p class="footer-col-title">Readify</p>
@@ -781,6 +806,6 @@
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=108" defer></script>
+  <script src="./app.js?v=110" defer></script>
 </body>
 </html>

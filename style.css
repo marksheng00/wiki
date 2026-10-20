@@ -1816,11 +1816,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
 
 /* Small laptops and tablets: the header drops the app pills before the
    reading column gets cramped. */
-@media (min-width: 769px) and (max-width: 1180px) {
-  .site-nav-menu .nav-pill:not(.wiki-qr-container .nav-pill) {
-    display: none;
-  }
-}
+
 @media (min-width: 769px) and (max-width: 960px) {
   body {
     --sidebar-gap: 32px;
@@ -2644,7 +2640,7 @@ img[data-reveal="pending"].is-swapping {
   transition-duration: var(--modal-open-dur);
 }
 .cmdk-panel {
-  width: 560px;
+  width: 600px;
   max-width: 100%;
   max-height: calc(100dvh - 160px);
   display: flex;
@@ -2985,4 +2981,175 @@ img[data-reveal="pending"].is-swapping {
    into it. */
 @media (min-width: 1024px) {
   .wiki-infobox.detail-stage { margin-top: calc(4px - 67px); }
+}
+
+/* Download menu: every Readify app grouped by where you read, with a QR code
+   for phones. The reader's own device is marked. */
+.nav-apps { position: relative; }
+.nav-apps:hover > .nav-pill,
+.nav-apps .nav-pill[aria-expanded="true"] {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.nav-apps .nav-pill-chevron { transition: transform var(--duration-fast) var(--ease-smooth-out); }
+.nav-apps .nav-pill[aria-expanded="true"] .nav-pill-chevron { transform: rotate(180deg); }
+.nav-apps-panel {
+  position: absolute;
+  top: 100%;
+  left: -8px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 168px;
+  gap: 8px;
+  width: 600px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--tt-bg);
+  color: var(--tt-fg);
+  box-shadow: var(--tt-shadow);
+  transform-origin: top left;
+  transform: scale(var(--dropdown-pre-scale));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity var(--dropdown-close-dur) var(--dropdown-ease),
+    visibility 0s linear var(--dropdown-close-dur);
+}
+.nav-apps-panel.is-open {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity var(--dropdown-open-dur) var(--dropdown-ease),
+    visibility 0s;
+}
+.nav-apps-panel.is-closing { transform: scale(var(--dropdown-closing-scale)); }
+/* A hover bridge so the pointer can travel from the button to the panel. */
+.nav-apps-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+}
+.apps-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 4px;
+  align-content: start;
+}
+.apps-group-label {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 8px 8px 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+.apps-group-label:first-child { padding-top: 4px; }
+.apps-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--tt-fg);
+  text-decoration: none;
+  transition: background-color var(--motion-hover);
+}
+.apps-item:hover { background: var(--bg-hover); color: var(--tt-fg); text-decoration: none; }
+.apps-item-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.apps-item:hover .apps-item-icon { background: var(--tt-bg); box-shadow: var(--surface-btn-shadow); }
+.apps-item-icon svg { width: 16px; height: 16px; }
+.apps-item-text { display: flex; flex-direction: column; min-width: 0; }
+.apps-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apps-item-hint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apps-item.is-device .apps-item-icon { background: var(--brand-blue-bg); color: var(--brand-blue); }
+.apps-item.is-device .apps-item-hint { color: var(--brand-blue); }
+.apps-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: var(--bg-hover);
+  text-align: center;
+}
+.apps-qr .qr-img { width: 120px; height: 120px; margin-bottom: 8px; border-radius: 8px; }
+.apps-qr-title { margin: 0; font-size: 13px; font-weight: 500; line-height: 18px; color: var(--tt-fg); }
+.apps-qr-text { margin: 0; font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+
+/* Header button: names the reader's device when there is a download for it. */
+.nav-get-pro { gap: 6px; }
+.nav-get-pro-icon { width: 16px; height: 16px; flex: none; }
+.nav-get-pro.no-icon .nav-get-pro-icon { display: none; }
+
+/* Phones: the drawer ends with the same apps list. */
+.drawer-apps { display: none; }
+@media (max-width: 768px) {
+  .drawer-apps { display: block; margin-top: 16px; }
+  .drawer-app { justify-content: space-between; }
+  .drawer-app-label { display: inline-flex; align-items: center; gap: 12px; }
+  .drawer-app-label svg { width: 18px; height: 18px; color: var(--text-secondary); }
+  .drawer-app .apps-item-badge { display: none; }
+  .drawer-app.is-device .apps-item-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--brand-blue-bg);
+    color: var(--brand-blue);
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+@media (min-width: 769px) {
+  .drawer-apps { display: none !important; }
+}
+
+/* Desktop sidebar toggle, left of the logo (phones use the menu button). */
+.btn-sidebar-collapse { display: none; }
+@media (min-width: 769px) {
+  .btn-sidebar-collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: -8px;
+    margin-right: -21px;
+  }
 }

@@ -27,7 +27,7 @@
     })();
   </script>
   <link rel="stylesheet" href="./style.css?v=151" />
-  <link rel="stylesheet" href="./story.css?v=1" />
+  <link rel="stylesheet" href="./story.css?v=2" />
 </head>
 <body>
 
@@ -518,7 +518,6 @@
           <div class="detail-title-row">
             <h1 class="article-h1 detail-title">Storylines</h1>
           </div>
-          <p class="detail-sub" id="story-line-sub">89 scenes in story order. Open any scene to read it in full.</p>
         </header>
         <ol class="sl-list" id="story-line-list"></ol>
       </article>
@@ -529,7 +528,6 @@
           <div class="detail-title-row">
             <h1 class="article-h1 detail-title">StoryFlow</h1>
           </div>
-          <p class="detail-sub">Three threads through the novel, each told as one path.</p>
         </header>
         <section class="cards storyflow-editorial-catalog">
           <article class="card storyflow-editorial-row">
@@ -577,12 +575,11 @@
           </div>
           <p class="detail-sub" id="scene-sub"></p>
         </header>
-        <div class="detail-stage story-scene-stage">
+        <aside class="story-scene-aside">
           <div class="story-scene-media"><img id="scene-img" src="" alt="" decoding="async" /></div>
-        </div>
+        </aside>
         <div class="prose story-scene-text" id="scene-text"></div>
         <nav class="story-pager" id="scene-pager" aria-label="Scenes"></nav>
-        <a href="#view-storyline" class="detail-back story-back" id="scene-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span id="scene-back-label">All storylines</span></a>
       </article>
 
       <!-- 6. ONE STORYFLOW (story.js) -->
@@ -593,10 +590,7 @@
           </div>
           <p class="detail-sub" id="flow-sub"></p>
         </header>
-        <nav class="sf-toc" id="flow-toc" aria-label="In this StoryFlow"></nav>
         <div class="sf-nodes" id="flow-nodes"></div>
-        <div class="sf-related" id="flow-entities"></div>
-        <a href="#view-storyflow" class="detail-back story-back" id="flow-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span id="flow-back-label">All StoryFlow</span></a>
       </article>
 
       <footer class="site-footer">
@@ -707,7 +701,7 @@
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
   <script src="./data/storyflows_complete.js?v=1" defer></script>
   <script src="./data/entity_storyflows.js?v=1" defer></script>
-  <script src="./story.js?v=1" defer></script>
+  <script src="./story.js?v=2" defer></script>
   <script src="./app.js?v=127" defer></script>
 </body>
 </html>

@@ -134,12 +134,6 @@
       </a></li>`;
     }
     list.innerHTML = html;
-    const sub = el('story-line-sub');
-    if (sub) {
-      sub.textContent = isZh()
-        ? `${total} 幕，按故事发生的顺序排列。点开任意一幕阅读全文。`
-        : `${total} scenes in story order. Open any scene to read it in full.`;
-    }
   }
 
   /* ---------- page 2: one scene ---------- */
@@ -152,12 +146,11 @@
     currentScenePos = pos;
     const total = scenes().length;
     el('scene-title').textContent = s.title;
-    el('scene-sub').textContent = `${t('scene')(pos + 1, total)} · ${capitalise(s.date)}`;
+    el('scene-sub').textContent = capitalise(s.date);
     const img = el('scene-img');
     img.src = s.image;
     img.alt = s.title;
     el('scene-text').innerHTML = paragraphs(s.description);
-    el('scene-back-label').textContent = t('backLines');
 
     const prev = sceneAt(pos - 1);
     const next = sceneAt(pos + 1);
@@ -208,10 +201,6 @@
     const nodes = flow.nodes || [];
     el('flow-title').textContent = flow.title;
     el('flow-sub').textContent = flow.description;
-    el('flow-back-label').textContent = t('backFlows');
-
-    const toc = nodes.map((n, i) => `<li><a href="#storyflow/${id}" data-node="${i}"><span class="sf-toc-num">${i + 1}</span><span>${esc(n.title)}</span></a></li>`).join('');
-    el('flow-toc').innerHTML = `<p class="sf-toc-label">${esc(t('inFlow'))}</p><ol>${toc}</ol>`;
 
     const note = isZh() ? `<p class="lang-fallback-note" lang="zh-CN">${esc(t('enOnly'))}</p>` : '';
     el('flow-nodes').innerHTML = note + nodes.map((n, i) => {
@@ -221,18 +210,12 @@
         ? renderMarkdown(md.replace(/^\s*#\s+[^\n]*\n*/, ''))
         : `<p class="sf-missing">${esc(t('missing'))}</p>`;
       return `<section class="sf-node" id="sf-node-${i}">
-        <div class="sf-node-meta"><span class="sf-step">${t('step')(i + 1, nodes.length)}</span><span class="sf-chapter">${esc(n.chapter || '')}</span></div>
         <h2 class="sf-node-title">${esc(n.title)}</h2>
         ${n.image ? `<div class="sf-node-media"><img src="${esc(localImage(n.image))}" alt="${esc(n.title)}" loading="lazy" decoding="async"></div>` : ''}
         <div class="prose markdown-prose" lang="en">${body}</div>
       </section>`;
     }).join('');
 
-    // Entries Readify links to this StoryFlow, in sidebar order.
-    const linked = entityEntries().filter((e) => (window.ENTITY_STORYFLOWS?.[e.label] || []).includes(id));
-    el('flow-entities').innerHTML = linked.length
-      ? `<h2 class="sf-related-title">${esc(t('relatedEntities'))}</h2><div class="sf-chips">${linked.map((e) => `<a href="#${esc(e.id)}" class="sf-chip" data-entity="${esc(e.id)}">${esc(e.name)}</a>`).join('')}</div>`
-      : '';
     return true;
   }
 

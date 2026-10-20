@@ -345,6 +345,7 @@
     translateStoryflowCards();
     translateFilmstrip();
     renderBookArticle();
+    if (zh && !window.WIKI_ARTICLES_ZH) ensureZhArticles();
     if (options.initial) return;
 
     setStorylineScene(state.currentStorylineIndex, { force: true });
@@ -363,8 +364,30 @@
         });
       }
     }
-    getEl('book-toc')?.__sync?.(true);
+    if (getEl('view-book')?.style.display !== 'none') getEl('book-toc')?.__sync?.(true);
     document.dispatchEvent(new CustomEvent('readipedia:lang'));
+  }
+
+  // Chinese entity articles are a large file, fetched only once Chinese is on.
+  let zhArticlesPromise = null;
+  function ensureZhArticles() {
+    if (window.WIKI_ARTICLES_ZH) return Promise.resolve(true);
+    if (!zhArticlesPromise) {
+      zhArticlesPromise = new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = './data/wiki_articles_zh.js?v=1';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      }).then((ok) => {
+        if (ok) {
+          window.__entityMdCache?.clear();
+          if (isZh()) applyLanguage({ articlesOnly: true });
+        }
+        return ok;
+      });
+    }
+    return zhArticlesPromise;
   }
 
   function setLanguage(lang) {
@@ -5222,18 +5245,18 @@
   let cachedEntityLinkerData = null;
 
   function getEntityLinkerData() {
-    if (cachedEntityLinkerData) return cachedEntityLinkerData;
+    if (cachedEntityLinkerData?.lang === state.lang) return cachedEntityLinkerData.entries;
     const index = getKnowledgeIndex();
     if (!index || !index.nodesById) return null;
     const entries = [];
     index.nodesById.forEach((node, id) => {
-      const label = (node.label || '').trim();
-      if (label.length >= 3) {
+      const label = (isZh() ? entityName(id, '') : (node.label || '')).trim();
+      if (label.length >= (isZh() ? 2 : 3)) {
         entries.push({ id, label });
       }
     });
     entries.sort((a, b) => b.label.length - a.label.length);
-    cachedEntityLinkerData = entries;
+    cachedEntityLinkerData = { lang: state.lang, entries };
     return entries;
   }
 
@@ -5259,7 +5282,10 @@
       labelToId.set(c.label.toLowerCase(), c.id);
     });
 
-    const regex = new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
+    // Chinese has no word boundaries; match names as they stand.
+    const regex = isZh()
+      ? new RegExp(`(${escapedTerms.join('|')})`, 'g')
+      : new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
     const parts = rawHtml.split(/(<[^>]+>)/g);
     let inProtectedTag = false;
     let protectedTagName = '';
@@ -5660,7 +5686,8 @@
     let html = window.__entityMdCache.get(cacheKey);
     if (html === undefined) {
       const articles = window.WIKI_STORE?.articles || {};
-      const markdown = articles[label] || articles[resolvedEntityId] || articles[entityId] || `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
+      const zhMarkdown = isZh() ? window.WIKI_ARTICLES_ZH?.[resolvedEntityId] : null;
+      const markdown = zhMarkdown || articles[label] || articles[resolvedEntityId] || articles[entityId] || `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
 
       const cleanMarkdown = markdown
         .replace(/^#\s+[^\n]+\n*/, '')
@@ -5668,10 +5695,10 @@
         .replace(/>\s+\*\*源文件\*\*:[^\n]*\n*/gi, '')
         .replace(/^---\s*\n*/gm, '')
         .replace(/^#\s+[^\n]+\n*/, '')
-        .replace(/##\s+Related StoryFlow[\s\S]*$/i, '')
+        .replace(/##\s+(Related StoryFlow|相关\s*(StoryFlow|故事)[^\n]*)[\s\S]*$/i, '')
         .trim();
-      html = enrichHtmlWithEntityLinks(renderMarkdown(cleanMarkdown), resolvedEntityId, label);
-      if (isZh()) {
+      html = enrichHtmlWithEntityLinks(renderMarkdown(cleanMarkdown), resolvedEntityId, zhMarkdown ? entityName(resolvedEntityId, label) : label);
+      if (isZh() && !zhMarkdown) {
         html = `<p class="lang-fallback-note" lang="zh-CN">本词条暂无中文版，以下为英文原文。</p><div lang="en">${html}</div>`;
       }
       window.__entityMdCache.set(cacheKey, html);
@@ -5887,8 +5914,9 @@
 
     const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section';
     const used = new Set();
-    const items = headings.map((heading) => {
-      let id = `entry-${slug(heading.textContent)}`;
+    const items = headings.map((heading, i) => {
+      const base = slug(heading.textContent);
+      let id = `entry-${base === 'section' ? `section-${i + 1}` : base}`;
       while (used.has(id)) id += '-x';
       used.add(id);
       heading.id = id;

@@ -27,6 +27,34 @@
     return document.getElementById(id);
   }
 
+  /* Motion tokens live in style.css (:root). JS reads them instead of keeping
+     its own numbers, so CSS and scripted motion always agree, and both drop
+     to zero under prefers-reduced-motion. */
+  const motion = {
+    raw(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    },
+    ms(name) {
+      const value = this.raw(`--duration-${name}`);
+      const amount = parseFloat(value) || 0;
+      return value.endsWith('ms') ? amount : (value.endsWith('s') ? amount * 1000 : amount);
+    },
+    ease(name) {
+      return this.raw(`--ease-${name}`) || 'ease-out';
+    },
+    px(name) {
+      return parseFloat(this.raw(name)) || 0;
+    }
+  };
+
+  function scrollBehavior() {
+    return prefersReducedMotion() ? 'auto' : 'smooth';
+  }
+
+  function canAnimate(el) {
+    return Boolean(el && typeof el.animate === 'function' && !prefersReducedMotion());
+  }
+
   function init() {
     renderBookArticle();
     initGraphControls();
@@ -41,6 +69,9 @@
     const initialRoute = getRouteFromHash();
     initNavHistory(initialRoute);
     initEntityMentionInteractions();
+    initEntityPreview();
+    initImageReveals();
+    initBackToTopVisibility();
 
     // A fresh visit lands on the book overview; a refresh restores the page in the URL.
     if (initialRoute.type === 'view') {
@@ -68,19 +99,28 @@
       if (!summary || !content) return;
 
       let isAnimating = false;
+      details.dataset.expanded = details.hasAttribute('open') ? 'true' : 'false';
 
+      // Accordion (transitions.dev): height plus a 2px cross-blur on the list,
+      // opening slower than it closes.
       summary.addEventListener('click', (e) => {
         e.preventDefault();
         if (isAnimating) return;
-        isAnimating = true;
 
         const closing = details.hasAttribute('open');
+        details.dataset.expanded = closing ? 'false' : 'true';
         if (!closing) details.setAttribute('open', '');
-        const shown = { height: content.offsetHeight + 'px', opacity: 1, overflow: 'hidden' };
-        const hidden = { height: '0px', opacity: 0, overflow: 'hidden' };
+        if (!canAnimate(content)) {
+          if (closing) details.removeAttribute('open');
+          return;
+        }
+        isAnimating = true;
+        const blur = `blur(${motion.px('--blur-small')}px)`;
+        const shown = { height: content.offsetHeight + 'px', opacity: 1, filter: 'blur(0px)', overflow: 'hidden' };
+        const hidden = { height: '0px', opacity: 0, filter: blur, overflow: 'hidden' };
         const animation = content.animate(closing ? [shown, hidden] : [hidden, shown], {
-          duration: 320,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          duration: motion.ms(closing ? 'fast' : 'medium'),
+          easing: motion.ease('smooth-out'),
           fill: 'forwards'
         });
         animation.onfinish = () => {
@@ -260,6 +300,10 @@
   function initStorylineTheater() {
     const track = getEl('liblib-filmstrip-track');
     if (track) {
+      const indicator = document.createElement('div');
+      indicator.className = 'filmstrip-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      track.appendChild(indicator);
       track.addEventListener('click', (e) => {
         const thumb = e.target.closest('.filmstrip-thumb');
         const idx = thumb ? parseInt(thumb.getAttribute('data-idx'), 10) : NaN;
@@ -269,7 +313,7 @@
 
     [['btn-filmstrip-prev', -320], ['btn-filmstrip-next', 320]].forEach(([id, left]) => {
       const btn = getEl(id);
-      if (btn && track) btn.addEventListener('click', () => track.scrollBy({ left, behavior: 'smooth' }));
+      if (btn && track) btn.addEventListener('click', () => track.scrollBy({ left, behavior: scrollBehavior() }));
     });
 
     const scrollBox = getEl('liblib-narrative-scrollbox');
@@ -304,6 +348,7 @@
     const evt = storylines[index];
     if (!evt) return;
 
+    const sceneChanged = index !== state.currentStorylineIndex;
     state.currentStorylineIndex = index;
 
     const dateEl = getEl('storyline-hero-date');
@@ -314,8 +359,9 @@
 
     const imgEl = getEl('storyline-hero-img');
     if (imgEl) {
-      imgEl.src = evt.local_image;
+      if (imgEl.getAttribute('src') !== evt.local_image) imgEl.src = evt.local_image;
       imgEl.alt = evt.title;
+      revealImage(imgEl);
     }
 
     const titleEl = getEl('storyline-hero-title');
@@ -330,11 +376,43 @@
 
     // Highlight active thumbnail and scroll into view
     const thumbs = document.querySelectorAll('.filmstrip-thumb');
+    let activeThumb = null;
     thumbs.forEach((t) => {
       const isActive = parseInt(t.getAttribute('data-idx'), 10) === index;
       t.classList[isActive ? 'add' : 'remove']('active');
-      if (isActive) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      if (isActive) activeThumb = t;
     });
+    if (activeThumb) {
+      // Scroll only the strip; scrollIntoView would also move the page.
+      const track = getEl('liblib-filmstrip-track');
+      if (track && track.clientWidth) {
+        const left = activeThumb.offsetLeft - (track.clientWidth - activeThumb.offsetWidth) / 2;
+        track.scrollTo({ left, behavior: scrollBehavior() });
+      }
+    }
+    moveFilmstripIndicator(activeThumb);
+
+    if (sceneChanged) {
+      // A picture already in cache swaps instantly; give it the same soft
+      // cross-blur a freshly loaded one gets from revealImage.
+      if (imgEl && imgEl.dataset.reveal !== 'pending') playSoftSwap([imgEl]);
+      playTextsReveal([dateEl, titleEl, descEl]);
+    }
+  }
+
+  // Sliding indicator (transitions.dev tabs pattern) under the active thumb.
+  function moveFilmstripIndicator(thumb) {
+    const indicator = document.querySelector('.filmstrip-indicator');
+    if (!indicator || !thumb || !thumb.offsetWidth) return;
+    const firstPlacement = !indicator.dataset.placed;
+    if (firstPlacement) indicator.classList.add('is-snapping');
+    indicator.style.setProperty('--indicator-x', `${thumb.offsetLeft}px`);
+    indicator.style.setProperty('--indicator-w', `${thumb.offsetWidth}px`);
+    if (firstPlacement) {
+      void indicator.offsetWidth;
+      indicator.classList.remove('is-snapping');
+      indicator.dataset.placed = 'true';
+    }
   }
 
   /**
@@ -4539,14 +4617,14 @@
     if (isMobileGraphContinuumActive() && continuum) {
       const article = getEl('mobile-graph-continuum-article');
       if (isMobileGraphContinuumStableReading() && article?.scrollTop > 2) {
-        article.scrollTo({ top: 0, behavior: 'smooth' });
+        article.scrollTo({ top: 0, behavior: scrollBehavior() });
       } else if (continuum.classList.contains('has-article')) {
         if (article) article.scrollTop = 0;
         startMobileGraphContinuumSettle(0, 0);
       }
       return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   }
 
   function initGraphControls() {
@@ -4788,7 +4866,7 @@
         parts[i] = parts[i].replace(regex, (match) => {
           const id = labelToId.get(match.toLowerCase());
           if (!id) return match;
-          return `<a href="javascript:void(0)" class="entity-mention-chip" data-entity-id="${id}" title="View ${match} in Knowledge Graph">${match}</a>`;
+          return `<a href="javascript:void(0)" class="entity-mention-chip" data-entity-id="${id}">${match}</a>`;
         });
       }
     }
@@ -4892,6 +4970,285 @@
     window.scrollTo(0, 0);
     initIcons();
     closeMobileSidebar();
+    playPageEnter(targetEl);
+  }
+
+  /* ==========================================================================
+     Page and content motion (patterns adapted from transitions.dev)
+     ========================================================================== */
+  let pageEnterAnimations = [];
+
+  // Page enter: each top-level block rises 8px out of a 3px blur, 40ms apart.
+  // Only the entrance animates; the old page leaves at once, so navigation
+  // never waits on an exit.
+  function playPageEnter(viewEl) {
+    pageEnterAnimations.forEach((animation) => animation.cancel());
+    pageEnterAnimations = [];
+    if (!canAnimate(viewEl)) return;
+
+    const rows = viewEl.querySelectorAll('.storyflow-editorial-row');
+    const parts = (rows.length ? Array.from(rows) : Array.from(viewEl.children))
+      .filter((el) => el.getClientRects().length > 0)
+      .slice(0, 6);
+    const duration = motion.ms('medium');
+    const stagger = motion.ms('stagger');
+    const easing = motion.ease('smooth-out');
+    const distance = motion.px('--distance-base');
+    const blur = motion.px('--blur-medium');
+    parts.forEach((el, index) => {
+      pageEnterAnimations.push(el.animate([
+        { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
+        { opacity: 1, transform: 'none', filter: 'blur(0px)' }
+      ], { duration, delay: Math.min(index, 3) * stagger, easing, fill: 'backwards' }));
+    });
+  }
+
+  // Text swap soft: content replaced in place cross-blurs, with no movement.
+  function playSoftSwap(elements) {
+    const duration = motion.ms('fast');
+    const blur = motion.px('--blur-small');
+    elements.forEach((el) => {
+      if (!canAnimate(el)) return;
+      el.animate([
+        { opacity: 0, filter: `blur(${blur}px)` },
+        { opacity: 1, filter: 'blur(0px)' }
+      ], { duration, easing: motion.ease('in-out') });
+    });
+  }
+
+  // Texts reveal: stacked lines rise 12px out of a blur, staggered.
+  function playTextsReveal(elements) {
+    const duration = motion.ms('very-slow');
+    const stagger = motion.ms('stagger');
+    const distance = motion.px('--distance-medium');
+    const blur = motion.px('--blur-medium');
+    elements.filter(Boolean).forEach((el, index) => {
+      if (!canAnimate(el)) return;
+      el.animate([
+        { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
+        { opacity: 1, transform: 'none', filter: 'blur(0px)' }
+      ], { duration, delay: index * stagger, easing: motion.ease('smooth-out'), fill: 'backwards' });
+    });
+  }
+
+  // Skeleton reveal for images. A picture that is already decoded shows at
+  // once; one still loading waits behind a pulsing frame and then fades in.
+  function revealImage(img, host = img?.parentElement) {
+    if (!img || !img.getAttribute('src')) return;
+    const finish = () => {
+      if (img.dataset.reveal === 'pending') img.dataset.reveal = 'shown';
+      host?.classList.remove('is-media-loading');
+    };
+    if (img.complete && img.naturalWidth > 0) {
+      if (img.dataset.reveal === 'pending') finish();
+      return;
+    }
+    img.classList.add('is-swapping');
+    img.dataset.reveal = 'pending';
+    void img.offsetWidth;
+    img.classList.remove('is-swapping');
+    host?.classList.add('is-media-loading');
+    img.addEventListener('load', finish, { once: true });
+    img.addEventListener('error', finish, { once: true });
+  }
+
+  function initImageReveals() {
+    document.querySelectorAll(
+      '.infobox-media img, .storyflow-row-media img, .filmstrip-thumb img'
+    ).forEach((img) => revealImage(img));
+  }
+
+  // Back to top only shows once there is somewhere to go back to.
+  function initBackToTopVisibility() {
+    const btn = getEl('btn-back-to-top');
+    if (!btn) return;
+    let frame = null;
+    const sync = () => {
+      frame = null;
+      btn.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.6);
+    };
+    window.addEventListener('scroll', () => {
+      if (frame === null) frame = requestAnimationFrame(sync);
+    }, { passive: true });
+    sync();
+  }
+
+  /* Entity preview bubble (transitions.dev tooltip pattern): one bubble for
+     every entity link, with a hover-intent delay before the first appear,
+     a quick hide, and a glide between links while it is open. */
+  function initEntityPreview() {
+    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    const SHOW_DELAY_MS = 350;
+    const HIDE_GRACE_MS = 120;
+    const GAP_PX = 8;
+    const EDGE_PX = 16;
+    const MAX_WIDTH_PX = 320;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'entity-preview';
+    bubble.id = 'entity-preview';
+    bubble.setAttribute('role', 'tooltip');
+    bubble.setAttribute('aria-hidden', 'true');
+    bubble.dataset.show = 'false';
+    bubble.innerHTML = `
+      <div class="entity-preview-inner">
+        <div class="entity-preview-media"><img alt="" decoding="async" /></div>
+        <div class="entity-preview-body">
+          <div class="entity-preview-kind"></div>
+          <div class="entity-preview-title"></div>
+          <div class="entity-preview-text"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(bubble);
+
+    const inner = bubble.querySelector('.entity-preview-inner');
+    const media = bubble.querySelector('.entity-preview-media');
+    const image = media.querySelector('img');
+    const kindEl = bubble.querySelector('.entity-preview-kind');
+    const titleEl = bubble.querySelector('.entity-preview-title');
+    const textEl = bubble.querySelector('.entity-preview-text');
+    const excerptCache = new Map();
+    let showTimer = null;
+    let hideTimer = null;
+    let currentChip = null;
+    let pointer = { x: 0, y: 0 };
+
+    const isShowing = () => bubble.dataset.show === 'true';
+
+    function excerptFor(model) {
+      if (excerptCache.has(model.id)) return excerptCache.get(model.id);
+      const scratch = document.createElement('div');
+      scratch.innerHTML = model.html || '';
+      const first = Array.from(scratch.querySelectorAll('p'))
+        .map((p) => p.textContent.replace(/\s+/g, ' ').trim())
+        .find((text) => text.length > 40) || scratch.textContent.replace(/\s+/g, ' ').trim();
+      let text = first || '';
+      if (text.length > 220) text = `${text.slice(0, 220).replace(/\s+\S*$/, '')}…`;
+      excerptCache.set(model.id, text);
+      return text;
+    }
+
+    function fill(entityId) {
+      const model = getEntityArticleModel(entityId);
+      if (!model) return false;
+      const node = getKnowledgeIndex()?.nodesById.get(model.id);
+      const kind = node?.type || '';
+      kindEl.textContent = kind;
+      kindEl.style.display = kind ? '' : 'none';
+      bubble.style.setProperty('--preview-kind-color', getCategoryColor(kind));
+      titleEl.textContent = model.label;
+      textEl.textContent = excerptFor(model);
+      if (model.imagePath) {
+        if (image.getAttribute('src') !== model.imagePath) image.src = model.imagePath;
+        media.style.display = '';
+      } else {
+        image.removeAttribute('src');
+        media.style.display = 'none';
+      }
+      return true;
+    }
+
+    function anchorRect(chip) {
+      const rects = Array.from(chip.getClientRects());
+      return rects.find((r) => pointer.y >= r.top - 2 && pointer.y <= r.bottom + 2) || rects[0] || chip.getBoundingClientRect();
+    }
+
+    function place(chip) {
+      const entityId = chip.getAttribute('data-entity-id');
+      if (!entityId || !fill(entityId)) return;
+      currentChip = chip;
+      chip.setAttribute('aria-describedby', bubble.id);
+
+      const width = Math.min(MAX_WIDTH_PX, window.innerWidth - EDGE_PX * 2);
+      bubble.style.setProperty('--preview-w', `${width}px`);
+      const height = Math.ceil(inner.getBoundingClientRect().height);
+      const r = anchorRect(chip);
+      const fitsBelow = r.bottom + GAP_PX + height <= window.innerHeight - EDGE_PX;
+      const y = fitsBelow ? r.bottom + GAP_PX : Math.max(EDGE_PX, r.top - GAP_PX - height);
+      const x = Math.max(EDGE_PX, Math.min(window.innerWidth - EDGE_PX - width, r.left + r.width / 2 - width / 2));
+      const origin = `${Math.round(r.left + r.width / 2 - x)}px ${fitsBelow ? '0%' : '100%'}`;
+
+      const apply = () => {
+        bubble.style.setProperty('--preview-h', `${height}px`);
+        bubble.style.setProperty('--preview-x', `${Math.round(x)}px`);
+        bubble.style.setProperty('--preview-y', `${Math.round(y)}px`);
+        bubble.style.setProperty('--preview-origin', origin);
+      };
+
+      if (isShowing()) {
+        apply();
+        playSoftSwap([inner]);
+      } else {
+        // Snap the geometry while hidden so only the appear plays.
+        bubble.classList.add('is-placing');
+        apply();
+        void bubble.offsetWidth;
+        bubble.classList.remove('is-placing');
+        bubble.dataset.show = 'true';
+        bubble.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    function hide() {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      showTimer = null;
+      hideTimer = null;
+      if (currentChip) currentChip.removeAttribute('aria-describedby');
+      currentChip = null;
+      bubble.dataset.show = 'false';
+      bubble.setAttribute('aria-hidden', 'true');
+    }
+
+    function request(chip, delay) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+      if (chip === currentChip && isShowing()) return;
+      clearTimeout(showTimer);
+      if (isShowing() || delay <= 0) {
+        place(chip);
+      } else {
+        showTimer = setTimeout(() => place(chip), delay);
+      }
+    }
+
+    function release() {
+      clearTimeout(showTimer);
+      showTimer = null;
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hide, HIDE_GRACE_MS);
+    }
+
+    document.addEventListener('pointermove', (e) => {
+      pointer = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (chip) request(chip, SHOW_DELAY_MS);
+    });
+    document.addEventListener('pointerout', (e) => {
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (!chip) return;
+      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+      release();
+    });
+    document.addEventListener('focusin', (e) => {
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (chip && chip.matches(':focus-visible')) request(chip, 0);
+    });
+    document.addEventListener('focusout', (e) => {
+      if (e.target.closest?.('.entity-mention-chip')) release();
+    });
+    document.addEventListener('click', hide, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hide();
+    });
+    window.addEventListener('scroll', () => {
+      if (showTimer || isShowing()) hide();
+    }, { passive: true, capture: true });
+    window.addEventListener('resize', hide, { passive: true });
   }
 
   function getEntityArticleModel(entityId) {
@@ -4958,14 +5315,19 @@
       image: getEl('view-entity-img'),
       markdown: getEl('view-entity-markdown')
     });
+    revealImage(getEl('view-entity-img'));
   }
 
   function activateEntityTocLink(entityId) {
     const tocLink = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
     if (tocLink) {
       tocLink.classList.add('active');
-      const parentDetails = tocLink.closest('details');
-      if (parentDetails) parentDetails.open = true;
+      let parentDetails = tocLink.closest('details');
+      while (parentDetails) {
+        parentDetails.open = true;
+        parentDetails.dataset.expanded = 'true';
+        parentDetails = parentDetails.parentElement?.closest('details');
+      }
     }
     return tocLink;
   }
@@ -5001,7 +5363,7 @@
     if (tocLink) {
       const sidebar = getEl('wiki-sidebar');
       if (sidebar?.classList.contains('is-open')) {
-        tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        tocLink.scrollIntoView({ behavior: scrollBehavior(), block: 'nearest' });
       }
     }
 
@@ -5021,16 +5383,20 @@
 
   function toggleTheme() {
     const newTheme = state.theme === 'dark' ? 'light' : 'dark';
-    state.theme = newTheme;
-    document.documentElement.setAttribute('data-theme', newTheme);
-    const themeIcon = getEl('icon-theme');
-    if (themeIcon) {
-      themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
-      if (window.lucide) window.lucide.createIcons();
-    }
-    if (state.sidebarGraph) {
-      configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
-      if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+    const apply = () => {
+      state.theme = newTheme;
+      document.documentElement.setAttribute('data-theme', newTheme);
+      if (state.sidebarGraph) {
+        configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
+        if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+      }
+    };
+    // The whole page, graph canvas included, cross-fades between themes in one
+    // motion instead of each surface switching on its own.
+    if (document.startViewTransition && !prefersReducedMotion()) {
+      document.startViewTransition(apply);
+    } else {
+      apply();
     }
   }
 
@@ -5204,9 +5570,31 @@
     const langDropdown = getEl('lang-dropdown');
     
     if (btnLang && langDropdown && langContainer) {
+      let closeTimer = null;
+      const openLang = () => {
+        clearTimeout(closeTimer);
+        langDropdown.classList.remove('is-closing');
+        langDropdown.classList.add('is-open');
+        btnLang.setAttribute('aria-expanded', 'true');
+      };
+      // Menu dropdown close: shrink to 0.99 and fade, faster than it opened.
+      const closeLang = () => {
+        if (!langDropdown.classList.contains('is-open')) return;
+        langDropdown.classList.add('is-closing');
+        langDropdown.classList.remove('is-open');
+        btnLang.setAttribute('aria-expanded', 'false');
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => langDropdown.classList.remove('is-closing'), motion.ms('quick'));
+      };
+      btnLang.setAttribute('aria-haspopup', 'true');
+      btnLang.setAttribute('aria-expanded', 'false');
       btnLang.addEventListener('click', (e) => {
         e.stopPropagation();
-        langDropdown.classList.toggle('is-open');
+        if (langDropdown.classList.contains('is-open')) closeLang();
+        else openLang();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLang();
       });
       
       const langItems = langDropdown.querySelectorAll('.wiki-dropdown-item:not(.disabled)');
@@ -5219,15 +5607,17 @@
             langItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             renderBookArticle();
+            const bookView = getEl('view-book');
+            if (bookView?.classList.contains('active')) {
+              playSoftSwap(Array.from(bookView.querySelectorAll('.article-h1, .prose')));
+            }
           }
-          langDropdown.classList.remove('is-open');
+          closeLang();
         });
       });
 
       document.addEventListener('click', (e) => {
-        if (!langContainer.contains(e.target)) {
-          langDropdown.classList.remove('is-open');
-        }
+        if (!langContainer.contains(e.target)) closeLang();
       });
     }
 

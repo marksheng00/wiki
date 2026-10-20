@@ -16,7 +16,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=91" />
+  <link rel="stylesheet" href="./style.css?v=92" />
 </head>
 <body>
 
@@ -74,7 +74,10 @@
         </div>
       </div>
       <button id="btn-theme-toggle" class="wiki-icon-btn" aria-label="Toggle Theme">
-        <i data-lucide="moon" style="width:18px;height:18px;" id="icon-theme"></i>
+        <span class="icon-swap" aria-hidden="true">
+          <i data-lucide="moon" data-icon-state="light" style="width:18px;height:18px;"></i>
+          <i data-lucide="sun" data-icon-state="dark" style="width:18px;height:18px;"></i>
+        </span>
       </button>
     </div>
   </header>
@@ -714,6 +717,6 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
-  <script src="./app.js?v=96" defer></script>
+  <script src="./app.js?v=97" defer></script>
 </body>
 </html>

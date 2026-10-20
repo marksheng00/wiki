@@ -48,6 +48,20 @@
   --blur-small: 2px;
   --blur-medium: 3px;
   --blur-large: 8px;
+
+  /* Readipedia motion roles, built only from the tokens above. Pick by what
+     the motion is for, not by how long it should feel:
+     - hover/press feedback: quick, ease-out
+     - surfaces that open (menus, previews, pages): fast/medium in, quick out
+     - panels and drawers: medium in, fast out */
+  --motion-hover: var(--duration-quick) var(--ease-out);
+  --motion-open: var(--duration-fast) var(--ease-smooth-out);
+  --motion-close: var(--duration-quick) var(--ease-smooth-out);
+  --motion-panel-open: var(--duration-medium) var(--ease-smooth-out);
+  --motion-panel-close: var(--duration-fast) var(--ease-smooth-out);
+
+  --border-color: var(--border-hairline);
+  --surface-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -81,6 +95,7 @@
   --text-muted: #6e7787;
   --accent: #60a5fa;
   --border-hairline: rgba(255, 255, 255, 0.06);
+  --surface-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 *, *::before, *::after {
@@ -90,8 +105,12 @@
 }
 
 html {
-  scroll-behavior: smooth;
   font-size: 16px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -104,7 +123,6 @@ body {
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background-color 150ms ease, color 150ms ease;
   overflow-x: hidden;
 }
 
@@ -159,7 +177,7 @@ svg.lucide, i[data-lucide] {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  transition: background-color 100ms ease;
+  transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
 }
 .btn-sidebar-toggle:hover {
   color: var(--text-primary);
@@ -206,7 +224,7 @@ svg.lucide, i[data-lucide] {
   cursor: pointer;
   padding: 0.35rem;
   border-radius: 6px;
-  transition: background-color 100ms ease, color 100ms ease;
+  transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
 }
 .wiki-icon-btn:hover {
   color: var(--text-primary);
@@ -223,23 +241,32 @@ svg.lucide, i[data-lucide] {
   right: 0;
   margin-top: 0.3rem;
   background: var(--bg-page);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border: none;
+  border-radius: 10px;
+  box-shadow: var(--surface-shadow);
   min-width: 160px;
   display: flex;
   flex-direction: column;
   padding: 0.35rem;
+  /* Menu dropdown (transitions.dev): grows from the trigger's corner, opens
+     slower than it closes, and closes to a barely smaller scale. */
+  transform-origin: top right;
+  transform: scale(var(--scale-medium));
   opacity: 0;
-  transform: translateY(-5px);
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--motion-close), opacity var(--motion-close), visibility 0s linear var(--duration-quick);
   z-index: 1000;
 }
 .wiki-dropdown-menu.is-open {
+  transform: scale(1);
   opacity: 1;
-  transform: translateY(0);
+  visibility: visible;
   pointer-events: auto;
+  transition: transform var(--motion-open), opacity var(--motion-open), visibility 0s;
+}
+.wiki-dropdown-menu.is-closing {
+  transform: scale(var(--scale-tiny));
 }
 .wiki-dropdown-item {
   padding: 0.45rem 0.6rem;
@@ -247,7 +274,7 @@ svg.lucide, i[data-lucide] {
   color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
 }
 .wiki-dropdown-item:hover:not(.disabled) {
   background: var(--bg-hover);
@@ -262,9 +289,6 @@ svg.lucide, i[data-lucide] {
   opacity: 0.4;
   cursor: not-allowed;
 }
-[data-theme="dark"] .wiki-dropdown-menu {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
 
 .wiki-qr-container {
   position: relative;
@@ -274,26 +298,33 @@ svg.lucide, i[data-lucide] {
   position: absolute;
   top: 100%;
   right: 50%;
-  transform: translateX(50%) translateY(-5px);
+  /* Hover popover: a tooltip-style delayed appear, instant leave. */
+  translate: 50% 0;
+  transform-origin: top center;
+  scale: var(--scale-small);
   margin-top: 0.5rem;
   background: var(--bg-page);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: var(--surface-shadow);
   padding: 0.8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--motion-close), scale var(--motion-close), visibility 0s linear var(--duration-quick);
   z-index: 1000;
 }
-.wiki-qr-container:hover .wiki-qr-popover {
+.wiki-qr-container:hover .wiki-qr-popover,
+.wiki-qr-container:focus-within .wiki-qr-popover {
   opacity: 1;
-  transform: translateX(50%) translateY(0);
+  scale: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity var(--motion-open) var(--duration-micro), scale var(--motion-open) var(--duration-micro), visibility 0s linear var(--duration-micro);
 }
 .qr-img {
   width: 120px;
@@ -306,9 +337,6 @@ svg.lucide, i[data-lucide] {
   color: var(--text-muted);
   font-weight: 500;
   white-space: nowrap;
-}
-[data-theme="dark"] .wiki-qr-popover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 
@@ -338,7 +366,6 @@ svg.lucide, i[data-lucide] {
   background: var(--bg-page);
   border: none;
   padding: 2.5rem 1.25rem 2rem 2rem;
-  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .wiki-sidebar.collapsed {
   visibility: hidden;
@@ -385,7 +412,7 @@ svg.lucide, i[data-lucide] {
   z-index: 10;
   opacity: 0.35;
   color: var(--text-muted);
-  transition: opacity 160ms ease, color 160ms ease;
+  transition: opacity var(--motion-hover), color var(--motion-hover);
 }
 .btn-graph-expand svg {
   position: absolute;
@@ -394,7 +421,7 @@ svg.lucide, i[data-lucide] {
   width: 10px;
   height: 10px;
   display: block; /* Restore SVG */
-  transition: transform 160ms ease;
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
   transform-origin: bottom right;
 }
 .graph-control-mobile-morph {
@@ -546,7 +573,7 @@ svg.lucide, i[data-lucide] {
   text-decoration: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: color 100ms ease;
+  transition: color var(--motion-hover);
 }
 .nav-hub-item:hover {
   color: var(--accent);
@@ -585,7 +612,7 @@ details.toc-group > summary {
   top: 32px;
   z-index: 25;
   border-radius: 4px;
-  transition: color 100ms ease;
+  transition: color var(--motion-hover);
 }
 details.toc-group > summary::-webkit-details-marker {
   display: none;
@@ -593,13 +620,27 @@ details.toc-group > summary::-webkit-details-marker {
 details.toc-group > summary:hover {
   color: var(--accent);
 }
-details.toc-group > summary::after {
+details.toc-group > summary::after,
+details.toc-cat-details > summary::after {
   content: '▾';
-  font-size: 0.72rem;
+  display: inline-block;
   color: var(--text-muted);
+  transition: transform var(--motion-panel-close);
 }
-details.toc-group:not([open]) > summary::after {
-  content: '▸';
+details.toc-group > summary::after {
+  font-size: 0.72rem;
+}
+/* data-expanded flips at the start of the click, so the chevron turns with
+   the list instead of waiting for <details> to close at the end. */
+details.toc-group[data-expanded="false"] > summary::after,
+details.toc-cat-details[data-expanded="false"] > summary::after,
+details.toc-group:not([open]):not([data-expanded]) > summary::after,
+details.toc-cat-details:not([open]):not([data-expanded]) > summary::after {
+  transform: rotate(-90deg);
+}
+details.toc-group[data-expanded="true"] > summary::after,
+details.toc-cat-details[data-expanded="true"] > summary::after {
+  transition: transform var(--motion-panel-open);
 }
 
 .toc-title {
@@ -639,7 +680,7 @@ details.toc-cat-details > summary {
   top: 64px;
   z-index: 20;
   border-radius: 2px;
-  transition: color 100ms ease;
+  transition: color var(--motion-hover);
 }
 details.toc-cat-details > summary::-webkit-details-marker {
   display: none;
@@ -648,12 +689,7 @@ details.toc-cat-details > summary:hover {
   color: var(--accent);
 }
 details.toc-cat-details > summary::after {
-  content: '▾';
   font-size: 0.65rem;
-  color: var(--text-muted);
-}
-details.toc-cat-details:not([open]) > summary::after {
-  content: '▸';
 }
 
 .toc-cat-list {
@@ -680,7 +716,7 @@ details.toc-cat-details:not([open]) > summary::after {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 100ms ease;
+  transition: color var(--motion-hover);
 }
 .toc-item:hover {
   color: var(--accent);
@@ -741,7 +777,6 @@ details.toc-cat-details:not([open]) > summary::after {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   text-align: center;
-  transition: color 150ms ease, opacity 150ms ease;
 }
 
 /* Book overview vertical rhythm: every block below the masthead is sized in
@@ -847,7 +882,6 @@ details.toc-cat-details:not([open]) > summary::after {
   line-height: 1;
   margin-top: 0.95rem;
   margin-bottom: 0;
-  transition: opacity 160ms ease;
 }
 .wiki-infobox .infobox-cta-link {
   display: flex;
@@ -864,11 +898,16 @@ details.toc-cat-details:not([open]) > summary::after {
   width: 14px;
   height: 14px;
   margin-left: 4px;
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--motion-close);
 }
 /* UX: Strictly horizontal micro-interaction to preserve strict vertical typography bounds */
 .infobox-cta-link:hover .cta-hover-icon {
-  transform: translateX(2px);
+  transform: translate(var(--distance-micro), 0);
+  transition: transform var(--motion-open);
+}
+.infobox-cta-link:hover .cta-hover-icon[data-lucide="arrow-up-right"],
+.infobox-cta-link:hover svg.lucide-arrow-up-right {
+  transform: translate(2px, -2px);
 }
 
 /* Entity Editorial Hero Media (Right-Floating on Desktop, Same as Book Overview) */
@@ -1002,11 +1041,13 @@ details.toc-cat-details:not([open]) > summary::after {
   text-underline-offset: 3.5px;
   font-weight: 600;
   cursor: pointer;
-  padding: 1px 3px;
-  margin: 0 1px;
+  /* The hover tint bleeds 2px past the word; negative margins keep the
+     word spacing exactly as if the link were plain text. */
+  padding: 1px 2px;
+  margin: 0 -2px;
   border-radius: 4px;
   background: transparent;
-  transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
 }
 .entity-mention-chip:hover {
   background: rgba(37, 99, 235, 0.10);
@@ -1139,7 +1180,7 @@ details.toc-cat-details:not([open]) > summary::after {
   padding: 0 0.35rem;
   border-radius: 4px;
   flex-shrink: 0;
-  transition: color 100ms ease, background-color 100ms ease;
+  transition: color var(--motion-hover), background-color var(--motion-hover), transform var(--motion-hover);
 }
 .filmstrip-arrow-btn:hover {
   color: var(--text-primary);
@@ -1172,7 +1213,7 @@ details.toc-cat-details:not([open]) > summary::after {
   outline: none;
   flex-shrink: 0;
   opacity: 0.35;
-  transition: opacity 120ms ease;
+  transition: opacity var(--motion-hover);
   content-visibility: auto;
   contain-intrinsic-size: 96px 54px;
   contain: layout paint;
@@ -1228,7 +1269,7 @@ details.toc-cat-details:not([open]) > summary::after {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity 150ms ease;
+  transition: opacity var(--motion-hover), transform var(--duration-slow) var(--ease-smooth-out);
 }
 .storyflow-editorial-row:hover .storyflow-row-media img {
   opacity: 0.88;
@@ -1277,12 +1318,24 @@ details.toc-cat-details:not([open]) > summary::after {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 150ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 90;
+  /* Hidden near the top of the page; rises in once there is somewhere to go back to. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(var(--distance-base));
+  filter: blur(var(--blur-small));
+  transition: opacity var(--motion-close), transform var(--motion-close), filter var(--motion-close), color var(--motion-hover), visibility 0s linear var(--duration-quick);
 }
-.btn-top:hover {
+.btn-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  filter: blur(0);
+  transition: opacity var(--motion-open), transform var(--motion-open), filter var(--motion-open), color var(--motion-hover), visibility 0s;
+}
+.btn-top.is-visible:hover {
   color: var(--text-primary);
-  transform: translateY(-4px);
+  transform: translateY(calc(var(--distance-micro) * -1));
 }
 
 .btn-mobile-graph-launcher {
@@ -1325,17 +1378,15 @@ details.toc-cat-details:not([open]) > summary::after {
      sidebar slides left while a clip at that edge hides what has passed it,
      and the reading column moves with the same timing. The column always
      travels less than the sidebar's edge, so the two never overlap. */
-  body {
-    --panel-motion: 280ms cubic-bezier(0.2, 0, 0, 1);
-  }
+  /* Opening (sliding back out) takes a little longer than retracting. */
   .wiki-sidebar {
     clip-path: inset(0 0 0 0);
-    transition: transform var(--panel-motion), clip-path var(--panel-motion), visibility 0s;
+    transition: transform var(--motion-panel-open), clip-path var(--motion-panel-open), visibility 0s;
   }
   .wiki-sidebar.collapsed {
     transform: translateX(-100%);
     clip-path: inset(0 0 0 100%);
-    transition: transform var(--panel-motion), clip-path var(--panel-motion), visibility 0s linear 280ms;
+    transition: transform var(--motion-panel-close), clip-path var(--motion-panel-close), visibility 0s linear var(--duration-fast);
   }
   .wiki-header {
     padding-left: calc(var(--page-inset) + 2rem);
@@ -1351,7 +1402,7 @@ details.toc-cat-details:not([open]) > summary::after {
     width: calc(100% - var(--main-left));
     margin-left: var(--main-left);
     margin-right: 0;
-    transition: margin-left var(--panel-motion), width var(--panel-motion);
+    transition: margin-left var(--motion-panel-open), width var(--motion-panel-open);
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1360,6 +1411,9 @@ details.toc-cat-details:not([open]) > summary::after {
   }
   .wiki-main-article.wide-stage {
     max-width: 980px;
+  }
+  body.sidebar-collapsed .wiki-main-article {
+    transition: margin-left var(--motion-panel-close), width var(--motion-panel-close);
   }
 }
 
@@ -1429,7 +1483,8 @@ details.toc-cat-details:not([open]) > summary::after {
     transform: translateX(-100%);
     opacity: 1;
     pointer-events: none;
-    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    /* Closing is the default rule; .is-open carries the slower opening. */
+    transition: transform var(--motion-panel-close);
     display: flex;
     flex-direction: column;
     border: none;
@@ -1442,6 +1497,7 @@ details.toc-cat-details:not([open]) > summary::after {
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
+    transition: transform var(--motion-panel-open);
   }
   .wiki-sidebar.is-closing {
     z-index: 800;
@@ -1507,7 +1563,7 @@ details.toc-cat-details:not([open]) > summary::after {
     align-items: center;
     justify-content: flex-end;
     cursor: pointer;
-    transition: color 150ms ease;
+    transition: color var(--motion-hover);
   }
   .btn-sidebar-close:hover,
   .btn-sidebar-close:active {
@@ -1605,7 +1661,7 @@ details.toc-cat-details:not([open]) > summary::after {
     justify-content: center;
     cursor: pointer;
     opacity: 0.85;
-    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease, color 180ms ease;
+    transition: transform var(--motion-hover), opacity var(--motion-hover), color var(--motion-hover);
   }
   .btn-mobile-graph-launcher.is-graph-morphing {
     transition: none;
@@ -1847,7 +1903,7 @@ details.toc-cat-details:not([open]) > summary::after {
     transform: translate3d(0, var(--mobile-continuum-sheet-y), 0);
     pointer-events: auto;
     touch-action: pan-y;
-    transition: opacity 180ms ease-out;
+    transition: opacity var(--duration-quick) var(--ease-out);
     will-change: transform;
   }
   .mobile-graph-continuum-article::-webkit-scrollbar {
@@ -1880,11 +1936,211 @@ details.toc-cat-details:not([open]) > summary::after {
   }
 }
 
+/* ==========================================================================
+   Interaction patterns adapted from transitions.dev (Jakub Antalik).
+   Every value comes from the motion tokens in :root, which drop to 0ms under
+   prefers-reduced-motion.
+   ========================================================================== */
+
+/* Press feedback for small controls. */
+.btn-sidebar-toggle:active,
+.wiki-icon-btn:active,
+.filmstrip-arrow-btn:active {
+  transform: scale(var(--scale-large));
+}
+
+/* Icon swap: the theme button cross-blurs moon and sun in one slot. */
+.icon-swap {
+  display: inline-grid;
+  place-items: center;
+}
+.icon-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--duration-fast) var(--ease-in-out),
+    filter var(--duration-fast) var(--ease-in-out),
+    transform var(--duration-fast) var(--ease-in-out);
+}
+.icon-swap > [data-icon-state] {
+  opacity: 0;
+  filter: blur(var(--blur-small));
+  transform: scale(0.25);
+}
+[data-theme="light"] .icon-swap > [data-icon-state="light"],
+[data-theme="dark"] .icon-swap > [data-icon-state="dark"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
+/* Skeleton reveal for images: the frame pulses while the file loads, then
+   the picture cross-fades in through a soft blur. Images already in cache
+   never get the pending state, so they appear at once. */
+@keyframes media-pulse {
+  0%, 100% { background-color: var(--bg-subtle); }
+  50% { background-color: var(--bg-hover); }
+}
+.is-media-loading {
+  animation: media-pulse 1000ms ease-in-out infinite;
+}
+img[data-reveal] {
+  transition:
+    opacity var(--duration-slow) var(--ease-in-out),
+    filter var(--duration-slow) var(--ease-in-out);
+}
+img[data-reveal="pending"] {
+  opacity: 0;
+  filter: blur(var(--blur-small));
+}
+img[data-reveal="pending"].is-swapping {
+  transition: none;
+}
+
+/* Sliding indicator under the active storyline thumbnail. */
+.liblib-filmstrip-track {
+  position: relative;
+}
+.filmstrip-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: var(--indicator-w, 0px);
+  translate: var(--indicator-x, 0px) 0;
+  background: var(--text-primary);
+  border-radius: 1px;
+  pointer-events: none;
+  transition: translate var(--motion-open), width var(--motion-open);
+}
+.filmstrip-indicator.is-snapping {
+  transition: none;
+}
+
+/* Entity preview: one bubble shared by every entity link. It appears after a
+   short hover, disappears quickly, and when the pointer moves to another
+   link while it is open, the same bubble glides there and its content
+   cross-blurs instead of a new bubble popping up. */
+.entity-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1200;
+  width: var(--preview-w, 320px);
+  height: var(--preview-h, auto);
+  translate: var(--preview-x, 0px) var(--preview-y, 0px);
+  scale: var(--scale-small);
+  transform-origin: var(--preview-origin, 50% 0%);
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  box-shadow: var(--surface-shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--motion-close),
+    scale var(--motion-close),
+    visibility 0s linear var(--duration-quick),
+    translate var(--duration-fast) var(--ease-smooth-out),
+    height var(--duration-fast) var(--ease-smooth-out);
+}
+.entity-preview[data-show="true"] {
+  opacity: 1;
+  scale: 1;
+  visibility: visible;
+  transition:
+    opacity var(--motion-open),
+    scale var(--motion-open),
+    visibility 0s,
+    translate var(--duration-fast) var(--ease-smooth-out),
+    height var(--duration-fast) var(--ease-smooth-out);
+}
+.entity-preview.is-placing {
+  transition: none;
+}
+.entity-preview-inner {
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.75rem;
+}
+.entity-preview-media {
+  flex: 0 0 72px;
+  height: 96px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-subtle);
+}
+.entity-preview-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+}
+.entity-preview-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.entity-preview-kind {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.entity-preview-kind::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--preview-kind-color, var(--accent));
+}
+.entity-preview-title {
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.entity-preview-text {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+@media (hover: none), (max-width: 768px) {
+  .entity-preview {
+    display: none;
+  }
+}
+
+/* Theme switch: one cross-fade of the whole page (View Transitions). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-fast);
+  animation-timing-function: var(--ease-in-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wiki-sidebar,
   .wiki-sidebar.collapsed,
   .wiki-main-article,
   .wiki-main-article.wide-stage {
     transition: none !important;
+  }
+  .is-media-loading {
+    animation: none;
   }
 }

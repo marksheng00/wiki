@@ -2138,7 +2138,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     flex-direction: column;
     align-items: stretch;
   }
-  .detail-actions .detail-prompt {
+  .detail-actions .cta-beam {
     align-self: flex-start;
   }
   .detail-stage,
@@ -2812,7 +2812,82 @@ img[data-reveal="pending"].is-swapping {
     width: 100%;
     margin-top: 16px;
   }
-  #view-entity .entity-cta-link {
+  #view-entity .entity-cta-beam {
     margin-top: 16px;
   }
+}
+
+/* Readify call to action: a filled pill wrapped in the libraries.dev border
+   beam, so the jump to the full book is the most visible action on a page. */
+.cta-beam {
+  display: inline-flex;
+  flex: none;
+  border-radius: 20px;
+  vertical-align: middle;
+  --beam-strength: 1;
+}
+.readify-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 14px;
+  border-radius: 20px;
+  background: #17181c;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .12);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover), transform var(--motion-hover);
+}
+.readify-cta:hover { background: #2b2c32; color: #ffffff; text-decoration: none; }
+.readify-cta:active { transform: scale(var(--scale-medium)); }
+.readify-cta:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
+[data-theme="dark"] .readify-cta {
+  background: #f4f4f5;
+  color: #111113;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+[data-theme="dark"] .readify-cta:hover { background: #ffffff; color: #111113; }
+.readify-cta-icon { width: 16px; height: 16px; flex: none; }
+.readify-cta-arrow {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  opacity: .7;
+  transition: transform var(--duration-fast) var(--ease-smooth-out), opacity var(--motion-hover);
+}
+.readify-cta:hover .readify-cta-arrow { transform: translate(2px, -2px); opacity: 1; }
+
+/* Entity pages: a way back to the book's home page, above the title. */
+.detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  align-self: flex-start;
+  margin: 0 0 12px -8px;
+  padding: 0 10px 0 6px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  text-decoration: none;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
+}
+.detail-back:hover { background: var(--hover-bg); color: var(--text-primary); text-decoration: none; }
+.detail-back:active { background: var(--active-bg); }
+.detail-back-icon { width: 16px; height: 16px; transition: transform var(--duration-fast) var(--ease-smooth-out); }
+.detail-back:hover .detail-back-icon { transform: translateX(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .readify-cta:hover .readify-cta-arrow,
+  .detail-back:hover .detail-back-icon { transform: none; }
 }

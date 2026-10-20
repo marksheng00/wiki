@@ -127,6 +127,8 @@
     initBookTabs();
     initSearchPalette();
     initFooterLinks();
+    initReadifyCtas();
+    initEntityBackLink();
 
     // A view id in the URL is also an element id; keep the browser from
     // jumping to it, so every page opens at its title.
@@ -5631,6 +5633,25 @@
   }
 
   // Footer links reuse the sidebar entries.
+  // The Readify links carry the border beam (libraries.dev) so the jump out
+  // to the full book is the most visible action on a page.
+  function initReadifyCtas() {
+    if (!window.BorderBeam) return;
+    document.querySelectorAll('.cta-beam').forEach((el) => window.BorderBeam.mount(el));
+  }
+
+  function initEntityBackLink() {
+    const link = getEl('btn-entity-back');
+    if (!link) return;
+    const label = link.querySelector('span');
+    const title = getEl('article-h1')?.textContent.trim();
+    if (label && title) label.textContent = title;
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      getEl('btn-book-home')?.click();
+    });
+  }
+
   function initFooterLinks() {
     document.querySelectorAll('[data-footer-nav]').forEach((link) => {
       link.addEventListener('click', (e) => {

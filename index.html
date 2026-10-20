@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=97" />
+  <link rel="stylesheet" href="./style.css?v=98" />
 </head>
 <body>
 
@@ -366,7 +366,7 @@
             <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-background">Legacy</button>
             <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-author">Author</button>
           </div>
-          <a href="https://app.readifyai.com" class="infobox-cta-link detail-prompt" target="_blank" rel="noopener"><i data-lucide="book-open" class="detail-prompt-icon"></i><span>Read original at Readify</span></a>
+          <span class="cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
         </div>
 
         <!-- Book stage: cover, facts and the Readify link -->
@@ -419,6 +419,7 @@
       <!-- 2. DYNAMIC ENTITY DOSSIER ARTICLE -->
       <article id="view-entity" class="wiki-article-view" style="display:none;">
         <header class="article-masthead detail-head">
+          <a href="#" class="detail-back" id="btn-entity-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Nineteen Eighty-Four</span></a>
           <div class="detail-title-row">
             <h1 class="article-h1 detail-title" id="view-entity-title"></h1>
             <div class="detail-arrows">
@@ -434,7 +435,7 @@
           <div class="entity-media-wrap">
             <img id="view-entity-img" src="" alt="Entity visual still" decoding="async" loading="lazy" />
           </div>
-          <a href="https://app.readifyai.com" class="infobox-cta-link entity-cta-link detail-prompt" target="_blank" rel="noopener"><i data-lucide="book-open" class="detail-prompt-icon"></i><span>Read original at Readify</span></a>
+          <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
         </aside>
 
         <div class="prose markdown-prose" id="view-entity-markdown"></div>
@@ -747,9 +748,7 @@
         <div class="entity-media-wrap mobile-continuum-media-wrap">
           <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
         </div>
-        <a href="https://app.readifyai.com" class="infobox-cta-link entity-cta-link mobile-continuum-cta" target="_blank" rel="noopener">
-          <span>Read original at Readify</span><i data-lucide="arrow-up-right" class="cta-hover-icon"></i>
-        </a>
+        <span class="cta-beam mobile-continuum-cta"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
       </aside>
 
       <div id="mobile-continuum-markdown" class="prose markdown-prose mobile-continuum-markdown"></div>
@@ -779,6 +778,7 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
-  <script src="./app.js?v=101" defer></script>
+  <script src="./assets/vendor/border-beam.js?v=2" defer></script>
+  <script src="./app.js?v=102" defer></script>
 </body>
 </html>

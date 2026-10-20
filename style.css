@@ -3516,3 +3516,21 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 @media (max-width: 768px) {
   .wiki-sidebar .book-toc { display: none !important; }
 }
+
+/* Phone menu's graph preview: the morphing L was clipped by the preview's
+   rounded corner into a stray tick. Use the desktop corner arc, bent to the
+   same 14px radius, until the graph expands and the morph takes over. */
+@media (max-width: 768px) {
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand .graph-expand-icon,
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover .graph-expand-icon {
+    display: block;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    transform: none;
+  }
+}

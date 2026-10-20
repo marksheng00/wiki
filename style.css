@@ -3511,3 +3511,8 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   .wiki-sidebar.is-open .sidebar-graph-slot,
   .wiki-sidebar.is-open .wiki-nav-hub > * { transition: none !important; }
 }
+
+/* Phones drop the per-page contents lists (book sections, entry sections). */
+@media (max-width: 768px) {
+  .wiki-sidebar .book-toc { display: none !important; }
+}

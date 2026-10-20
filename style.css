@@ -3652,3 +3652,11 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 @media (prefers-reduced-motion: reduce) {
   #nav-get-app-label { animation: none; }
 }
+
+/* With the gradient text, "Open Readify" sits on the neutral grey of the
+   other header buttons; the colour lives in the letters only. */
+.nav-get-pro { background: var(--bg-hover); color: var(--text-primary); }
+.nav-get-pro:hover { background: var(--bg-hover-strong); }
+.nav-get-pro:active { background: var(--bg-pressed); }
+#nav-get-app-label { --wash-base: #6c6c6c; }
+[data-theme="dark"] #nav-get-app-label { --wash-base: #a0a0a0; }

@@ -301,14 +301,9 @@ svg.lucide, i[data-lucide] {
   padding: 2.5rem 1.25rem 2rem 2rem;
   transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* Collapsing fades the sidebar out in place (a small nudge, never off the
-   page) while the reading column glides to the page center. */
 .wiki-sidebar.collapsed {
-  transform: translateX(max(-12px, calc(-1 * var(--page-inset, 0px))));
-  opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: transform 220ms ease, opacity 220ms ease, visibility 0s linear 220ms;
 }
 
 .wiki-sidebar-sticky {
@@ -1285,6 +1280,22 @@ details.toc-cat-details:not([open]) > summary::after {
   body.sidebar-collapsed {
     --main-left: max(0px, calc((100vw - var(--main-max)) / 2));
   }
+  /* Collapse behaves like a drawer retracting into the page's left edge: the
+     sidebar slides left while a clip at that edge hides what has passed it,
+     and the reading column moves with the same timing. The column always
+     travels less than the sidebar's edge, so the two never overlap. */
+  body {
+    --panel-motion: 280ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .wiki-sidebar {
+    clip-path: inset(0 0 0 0);
+    transition: transform var(--panel-motion), clip-path var(--panel-motion), visibility 0s;
+  }
+  .wiki-sidebar.collapsed {
+    transform: translateX(-100%);
+    clip-path: inset(0 0 0 100%);
+    transition: transform var(--panel-motion), clip-path var(--panel-motion), visibility 0s linear 280ms;
+  }
   .wiki-header {
     padding-left: calc(var(--page-inset) + 2rem);
     padding-right: calc(var(--page-inset) + 2rem);
@@ -1299,7 +1310,7 @@ details.toc-cat-details:not([open]) > summary::after {
     width: calc(100% - var(--main-left));
     margin-left: var(--main-left);
     margin-right: 0;
-    transition: margin-left 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: margin-left var(--panel-motion), width var(--panel-motion);
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1824,5 +1835,14 @@ details.toc-cat-details:not([open]) > summary::after {
   /* Back to Top with Safe Area Inset */
   .btn-top {
     display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wiki-sidebar,
+  .wiki-sidebar.collapsed,
+  .wiki-main-article,
+  .wiki-main-article.wide-stage {
+    transition: none !important;
   }
 }

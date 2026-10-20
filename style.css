@@ -2915,7 +2915,7 @@ img[data-reveal="pending"].is-swapping {
     background: transparent;
     color: var(--text-muted);
     opacity: .6;
-    cursor: nwse-resize;
+    cursor: pointer;
     z-index: 11;
     -webkit-tap-highlight-color: transparent;
     transition: opacity var(--motion-hover), color var(--motion-hover);

@@ -3140,15 +3140,22 @@ img[data-reveal="pending"].is-swapping {
   .drawer-apps { display: none !important; }
 }
 
-/* Logo and desktop sidebar toggle share one slot. The toggle sits over the
-   mark and appears only on hover or keyboard focus (phones use the menu
-   button on the right). */
+/* Logo and desktop sidebar toggle (MiniMax pattern). Sidebar open: the
+   logo sits left and the toggle at the sidebar's right edge, so the header
+   row spans the same column as the sidebar. Sidebar closed: only the logo
+   shows; hovering its mark turns it into the toggle. Phones use the menu
+   button on the right instead. */
 .brand-combo { position: relative; display: flex; align-items: center; }
 .btn-sidebar-collapse { display: none; }
 @media (min-width: 769px) {
+  .brand-combo {
+    width: var(--sidebar-w);
+    margin-right: calc(var(--sidebar-gap) - 33px);
+  }
+  body.sidebar-collapsed .brand-combo { width: auto; margin-right: 0; }
   .btn-sidebar-collapse {
     position: absolute;
-    left: -4px;
+    right: 0;
     top: 50%;
     z-index: 1;
     display: inline-flex;
@@ -3161,17 +3168,25 @@ img[data-reveal="pending"].is-swapping {
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     cursor: pointer;
-    opacity: 0;
-    transition: opacity var(--duration-fast, 150ms) var(--ease-smooth-out), background-color var(--duration-fast, 150ms) var(--ease-smooth-out);
+    transition: opacity var(--duration-fast) var(--ease-smooth-out), background-color var(--duration-fast) var(--ease-smooth-out), color var(--duration-fast) var(--ease-smooth-out);
   }
   .btn-sidebar-collapse:hover,
-  .btn-sidebar-collapse:focus-visible { opacity: 1; background: var(--bg-hover); }
+  .btn-sidebar-collapse:focus-visible { background: var(--bg-hover); color: var(--text-primary); }
   .btn-sidebar-collapse:active { background: var(--bg-hover-strong); }
-  .wiki-logo .brand-mark { transition: opacity var(--duration-fast, 150ms) var(--ease-smooth-out); }
-  .brand-combo:has(.btn-sidebar-collapse:hover) .wiki-logo .brand-mark,
-  .brand-combo:has(.btn-sidebar-collapse:focus-visible) .wiki-logo .brand-mark { opacity: 0; }
+
+  body.sidebar-collapsed .btn-sidebar-collapse {
+    right: auto;
+    left: -4px;
+    color: var(--text-primary);
+    opacity: 0;
+  }
+  body.sidebar-collapsed .btn-sidebar-collapse:hover,
+  body.sidebar-collapsed .btn-sidebar-collapse:focus-visible { opacity: 1; }
+  .wiki-logo .brand-mark { transition: opacity var(--duration-fast) var(--ease-smooth-out); }
+  body.sidebar-collapsed .brand-combo:has(.btn-sidebar-collapse:hover) .wiki-logo .brand-mark,
+  body.sidebar-collapsed .brand-combo:has(.btn-sidebar-collapse:focus-visible) .wiki-logo .brand-mark { opacity: 0; }
 }
 
 /* Platform marks (Simple Icons, CC0; the Windows mark is drawn here). */

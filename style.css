@@ -1785,7 +1785,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     width: var(--sidebar-w);
     min-width: var(--sidebar-w);
     left: var(--page-inset);
-    clip-path: inset(0 -16px 0 0); /* room for the graph corner arc */
+    clip-path: inset(0 0 0 0);
     filter: none;
     transition:
       transform var(--panel-open-dur) var(--panel-ease),
@@ -2896,45 +2896,20 @@ img[data-reveal="pending"].is-swapping {
   #view-entity .entity-floating-media.is-imageless .entity-media-stack { width: 100%; }
 }
 
-/* Graph preview (desktop): the expand control is a short arc just outside
-   the preview's rounded corner, concentric with it, like the resize corner
-   of a window on iPad. It darkens and thickens on hover. Phones keep the
-   morphing corner button inside the preview. */
-.graph-corner-arc { display: none; }
+/* Graph preview (desktop): the original thin corner mark, tucked into the
+   bottom-right corner, now bent to the preview's 14px radius. Phones keep
+   the morphing corner. */
+.btn-graph-expand .graph-expand-icon { display: none; }
 @media (min-width: 769px) {
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand { display: none; }
-  .graph-corner-arc {
+  .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand .graph-expand-icon {
     display: block;
     position: absolute;
-    right: -8px;
-    bottom: -8px;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--text-muted);
-    opacity: .5;
-    cursor: pointer;
-    z-index: 11;
-    -webkit-tap-highlight-color: transparent;
-    transition: opacity var(--motion-hover), color var(--motion-hover);
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
   }
-  .graph-corner-arc svg {
-    display: block;
-    width: 40px;
-    height: 40px;
-    stroke-width: 1.75;
-    transition: stroke-width var(--duration-fast) var(--ease-smooth-out);
-  }
-  .sidebar-graph-slot:hover .graph-corner-arc { opacity: .9; }
-  .graph-corner-arc:hover { opacity: 1; color: var(--text-secondary); }
-  .graph-corner-arc:hover svg { stroke-width: 2.25; }
-  .sidebar-graph-slot:has(.sidebar-graph-container.is-expanded) .graph-corner-arc,
-  body.graph-is-expanded .graph-corner-arc { opacity: 0; pointer-events: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .graph-corner-arc:hover svg { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .readify-cta:hover .readify-cta-arrow,

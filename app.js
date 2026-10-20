@@ -4704,13 +4704,6 @@
   }
 
   function initGraphControls() {
-    getEl('btn-graph-corner-arc')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      // The arc sits outside the preview, so keep this click from reaching
-      // the "click outside closes the graph" handler.
-      e.stopPropagation();
-      getEl('btn-graph-expand')?.click();
-    });
     const expandBtn = getEl('btn-graph-expand');
     if (expandBtn) {
       const claimGraphMorphControl = (e) => {
@@ -4781,7 +4774,7 @@
       if (!state.isGraphExpanded) return;
       if (isMobileGraphContinuumActive()) return;
       const container = getEl('sidebar-graph-container');
-      if (container && !container.contains(e.target) && !e.target.closest?.('#btn-graph-corner-arc')) {
+      if (container && !container.contains(e.target)) {
         toggleGraphExpand(false);
       }
     });

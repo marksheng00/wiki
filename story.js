@@ -114,62 +114,106 @@
 
   const capitalise = (s) => (isZh() ? s : s.charAt(0).toUpperCase() + s.slice(1));
 
-  /* ---------- page 1: all storylines ---------- */
+  /* ---------- Storylines: one screening room ----------
+   * The current scene sits in the middle (picture beside its text), with
+   * arrows, swipe and the arrow keys to move; every scene waits below as a
+   * card in a strip that scrolls sideways.
+   */
 
-  function renderStorylineIndex() {
-    const list = el('story-line-list');
-    if (!list) return;
+  let currentScenePos = 0;
+  let stripBuilt = false;
+
+  function buildStrip() {
+    const strip = el('sl-strip');
+    if (!strip) return;
     const total = scenes().length;
     let html = '';
     for (let i = 0; i < total; i++) {
       const s = sceneAt(i);
-      html += `<li><a class="sl-row" href="#storyline/${s.index}" data-scene="${s.index}">
-        <span class="sl-num">${s.index}</span>
-        <span class="sl-thumb"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></span>
-        <span class="sl-body">
-          <span class="sl-date">${esc(capitalise(s.date))}</span>
-          <span class="sl-title">${esc(s.title)}</span>
-          <span class="sl-desc">${esc(s.description.replace(/\s+/g, ' '))}</span>
-        </span>
-      </a></li>`;
+      html += `<button type="button" class="sl-card" data-pos="${i}" aria-label="${esc(s.title)}">
+        <span class="sl-card-media"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></span>
+        <span class="sl-card-meta"><span class="sl-card-num">${s.index}</span><span class="sl-card-title">${esc(s.title)}</span></span>
+      </button>`;
     }
-    list.innerHTML = html;
+    strip.innerHTML = html;
+    stripBuilt = true;
   }
 
-  /* ---------- page 2: one scene ---------- */
-
-  let currentScenePos = -1;
-
-  function renderScene(pos) {
+  function renderScene(pos, options = {}) {
     const s = sceneAt(pos);
     if (!s) return false;
+    const changed = pos !== currentScenePos;
     currentScenePos = pos;
+    if (!stripBuilt) buildStrip();
     const total = scenes().length;
-    el('scene-title').textContent = s.title;
-    el('scene-sub').textContent = capitalise(s.date);
-    const img = el('scene-img');
-    img.src = s.image;
-    img.alt = s.title;
-    el('scene-text').innerHTML = paragraphs(s.description);
 
-    const prev = sceneAt(pos - 1);
-    const next = sceneAt(pos + 1);
-    el('btn-scene-prev').disabled = !prev;
-    el('btn-scene-next').disabled = !next;
-    el('btn-scene-prev').setAttribute('aria-label', t('prev'));
-    el('btn-scene-next').setAttribute('aria-label', t('next'));
-    el('scene-pager').innerHTML = [
-      prev ? pagerCard(prev, 'prev') : '<span></span>',
-      next ? pagerCard(next, 'next') : '<span></span>'
-    ].join('');
+    const img = el('sl-img');
+    if (img.getAttribute('src') !== s.image) img.src = s.image;
+    img.alt = s.title;
+    el('sl-count').textContent = `${s.index} / ${total}`;
+    el('sl-date').textContent = capitalise(s.date);
+    el('sl-title').textContent = s.title;
+    el('sl-text').innerHTML = paragraphs(s.description);
+
+    el('sl-prev').disabled = pos <= 0;
+    el('sl-next').disabled = pos >= total - 1;
+    el('sl-prev').setAttribute('aria-label', t('prev'));
+    el('sl-next').setAttribute('aria-label', t('next'));
+
+    if (changed && !options.instant) {
+      const stage = el('sl-stage');
+      stage.classList.remove('is-swapping');
+      void stage.offsetWidth;
+      stage.classList.add('is-swapping');
+    }
+
+    const strip = el('sl-strip');
+    let active = null;
+    strip.querySelectorAll('.sl-card').forEach((card) => {
+      const on = Number(card.dataset.pos) === pos;
+      card.classList.toggle('is-active', on);
+      card.setAttribute('aria-current', on ? 'true' : 'false');
+      if (on) active = card;
+    });
+    if (active && strip.clientWidth) {
+      const left = active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2;
+      strip.scrollTo({ left, behavior: options.instant ? 'auto' : 'smooth' });
+    }
     return true;
   }
 
-  function pagerCard(s, dir) {
-    return `<a class="story-pager-card is-${dir}" href="#storyline/${s.index}" data-scene="${s.index}">
-      <span class="story-pager-label">${esc(t(dir))}</span>
-      <span class="story-pager-title">${esc(s.title)}</span>
-    </a>`;
+  // Moving between scenes rewrites the address in place, so Back leaves the
+  // page instead of stepping back through every scene.
+  function goTo(pos) {
+    if (pos < 0 || pos >= scenes().length || pos === currentScenePos) return;
+    renderScene(pos);
+    const id = `storyline/${scenes()[pos].index}`;
+    try { history.replaceState({ type: 'story', id, timestamp: Date.now() }, '', `#${id}`); } catch (e) { /* ignore */ }
+  }
+
+  function bindTheater() {
+    const strip = el('sl-strip');
+    strip?.addEventListener('click', (e) => {
+      const card = e.target.closest('.sl-card');
+      if (card) goTo(Number(card.dataset.pos));
+    });
+    el('sl-prev')?.addEventListener('click', () => goTo(currentScenePos - 1));
+    el('sl-next')?.addEventListener('click', () => goTo(currentScenePos + 1));
+    el('sl-strip-prev')?.addEventListener('click', () => strip.scrollBy({ left: -strip.clientWidth * 0.8, behavior: 'smooth' }));
+    el('sl-strip-next')?.addEventListener('click', () => strip.scrollBy({ left: strip.clientWidth * 0.8, behavior: 'smooth' }));
+
+    // Swipe the picture left or right to change scene.
+    const media = el('sl-media');
+    let start = null;
+    media?.addEventListener('pointerdown', (e) => { start = { x: e.clientX, y: e.clientY }; });
+    media?.addEventListener('pointerup', (e) => {
+      if (!start) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      start = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(currentScenePos + (dx < 0 ? 1 : -1));
+    });
+    media?.addEventListener('pointercancel', () => { start = null; });
   }
 
   /* ---------- page 3: StoryFlow cards (markup lives in index.html) ---------- */
@@ -261,8 +305,8 @@
     if (pos < 0) return false;
     await bridge().prepare?.();
     activateNav('btn-storylines-hub');
-    renderScene(pos);
-    bridge().showView?.('view-story-scene', { fromHistory: true });
+    bridge().showView?.('view-storyline', { fromHistory: true });
+    renderScene(pos, { instant: true });
     if (!options.fromHistory) bridge().pushHistory?.(`storyline/${scenes()[pos].index}`);
     return true;
   }
@@ -295,7 +339,9 @@
   }
 
   function bind() {
-    renderStorylineIndex();
+    buildStrip();
+    renderScene(0, { instant: true });
+    bindTheater();
     wireFlowCards();
 
     document.addEventListener('click', (e) => {
@@ -324,30 +370,22 @@
         bridge().prepare?.().then(() => bridge().openEntity?.(chip.dataset.entity));
         return;
       }
-      if (e.target.closest('#btn-scene-prev')) step(-1);
-      else if (e.target.closest('#btn-scene-next')) step(1);
-      else if (e.target.closest('#scene-back')) { e.preventDefault(); el('btn-storylines-hub')?.click(); }
-      else if (e.target.closest('#flow-back')) { e.preventDefault(); el('btn-storyflow-hub')?.click(); }
+      if (e.target.closest('#flow-back')) { e.preventDefault(); el('btn-storyflow-hub')?.click(); }
     });
 
     window.addEventListener('keydown', (e) => {
-      if (!isShown('view-story-scene') || e.altKey || e.metaKey || e.ctrlKey) return;
+      if (!isShown('view-storyline') || e.altKey || e.metaKey || e.ctrlKey) return;
       if (/input|textarea|select/i.test(document.activeElement?.tagName || '')) return;
-      if (e.key === 'ArrowLeft') step(-1);
-      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') goTo(currentScenePos - 1);
+      if (e.key === 'ArrowRight') goTo(currentScenePos + 1);
     });
 
     document.addEventListener('readipedia:entity', (e) => appendRelatedFlows(e.detail));
     document.addEventListener('readipedia:lang', () => {
-      renderStorylineIndex();
-      if (isShown('view-story-scene') && currentScenePos >= 0) renderScene(currentScenePos);
+      buildStrip();
+      renderScene(currentScenePos, { instant: true });
       if (isShown('view-story-flow') && currentFlowId) renderFlow(currentFlowId);
     });
-  }
-
-  function step(delta) {
-    const next = scenes()[currentScenePos + delta];
-    if (next) openScene(next.index);
   }
 
   window.StoryPages = { isRoute, route, openScene, openFlow };

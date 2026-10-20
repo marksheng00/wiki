@@ -279,7 +279,7 @@
   // node and attribute is remembered, so switching back needs no table.
   const i18nText = new WeakMap();
   const i18nAttr = new WeakMap();
-  const I18N_SKIP = '#lang-dropdown, .prose, .reading-section > h2, .entity-toc-link, #entity-toc, .filmstrip-thumb, .storyflow-editorial-row, #cmdk-list, #storyline-hero-date, #storyline-hero-title, #view-entity-title, #mobile-continuum-title, #nav-get-app-label, script, style';
+  const I18N_SKIP = '#lang-dropdown, #view-library, .prose, .reading-section > h2, .entity-toc-link, #entity-toc, .filmstrip-thumb, .storyflow-editorial-row, #cmdk-list, #storyline-hero-date, #storyline-hero-title, #view-entity-title, #mobile-continuum-title, #nav-get-app-label, script, style';
   const I18N_ATTRS = ['aria-label', 'title', 'alt', 'placeholder'];
 
   function swapString(current, record) {
@@ -454,6 +454,7 @@
       renderMarkdown
     };
     const initialRoute = getRouteFromHash();
+    state.libraryCategory = initialRoute.category || 'all';
     initNavHistory(initialRoute);
     initEntityMentionInteractions();
     initEntityPreview();
@@ -476,8 +477,11 @@
       if (/^#view-/.test(location.hash)) window.scrollTo({ top: 0, behavior: 'instant' });
     }, { once: true });
 
-    // A fresh visit lands on the book overview; a refresh restores the page in the URL.
-    if (initialRoute.type === 'view') {
+    // A fresh visit lands on the library; a refresh restores the page in the URL.
+    if (initialRoute.id === 'view-library') {
+      initBalancedTopologyGraph(createGraphContext('overview'));
+      openLibrary({ fromHistory: true, category: state.libraryCategory });
+    } else if (initialRoute.type === 'view') {
       initBalancedTopologyGraph(createGraphContext('overview'));
       showArticleView(initialRoute.id, { fromHistory: true });
     } else if (initialRoute.type === 'story') {
@@ -704,6 +708,36 @@
 
     showArticleView('view-book', options);
   }
+
+  // The library is the site's front page; the logo leads here. It has two
+  // kinds of page: the books home (#books) and one page per category
+  // (#categories/<id>). library.js draws them; this file routes to them.
+  function libraryCategoryFromHash(hash) {
+    if (hash === '' || hash === 'books' || hash === 'view-library') return 'all';
+    const match = /^categories\/([a-z-]+)$/.exec(hash);
+    return match ? match[1] : null;
+  }
+  const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;
+  const libraryHash = () => (state.libraryCategory && state.libraryCategory !== 'all' ? `#categories/${state.libraryCategory}` : '#books');
+
+  async function openLibrary(options = {}) {
+    await prepareForPageNavigation();
+    clearEntityFocus();
+    clearActiveNav();
+    state.libraryCategory = options.category || 'all';
+    // Moving between library pages is a filter change, like the library on
+    // transitions.dev: the page stays put and only its books change.
+    const inPlace = getEl('view-library')?.classList.contains('active') || false;
+    showArticleView('view-library', { ...options, inPlace });
+    document.dispatchEvent(new CustomEvent('readipedia:library', { detail: { category: state.libraryCategory, inPlace } }));
+  }
+  // library.js navigates through these, so its links share this history.
+  window.ReadipediaNav = {
+    openLibrary: (category) => openLibrary({ category }),
+    openBook: () => openBookOverview(),
+    openEntity: async (id) => { await prepareForPageNavigation(); openEntityArticle(id); },
+    libraryCategory: () => state.libraryCategory || 'all'
+  };
 
   /**
    * Navigation Hub: Direct Full-Page Switches for Book Overview, Storylines & StoryFlow
@@ -5245,8 +5279,9 @@
     if (isNavigatingFromHistory) return;
     if (id === 'view-entity') return;
     try {
-      const hash = (type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book';
+      const hash = id === 'view-library' ? libraryHash() : ((type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book');
       const stateData = { type, id, timestamp: Date.now() };
+      if (id === 'view-library') stateData.category = state.libraryCategory || 'all';
       if (window.location.hash !== hash) {
         window.history.pushState(stateData, '', hash);
       } else {
@@ -5266,13 +5301,17 @@
           window.StoryPages?.route(stateData.id, { fromHistory: true });
         } else if (stateData?.type === 'entity' && stateData.id && stateData.id !== 'view-entity') {
           openEntityArticle(stateData.id, { fromHistory: true });
+        } else if (stateData?.type === 'view' && stateData.id === 'view-library') {
+          openLibrary({ fromHistory: true, category: stateData.category });
         } else if (stateData?.type === 'view' && stateData.id && stateData.id !== 'view-entity') {
           showArticleView(stateData.id, { fromHistory: true });
         } else if (stateData?.type === 'book') {
           openBookOverview({ fromHistory: true });
         } else {
           const hash = (window.location.hash || '').replace(/^#/, '');
-          if (hash === 'view-storyline' || hash === 'view-storyflow') {
+          if (isLibraryHash(hash)) {
+            openLibrary({ fromHistory: true, category: libraryCategoryFromHash(hash) });
+          } else if (hash === 'view-storyline' || hash === 'view-storyflow') {
             showArticleView(hash, { fromHistory: true });
           } else if (window.StoryPages?.isRoute(hash)) {
             window.StoryPages.route(hash, { fromHistory: true });
@@ -5292,7 +5331,9 @@
       if (route.type === 'book') {
         window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', '#book');
       } else {
-        window.history.replaceState({ type: route.type, id: route.id, timestamp: Date.now() }, '', `#${route.id}`);
+        const stateData = { type: route.type, id: route.id, timestamp: Date.now() };
+        if (route.category) stateData.category = route.category;
+        window.history.replaceState(stateData, '', route.id === 'view-library' ? libraryHash() : `#${route.id}`);
       }
     } catch (e) {}
   }
@@ -5302,6 +5343,9 @@
     try {
       hash = decodeURIComponent(hash);
     } catch (e) {}
+    if (isLibraryHash(hash)) {
+      return { type: 'view', id: 'view-library', category: libraryCategoryFromHash(hash) };
+    }
     if (hash === 'view-storyline' || hash === 'view-storyflow') {
       return { type: 'view', id: hash };
     }
@@ -5466,6 +5510,8 @@
       targetEl.style.display = 'block';
       targetEl.classList.add('active');
     }
+    document.body.classList.toggle('is-library', targetViewId === 'view-library');
+    if (targetViewId === 'view-library') clearActiveNav();
     getEl('book-toc')?.__sync?.(targetViewId === 'view-book');
     if (targetViewId !== 'view-entity') getEl('entity-toc')?.__sync?.(false);
 
@@ -5483,10 +5529,10 @@
       updateNavHistory(type, targetViewId);
     }
 
-    window.scrollTo(0, 0);
+    if (!options.inPlace) window.scrollTo(0, 0);
     initIcons();
     closeMobileSidebar();
-    playPageEnter(targetEl);
+    if (!options.inPlace) playPageEnter(targetEl);
   }
 
   /* ==========================================================================
@@ -6704,7 +6750,7 @@
       wikiLogo.addEventListener('click', (e) => {
         e.preventDefault();
         if (document.body.classList.contains('menu-open')) requestMobileSidebarState(false);
-        openBookOverview();
+        openLibrary();
       });
     }
 

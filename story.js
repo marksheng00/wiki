@@ -1,15 +1,16 @@
 /* Storyline and StoryFlow pages.
  *
- * Four pages, all drawn from the raw data as it is:
- *   #view-storyline        every storyline scene, top to bottom, in story order
- *   #storyline/<index>     one scene: picture, date, full text, previous / next
- *   #view-storyflow        the StoryFlow cards (already in index.html)
- *   #storyflow/<id>        one StoryFlow read as one article, node by node
+ *   #view-storyline        one screening page: the current scene (picture and
+ *                          text) with every scene as a card in a strip below;
+ *                          swipe the picture, use the arrow keys or pick a card
+ *   #storyline/<index>     the same page, opened at that scene
+ *   #view-storyflow        the StoryFlow cards (markup in index.html)
+ *   #storyflow/<id>        one StoryFlow read as one article
  *
  * Entity pages get a "Related StoryFlow" block from the links Readify lists on
- * each entity page (data/entity_storyflows.js).
- * app.js owns routing and history; it calls StoryPages.route() for the
- * storyline/ and storyflow/ hashes and exposes window.ReadipediaBridge.
+ * each entity page (data/entity_storyflows.js). All text comes from the raw
+ * data as it is. app.js owns routing and history; it calls StoryPages.route()
+ * for the storyline/ and storyflow/ hashes and exposes window.ReadipediaBridge.
  */
 (function () {
   'use strict';
@@ -19,32 +20,14 @@
 
   const UI = {
     en: {
-      scene: (n, total) => `Scene ${n} of ${total}`,
-      backLines: 'All storylines',
-      backFlows: 'All StoryFlow',
-      prev: 'Previous scene',
-      next: 'Next scene',
-      step: (n, total) => `${n} / ${total}`,
-      inFlow: 'In this StoryFlow',
-      relatedEntities: 'Entries in this StoryFlow',
       relatedFlows: 'Related StoryFlow',
       missing: 'This part has no text in the source data.',
-      enOnly: 'This StoryFlow has no Chinese text yet; the original English follows.',
-      read: 'Read'
+      enOnly: 'This StoryFlow has no Chinese text yet; the original English follows.'
     },
     zh: {
-      scene: (n, total) => `第 ${n} 幕，共 ${total} 幕`,
-      backLines: '全部故事线',
-      backFlows: '全部故事视角',
-      prev: '上一幕',
-      next: '下一幕',
-      step: (n, total) => `${n} / ${total}`,
-      inFlow: '本故事视角包含',
-      relatedEntities: '本故事视角涉及的词条',
       relatedFlows: '相关故事视角',
       missing: '原始数据中这一节没有正文。',
-      enOnly: '本故事视角暂无中文版，以下为英文原文。',
-      read: '阅读'
+      enOnly: '本故事视角暂无中文版，以下为英文原文。'
     }
   };
 
@@ -132,7 +115,7 @@
       const s = sceneAt(i);
       html += `<button type="button" class="sl-card" data-pos="${i}" aria-label="${esc(s.title)}">
         <span class="sl-card-media"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></span>
-        <span class="sl-card-meta"><span class="sl-card-num">${s.index}</span><span class="sl-card-title">${esc(s.title)}</span></span>
+        <span class="sl-card-title">${esc(s.title)}</span>
       </button>`;
     }
     strip.innerHTML = html;
@@ -145,20 +128,14 @@
     const changed = pos !== currentScenePos;
     currentScenePos = pos;
     if (!stripBuilt) buildStrip();
-    const total = scenes().length;
 
     const img = el('sl-img');
     if (img.getAttribute('src') !== s.image) img.src = s.image;
     img.alt = s.title;
-    el('sl-count').textContent = `${s.index} / ${total}`;
     el('sl-date').textContent = capitalise(s.date);
     el('sl-title').textContent = s.title;
     el('sl-text').innerHTML = paragraphs(s.description);
 
-    el('sl-prev').disabled = pos <= 0;
-    el('sl-next').disabled = pos >= total - 1;
-    el('sl-prev').setAttribute('aria-label', t('prev'));
-    el('sl-next').setAttribute('aria-label', t('next'));
 
     if (changed && !options.instant) {
       const stage = el('sl-stage');
@@ -197,10 +174,6 @@
       const card = e.target.closest('.sl-card');
       if (card) goTo(Number(card.dataset.pos));
     });
-    el('sl-prev')?.addEventListener('click', () => goTo(currentScenePos - 1));
-    el('sl-next')?.addEventListener('click', () => goTo(currentScenePos + 1));
-    el('sl-strip-prev')?.addEventListener('click', () => strip.scrollBy({ left: -strip.clientWidth * 0.8, behavior: 'smooth' }));
-    el('sl-strip-next')?.addEventListener('click', () => strip.scrollBy({ left: strip.clientWidth * 0.8, behavior: 'smooth' }));
 
     // Swipe the picture left or right to change scene.
     const media = el('sl-media');
@@ -261,14 +234,6 @@
     }).join('');
 
     return true;
-  }
-
-  function entityEntries() {
-    return Array.from(document.querySelectorAll('.entity-toc-link')).map((link) => ({
-      id: link.dataset.id,
-      label: link.dataset.en || link.textContent.trim(),
-      name: link.textContent.trim()
-    }));
   }
 
   /* ---------- related StoryFlow on entity pages ---------- */
@@ -346,31 +311,11 @@
 
     document.addEventListener('click', (e) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-      const sceneLink = e.target.closest('[data-scene]');
-      if (sceneLink) {
-        e.preventDefault();
-        openScene(sceneLink.dataset.scene);
-        return;
-      }
       const flowLink = e.target.closest('a[data-flow]');
       if (flowLink) {
         e.preventDefault();
         openFlow(flowLink.dataset.flow);
-        return;
       }
-      const nodeLink = e.target.closest('#flow-toc a[data-node]');
-      if (nodeLink) {
-        e.preventDefault();
-        el(`sf-node-${nodeLink.dataset.node}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      const chip = e.target.closest('.sf-chip[data-entity]');
-      if (chip) {
-        e.preventDefault();
-        bridge().prepare?.().then(() => bridge().openEntity?.(chip.dataset.entity));
-        return;
-      }
-      if (e.target.closest('#flow-back')) { e.preventDefault(); el('btn-storyflow-hub')?.click(); }
     });
 
     window.addEventListener('keydown', (e) => {

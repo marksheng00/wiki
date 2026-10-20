@@ -33,7 +33,6 @@
   line-height: 16px;
   color: var(--text-label);
 }
-.sl-count { color: var(--text-primary); font-weight: 500; font-variant-numeric: tabular-nums; }
 .sl-heading {
   margin: 0 0 16px;
   font-size: 24px;
@@ -44,7 +43,6 @@
 }
 .sl-text { max-width: none; }
 .sl-text p { white-space: pre-line; }
-.detail-arrow:disabled { opacity: .35; cursor: default; }
 
 /* A changed scene cross-fades in place. */
 @media (prefers-reduced-motion: no-preference) {
@@ -94,8 +92,6 @@
   transition: box-shadow var(--duration-quick) var(--ease-out), opacity var(--duration-quick) var(--ease-out);
 }
 .sl-card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sl-card-meta { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
-.sl-card-num { flex: none; font-size: var(--text-ui-small); line-height: 16px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .sl-card-title {
   font-size: var(--text-ui);
   line-height: 18px;
@@ -110,26 +106,6 @@
 .sl-card.is-active .sl-card-title { color: var(--text-primary); font-weight: 500; }
 .sl-card:focus-visible { outline: none; }
 .sl-card:focus-visible .sl-card-media { box-shadow: 0 0 0 2px var(--brand-blue); }
-.sl-strip-arrow {
-  position: absolute;
-  top: 40px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--surface-btn-bg);
-  box-shadow: var(--surface-btn-shadow);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-.sl-strip-arrow:hover { background: var(--surface-btn-hover); }
-.sl-strip-arrow.is-prev { left: -16px; }
-.sl-strip-arrow.is-next { right: -16px; }
 
 /* Desktop: StoryFlow sections use the entity page layout, picture floated
    right at the same width, text across the full column. */
@@ -153,35 +129,10 @@
   #view-storyline .sl-strip-wrap { order: 2; margin-top: 16px; }
   #view-storyline .sl-copy { order: 3; margin-top: 20px; }
   .sl-heading { font-size: 20px; line-height: 28px; margin-bottom: 12px; }
-  .sl-strip-arrow { display: none; }
   .sl-card { width: 132px; }
 }
 
 /* ---------- One StoryFlow: an article, node after node ---------- */
-.sf-toc {
-  max-width: var(--prose-w);
-  margin: 0 0 8px;
-  padding: 0;
-}
-.sf-toc-label {
-  margin: 0 0 8px;
-  font-size: var(--text-ui-small);
-  line-height: 16px;
-  color: var(--text-label);
-}
-.sf-toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.sf-toc a {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  padding: 4px 0;
-  font-size: var(--body-size);
-  line-height: 22px;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-.sf-toc a:hover { text-decoration: underline; text-decoration-color: var(--link-decoration); }
-.sf-toc-num { width: 14px; flex: none; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 .sf-node {
   max-width: none;
@@ -191,16 +142,6 @@
   scroll-margin-top: calc(var(--header-h) + 16px);
 }
 .sf-node + .sf-node { margin-top: 16px; border-top: 1px solid var(--border-hairline); }
-.sf-node-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  align-items: baseline;
-  font-size: var(--text-ui-small);
-  line-height: 16px;
-  color: var(--text-label);
-}
-.sf-step { color: var(--text-primary); font-weight: 500; font-variant-numeric: tabular-nums; }
 .sf-node-title {
   margin: 8px 0 20px;
   font-size: 24px;
@@ -221,9 +162,6 @@
 .sf-missing { color: var(--text-muted) !important; }
 .story-flow-view .lang-fallback-note { max-width: var(--prose-w); margin-top: 24px; }
 
-.sf-related { max-width: var(--prose-w); margin-top: 48px; }
-.sf-related:empty { display: none; }
-.sf-related-title,
 .story-related h2 {
   margin: 0 0 12px;
   font-size: 16px;
@@ -231,20 +169,6 @@
   line-height: 24px;
   color: var(--text-primary);
 }
-.sf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.sf-chip {
-  display: inline-flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: var(--radius-pill);
-  background: var(--chip-bg);
-  color: var(--text-primary);
-  font-size: var(--text-ui);
-  text-decoration: none;
-  transition: background-color var(--motion-hover, 150ms);
-}
-.sf-chip:hover { background: var(--active-bg); text-decoration: none; }
 
 /* ---------- Related StoryFlow at the end of an entity page ---------- */
 .story-related { clear: both; margin-top: 40px; }

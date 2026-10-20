@@ -11,7 +11,8 @@
   }
 
   const state = {
-    theme: 'light',
+    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+    themePref: 'system',
     font: 'sans',
     lang: 'en',
     currentEntityId: null,
@@ -209,7 +210,8 @@
     'Site language': '界面语言',
     'Theme': '外观',
     'Light': '浅色',
-    'Dark': '深色'
+    'Dark': '深色',
+    'System': '跟随系统'
   };
   const LANG_KEY = 'readipedia-lang';
   const zhStore = () => window.WIKI_STORE_ZH || null;
@@ -407,6 +409,7 @@
 
   function init() {
     state.lang = readStoredLang();
+    initTheme();
     renderBookArticle();
     initGraphControls();
     initNavHubClicks();
@@ -6373,31 +6376,34 @@
     showArticleView('view-entity', { ...options, fromHistory: true });
   }
 
+  // Theme preference: light, dark, or follow the system (the default).
+  const THEME_KEY = 'readipedia-theme';
+  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+  function readThemePref() {
+    try {
+      const value = localStorage.getItem(THEME_KEY);
+      if (value === 'light' || value === 'dark') return value;
+    } catch (e) { /* storage blocked */ }
+    return 'system';
+  }
+
+  function resolveTheme(pref) {
+    if (pref === 'light' || pref === 'dark') return pref;
+    return darkQuery && darkQuery.matches ? 'dark' : 'light';
+  }
+
   function syncThemeButtons() {
     document.querySelectorAll('[data-set-theme]').forEach((btn) => {
-      btn.setAttribute('aria-pressed', String(btn.dataset.setTheme === state.theme));
+      btn.setAttribute('aria-pressed', String(btn.dataset.setTheme === state.themePref));
     });
   }
 
-  // Phone menu: language, theme and search live in the drawer, not the header.
-  function initDrawerSettings() {
-    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
-      btn.addEventListener('click', () => setLanguage(btn.dataset.setLang));
-    });
-    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (btn.dataset.setTheme !== state.theme) toggleTheme();
-      });
-    });
-    syncThemeButtons();
-    getEl('btn-drawer-search')?.addEventListener('click', () => {
-      requestMobileSidebarState(false);
-      getEl('btn-search')?.click();
-    });
-  }
-
-  function toggleTheme() {
-    const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+  function applyTheme(newTheme, animate = true) {
+    if (newTheme === state.theme && document.documentElement.getAttribute('data-theme') === newTheme) {
+      syncThemeButtons();
+      return;
+    }
     const apply = () => {
       state.theme = newTheme;
       document.documentElement.setAttribute('data-theme', newTheme);
@@ -6409,11 +6415,47 @@
     };
     // The whole page, graph canvas included, cross-fades between themes in one
     // motion instead of each surface switching on its own.
-    if (document.startViewTransition && !prefersReducedMotion()) {
+    if (animate && document.startViewTransition && !prefersReducedMotion()) {
       document.startViewTransition(apply);
     } else {
       apply();
     }
+  }
+
+  function setThemePref(pref) {
+    state.themePref = pref;
+    try {
+      if (pref === 'system') localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, pref);
+    } catch (e) { /* storage blocked */ }
+    applyTheme(resolveTheme(pref));
+    syncThemeButtons();
+  }
+
+  function initTheme() {
+    state.themePref = readThemePref();
+    applyTheme(resolveTheme(state.themePref), false);
+    const onSystemChange = () => {
+      if (state.themePref === 'system') applyTheme(resolveTheme('system'));
+    };
+    if (darkQuery?.addEventListener) darkQuery.addEventListener('change', onSystemChange);
+    else if (darkQuery?.addListener) darkQuery.addListener(onSystemChange);
+  }
+
+  // Phone menu: language and theme live in the drawer, not the header.
+  function initDrawerSettings() {
+    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
+      btn.addEventListener('click', () => setLanguage(btn.dataset.setLang));
+    });
+    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
+      btn.addEventListener('click', () => setThemePref(btn.dataset.setTheme));
+    });
+    syncThemeButtons();
+  }
+
+  // Header button: flips between light and dark and remembers the choice.
+  function toggleTheme() {
+    setThemePref(state.theme === 'dark' ? 'light' : 'dark');
   }
 
   function closeMobileSidebar(options = {}) {

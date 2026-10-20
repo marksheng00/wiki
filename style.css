@@ -6,6 +6,7 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
   --font-reading: var(--font-sans);
 
@@ -245,7 +246,7 @@
   --tt-bg: #202020;
   --tt-fg: #fbfbfb;
   --text-body: #ededed;
-  --text-label: #767676;
+  --text-label: #8a8a8a;
   --link-decoration: rgba(255, 255, 255, 0.3);
   --chip-bg: rgba(255, 255, 255, 0.05);
   --hover-bg: rgba(255, 255, 255, 0.05);
@@ -3542,4 +3543,15 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     background: transparent;
     transform: none;
   }
+}
+
+/* Phone menu surface, as on transitions.dev: the page shows through a 90%
+   wash with a 20px blur, instead of a solid sheet. */
+@media (max-width: 768px) {
+  .wiki-sidebar {
+    background: rgba(var(--bg-page-rgb), 0.9);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+  .wiki-sidebar .mobile-sidebar-header { background: transparent; }
 }

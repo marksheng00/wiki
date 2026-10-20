@@ -2423,6 +2423,37 @@
     transitionGraphToLayout(graph, plan.transition, fitCamera(), transitionDuration);
   }
 
+  function fitGraphTooltipToViewport(clientX, clientY) {
+    const tooltip = document.querySelector('#canvas-sidebar-graph .graph-tooltip');
+    const host = tooltip?.parentElement;
+    const clip = getEl('sidebar-graph-container');
+    if (!tooltip || !host || !clip || !tooltip.textContent || !tooltip.offsetWidth) return;
+    const padding = 8;
+    const hostRect = host.getBoundingClientRect();
+    const clipRect = clip.getBoundingClientRect();
+    const bounds = {
+      left: Math.max(clipRect.left, 0) + padding,
+      top: Math.max(clipRect.top, 0) + padding,
+      right: Math.min(clipRect.right, window.innerWidth) - padding,
+      bottom: Math.min(clipRect.bottom, window.innerHeight) - padding
+    };
+    // Wrap long labels to the visible window instead of the hidden canvas width.
+    tooltip.style.maxWidth = `${Math.max(0, Math.min(240, bounds.right - bounds.left))}px`;
+    const width = tooltip.offsetWidth;
+    const height = tooltip.offsetHeight;
+    // Keep ForceGraph's horizontal anchoring and default below-cursor
+    // placement, flipping above or clamping only when it would be clipped.
+    const anchorX = clientX - width * ((clientX - hostRect.left) / Math.max(1, hostRect.width));
+    const left = Math.max(bounds.left, Math.min(anchorX, bounds.right - width));
+    const below = clientY + 21;
+    const above = clientY - height - 8;
+    let top = hostRect.bottom - clientY < 100 ? above : below;
+    if (top + height > bounds.bottom) top = above;
+    if (top < bounds.top && below + height <= bounds.bottom) top = below;
+    top = Math.max(bounds.top, Math.min(top, bounds.bottom - height));
+    tooltip.style.transform = `translate(${left - clientX}px, ${top - clientY}px)`;
+  }
+
   function initBalancedTopologyGraph(graphContext, options = {}) {
     const container = getEl('canvas-sidebar-graph');
     if (!window.ForceGraph || !container) return;
@@ -2441,6 +2472,14 @@
       container.addEventListener('mouseleave', () => {
         graphState.hoverNode = null;
       });
+      // ForceGraph places its label tooltip against the full render canvas,
+      // which is larger than the clipped preview window. Re-fit it to the
+      // visible window after ForceGraph positions it (and once more after the
+      // label text updates on the next frame).
+      container.addEventListener('pointermove', (event) => {
+        fitGraphTooltipToViewport(event.clientX, event.clientY);
+        requestAnimationFrame(() => fitGraphTooltipToViewport(event.clientX, event.clientY));
+      }, { passive: true });
 
       const Graph = ForceGraph()(container)
         .width(renderSize.width)

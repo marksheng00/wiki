@@ -2988,8 +2988,8 @@ img[data-reveal="pending"].is-swapping {
 .book-toc-link {
   display: flex;
   align-items: center;
-  height: 28px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 6px 12px;
   font-size: 13px;
   line-height: 16px;
   color: var(--text-secondary);
@@ -3001,9 +3001,9 @@ img[data-reveal="pending"].is-swapping {
 .book-toc-link:hover { color: var(--text-primary); text-decoration: none; }
 .book-toc-link.is-current { color: var(--text-primary); font-weight: 500; }
 @media (max-width: 768px) {
-  .book-toc-link { height: 40px; font-size: 16px; }
-  .book-toc-indicator { height: 40px; }
+  .book-toc-link { min-height: 40px; font-size: 16px; line-height: 20px; }
 }
 .book-cta-beam { margin-top: 4px; }
 .book-media-stack .infobox-media { margin-bottom: 0; }
 .book-toc:not(.is-open) .book-toc-inner { visibility: hidden; transition: visibility 0s var(--acc-collapse); }
+.entity-section-toc .book-toc-inner { margin-left: 30px; }

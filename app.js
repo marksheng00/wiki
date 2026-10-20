@@ -5029,6 +5029,7 @@
       targetEl.classList.add('active');
     }
     getEl('book-toc')?.__sync?.(targetViewId === 'view-book');
+    if (targetViewId !== 'view-entity') getEl('entity-toc')?.__sync?.(false);
 
     const mainArticle = document.querySelector('.wiki-main-article');
     if (mainArticle) {
@@ -5381,6 +5382,7 @@
     });
     revealImage(getEl('view-entity-img'));
     renderEntityDetailChrome(model.id);
+    renderEntityToc(model.id);
   }
 
   // Entries in sidebar order, used by the prev/next arrows and the search palette.
@@ -5434,11 +5436,12 @@
     });
   }
 
-  /* Book contents in the sidebar: nested under Overview while the book is
-     open, it stays on screen as you read, and a bar marks the section in view. */
-  function initBookToc() {
-    const toc = getEl('book-toc');
-    if (!toc) return;
+  /* Contents lists in the sidebar. The book's sits under Overview and an
+     entry's under its own link; each opens only while its page shows, stays
+     on screen as you read, and a bar marks the section in view. */
+  const sectionTocs = new Set();
+
+  function bindSectionToc(toc) {
     const links = Array.from(toc.querySelectorAll('.book-toc-link'));
     const indicator = toc.querySelector('.book-toc-indicator');
     let lockUntil = 0;
@@ -5470,45 +5473,119 @@
       window.scrollTo({ top, behavior: scrollBehavior() });
     };
 
-    links.forEach((link) => {
-      link.addEventListener('click', async (event) => {
-        event.preventDefault();
-        const view = getEl('view-book');
-        if (!view?.classList.contains('active')) {
-          getEl('btn-book-home')?.click();
-          setTimeout(() => scrollToSection(link), 350);
-          return;
-        }
-        scrollToSection(link);
-        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
-      });
-    });
-
-    let frame = 0;
     const spy = () => {
-      frame = 0;
-      if (!toc.classList.contains('is-open') || performance.now() < lockUntil) return;
+      if (!toc.classList.contains('is-open') || !toc.isConnected || performance.now() < lockUntil) return;
       const line = getHeaderHeight() + 120;
       let current = links[0];
       links.forEach((link) => {
         const section = getEl(link.dataset.target);
         if (section && section.getBoundingClientRect().top <= line) current = link;
       });
-      if (!current.classList.contains('is-current')) mark(current);
+      if (current && !current.classList.contains('is-current')) mark(current);
     };
-    window.addEventListener('scroll', () => {
-      if (!frame) frame = requestAnimationFrame(spy);
-    }, { passive: true });
     const place = () => mark(links.find((l) => l.classList.contains('is-current')) || links[0], true);
-    window.addEventListener('resize', place);
-    if (document.fonts?.ready) document.fonts.ready.then(place);
-    requestAnimationFrame(place);
 
+    toc.__scrollTo = scrollToSection;
+    toc.__spy = spy;
+    toc.__place = place;
     toc.__sync = (open) => {
       toc.classList.toggle('is-open', open);
       if (open) requestAnimationFrame(() => { place(); spy(); });
     };
+    sectionTocs.add(toc);
+    return links;
+  }
+
+  function initSectionTocTracking() {
+    let frame = 0;
+    window.addEventListener('scroll', () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        sectionTocs.forEach((toc) => toc.__spy());
+      });
+    }, { passive: true });
+    const placeAll = () => sectionTocs.forEach((toc) => toc.isConnected && toc.__place());
+    window.addEventListener('resize', placeAll);
+    if (document.fonts?.ready) document.fonts.ready.then(placeAll);
+  }
+
+  function initBookToc() {
+    const toc = getEl('book-toc');
+    if (!toc) return;
+    initSectionTocTracking();
+    const links = bindSectionToc(toc);
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (!getEl('view-book')?.classList.contains('active')) {
+          getEl('btn-book-home')?.click();
+          setTimeout(() => toc.__scrollTo(link), 350);
+          return;
+        }
+        toc.__scrollTo(link);
+        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
+      });
+    });
+    requestAnimationFrame(toc.__place);
     toc.__sync(Boolean(getEl('view-book')?.classList.contains('active')));
+  }
+
+  // Builds the entry's contents from its section headings and nests it under
+  // the entry's own sidebar link.
+  function renderEntityToc(entityId) {
+    getEl('entity-toc')?.remove();
+    sectionTocs.forEach((toc) => { if (!toc.isConnected) sectionTocs.delete(toc); });
+    const markdown = getEl('view-entity-markdown');
+    const anchor = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
+    if (!markdown || !anchor) return;
+    let headings = Array.from(markdown.querySelectorAll('h2'));
+    if (headings.length < 2) headings = Array.from(markdown.querySelectorAll('h2, h3'));
+    if (!headings.length) return;
+
+    const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section';
+    const used = new Set();
+    const items = headings.map((heading) => {
+      let id = `entry-${slug(heading.textContent)}`;
+      while (used.has(id)) id += '-x';
+      used.add(id);
+      heading.id = id;
+      return { id, label: heading.textContent.trim() };
+    });
+    const article = getEl('view-entity');
+    const lead = markdown.firstElementChild;
+    const leadIsHeading = lead && headings.includes(lead);
+    if (!leadIsHeading) items.unshift({ id: 'view-entity', label: 'Summary' });
+
+    const toc = document.createElement('div');
+    toc.className = 'book-toc entity-section-toc';
+    toc.id = 'entity-toc';
+    const nav = document.createElement('nav');
+    nav.className = 'book-toc-inner';
+    nav.setAttribute('aria-label', 'On this page');
+    nav.innerHTML = '<span class="book-toc-indicator" aria-hidden="true"></span>';
+    items.forEach((item, index) => {
+      const link = document.createElement('a');
+      link.className = `book-toc-link${index === 0 ? ' is-current' : ''}`;
+      link.href = `#${item.id}`;
+      link.dataset.target = item.id;
+      link.textContent = item.label;
+      nav.appendChild(link);
+    });
+    toc.appendChild(nav);
+    anchor.after(toc);
+    if (article && !article.id) article.id = 'view-entity';
+
+    const links = bindSectionToc(toc);
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toc.__scrollTo(link);
+        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
+      });
+    });
+    requestAnimationFrame(() => toc.__sync(true));
   }
 
   /* Search palette (Ctrl K): pages and every entity, filtered as you type. */

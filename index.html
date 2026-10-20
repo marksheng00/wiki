@@ -32,9 +32,13 @@
   <link rel="stylesheet" href="./promo-banner.css?v=3" />
   <script>
     (function () {
+      // Closing hides the promo card for a day; ?promo=<variant> always shows it.
       var closed = false;
-      try { closed = localStorage.getItem('readipedia-promo-free-2026') === 'closed'; } catch (e) {}
-      if (!closed) document.documentElement.classList.add('has-promo');
+      try {
+        var at = Number(localStorage.getItem('readipedia-promo-closed-at'));
+        closed = at > 0 && Date.now() - at < 864e5;
+      } catch (e) {}
+      if (!closed || /[?&]promo=/.test(location.search)) document.documentElement.classList.add('has-promo');
     })();
   </script>
 </head>
@@ -728,6 +732,6 @@
   <script src="./data/library.js?v=2" defer></script>
   <script src="./library.js?v=14" defer></script>
   <script src="./app.js?v=131" defer></script>
-  <script src="./promo-banner.js?v=3" defer></script>
+  <script src="./promo-banner.js?v=4" defer></script>
 </body>
 </html>

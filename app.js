@@ -443,6 +443,16 @@
     initDetailsAnimation();
     initMobileGraphContinuum();
     initMobileGestures();
+    // story.js renders the storyline and StoryFlow pages through these.
+    window.ReadipediaBridge = {
+      isZh,
+      prepare: prepareForPageNavigation,
+      clearActiveNav,
+      showView: showArticleView,
+      pushHistory: (id) => updateNavHistory('story', id),
+      openEntity: (id) => openEntityArticle(id),
+      renderMarkdown
+    };
     const initialRoute = getRouteFromHash();
     initNavHistory(initialRoute);
     initEntityMentionInteractions();
@@ -470,6 +480,9 @@
     if (initialRoute.type === 'view') {
       initBalancedTopologyGraph(createGraphContext('overview'));
       showArticleView(initialRoute.id, { fromHistory: true });
+    } else if (initialRoute.type === 'story') {
+      initBalancedTopologyGraph(createGraphContext('overview'));
+      window.StoryPages.route(initialRoute.id, { fromHistory: true });
     } else if (initialRoute.type === 'entity') {
       initBalancedTopologyGraph(createGraphContext('entity', initialRoute.id), { animate: false });
       openEntityArticle(initialRoute.id, { fromHistory: true, animateGraph: false });
@@ -5232,7 +5245,7 @@
     if (isNavigatingFromHistory) return;
     if (id === 'view-entity') return;
     try {
-      const hash = type === 'entity' ? `#${id}` : (type === 'view' ? `#${id}` : '#book');
+      const hash = (type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book';
       const stateData = { type, id, timestamp: Date.now() };
       if (window.location.hash !== hash) {
         window.history.pushState(stateData, '', hash);
@@ -5249,7 +5262,9 @@
       const stateData = event.state;
       isNavigatingFromHistory = true;
       try {
-        if (stateData?.type === 'entity' && stateData.id && stateData.id !== 'view-entity') {
+        if (stateData?.type === 'story' && stateData.id) {
+          window.StoryPages?.route(stateData.id, { fromHistory: true });
+        } else if (stateData?.type === 'entity' && stateData.id && stateData.id !== 'view-entity') {
           openEntityArticle(stateData.id, { fromHistory: true });
         } else if (stateData?.type === 'view' && stateData.id && stateData.id !== 'view-entity') {
           showArticleView(stateData.id, { fromHistory: true });
@@ -5259,6 +5274,8 @@
           const hash = (window.location.hash || '').replace(/^#/, '');
           if (hash === 'view-storyline' || hash === 'view-storyflow') {
             showArticleView(hash, { fromHistory: true });
+          } else if (window.StoryPages?.isRoute(hash)) {
+            window.StoryPages.route(hash, { fromHistory: true });
           } else if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
             openEntityArticle(hash, { fromHistory: true });
           } else {
@@ -5288,6 +5305,7 @@
     if (hash === 'view-storyline' || hash === 'view-storyflow') {
       return { type: 'view', id: hash };
     }
+    if (window.StoryPages?.isRoute(hash)) return { type: 'story', id: hash };
     if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
       const entityId = resolveEntityId(hash, getKnowledgeIndex());
       if (entityId) return { type: 'entity', id: entityId };
@@ -5806,6 +5824,7 @@
       keepMedia: true
     });
     revealImage(getEl('view-entity-img'));
+    document.dispatchEvent(new CustomEvent('readipedia:entity', { detail: { id: model.id, label: model.label } }));
     renderEntityDetailChrome(model.id);
     renderEntityToc(model.id);
   }

@@ -6,7 +6,7 @@
    ========================================================================== */
 
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
   --font-reading: var(--font-sans);
 
   /* Palette (light) */
@@ -3140,18 +3140,38 @@ img[data-reveal="pending"].is-swapping {
   .drawer-apps { display: none !important; }
 }
 
-/* Desktop sidebar toggle, left of the logo (phones use the menu button). */
+/* Logo and desktop sidebar toggle share one slot. The toggle sits over the
+   mark and appears only on hover or keyboard focus (phones use the menu
+   button on the right). */
+.brand-combo { position: relative; display: flex; align-items: center; }
 .btn-sidebar-collapse { display: none; }
 @media (min-width: 769px) {
   .btn-sidebar-collapse {
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin-left: -8px;
-    margin-right: -21px;
+    width: 32px;
+    height: 32px;
+    margin-top: -16px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--duration-fast, 150ms) var(--ease-smooth-out), background-color var(--duration-fast, 150ms) var(--ease-smooth-out);
   }
+  .btn-sidebar-collapse:hover,
+  .btn-sidebar-collapse:focus-visible { opacity: 1; background: var(--bg-hover); }
+  .btn-sidebar-collapse:active { background: var(--bg-hover-strong); }
+  .wiki-logo .brand-mark { transition: opacity var(--duration-fast, 150ms) var(--ease-smooth-out); }
+  .brand-combo:has(.btn-sidebar-collapse:hover) .wiki-logo .brand-mark,
+  .brand-combo:has(.btn-sidebar-collapse:focus-visible) .wiki-logo .brand-mark { opacity: 0; }
 }
 
 /* Platform marks (Simple Icons, CC0; the Windows mark is drawn here). */
@@ -3161,19 +3181,24 @@ img[data-reveal="pending"].is-swapping {
 .apps-item-icon .brand-glyph { width: 16px; height: 16px; }
 svg.ui-icon { stroke-width: 1.5; }
 
-/* The sidebar toggle is a plain icon until hovered, so it never looks
-   switched on. */
-@media (min-width: 769px) {
-  .btn-sidebar-collapse.icon-btn {
-    background: transparent;
-    color: var(--text-secondary);
-    border-radius: 10px;
-  }
-  .btn-sidebar-collapse.icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .btn-sidebar-collapse.icon-btn:active { background: var(--bg-hover-strong); }
-}
 /* The Entities heading is a plain label, not a fold control. */
 #grp-entities > summary { cursor: default; pointer-events: none; }
 #grp-entities > summary:hover { background: transparent; }
 #grp-entities > summary::after,
 #grp-entities > summary::-webkit-details-marker { display: none; }
+
+/* Chinese: CJK text reads better a little looser and without Latin tracking. */
+html:lang(zh-CN) .prose,
+html:lang(zh-CN) .markdown-prose { line-height: 1.85; }
+html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
+.lang-fallback-note {
+  display: flow-root;
+  overflow: hidden;
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}

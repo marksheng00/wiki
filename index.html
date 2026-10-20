@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=117" />
+  <link rel="stylesheet" href="./style.css?v=118" />
 </head>
 <body>
 
@@ -24,13 +24,16 @@
   <!-- Site header: brand and product links on the left, search and settings on the right -->
   <header class="wiki-header site-nav">
     <div class="wiki-header-left">
-      <button class="btn-sidebar-collapse icon-btn" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
-        <i data-lucide="menu" style="width:18px;height:18px;"></i>
-      </button>
-      <a href="#" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
-        <span class="brand-mark" aria-hidden="true"><i data-lucide="book-open-text" style="width:20px;height:20px;"></i></span>
-        <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
-      </a>
+      <!-- One slot for the logo and the sidebar toggle: hovering the mark turns it into the toggle. -->
+      <div class="brand-combo">
+        <a href="#" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
+          <span class="brand-mark" aria-hidden="true"><i data-lucide="book-open-text" style="width:20px;height:20px;"></i></span>
+          <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
+        </a>
+        <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" title="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
+          <i data-lucide="menu" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
 
       <nav class="wiki-header-center site-nav-menu" aria-label="Readify apps">
         <div class="nav-apps" id="nav-apps">
@@ -805,7 +808,8 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
+  <script src="./data/wiki_store_zh.js?v=1" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=113" defer></script>
+  <script src="./app.js?v=114" defer></script>
 </body>
 </html>

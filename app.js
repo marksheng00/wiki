@@ -106,7 +106,276 @@
     return Boolean(el && typeof el.animate === 'function' && !prefersReducedMotion());
   }
 
+  /* Language. Every interface string is written in English in the page;
+     ZH_UI maps it to Chinese. Book, storyline, storyflow and entity-name
+     text comes from WIKI_STORE_ZH. Entity articles exist only in English. */
+  const ZH_UI = {
+    'Skip to content': '跳到正文',
+    'Hide sidebar': '收起侧边栏',
+    'Show sidebar': '展开侧边栏',
+    'Readipedia home': 'Readipedia 首页',
+    'Readify apps': 'Readify 应用',
+    'Download': '下载',
+    'Desktop': '桌面端',
+    'Apple silicon and Intel': 'Apple 芯片与 Intel',
+    'Windows 10 and later': 'Windows 10 及以上',
+    'Mobile': '移动端',
+    'iPhone and iPad': 'iPhone 和 iPad',
+    'Phones and tablets': '手机和平板',
+    'Browser': '浏览器',
+    'Extension': '浏览器扩展',
+    'Chrome and Edge': 'Chrome 和 Edge',
+    'Web app': '网页版',
+    'Nothing to install': '无需安装',
+    'QR code for the Readify app': 'Readify 应用二维码',
+    'On your phone?': '在手机上读？',
+    'Scan to get Readify for iOS or Android.': '扫码获取 iOS 或 Android 版 Readify。',
+    'Search (Ctrl K)': '搜索 (Ctrl K)',
+    'Search': '搜索',
+    'Open Readify': '打开 Readify',
+    'Download for Mac': '下载 Mac 版',
+    'Download for Windows': '下载 Windows 版',
+    'Get the app': '下载 App',
+    'Switch language': '切换语言',
+    'Toggle theme': '切换主题',
+    'Open menu': '打开菜单',
+    'Close menu': '关闭菜单',
+    'Expand graph': '展开图谱',
+    'Close graph explorer': '关闭图谱',
+    'Return to Knowledge Graph': '返回知识图谱',
+    'Open Knowledge Graph': '打开知识图谱',
+    'Return to article': '返回词条',
+    'Book': '书籍',
+    'Overview': '概览',
+    'On this page': '本页目录',
+    'Introduction': '作品概览',
+    'Plot': '情节梗概',
+    'Themes': '核心主题',
+    'Legacy': '背景与影响',
+    'Author': '作者',
+    'Storylines': '故事线',
+    'StoryFlow': '故事视角',
+    'Entities': '词条',
+    'Characters': '人物',
+    'Locations': '地点',
+    'Organizations': '组织',
+    'Objects': '物件',
+    'Creatures': '生物',
+    'Events': '事件',
+    'Actions': '行动',
+    'Concepts': '概念',
+    'Rules': '规则',
+    'Time': '时间',
+    'States': '超级大国',
+    'Expressions': '名言',
+    'Get Readify': '获取 Readify',
+    'This device': '当前设备',
+    'Browser extension': '浏览器扩展',
+    'Nineteen Eighty-Four': '一九八四',
+    'Nineteen Eighty-Four original cover': '《一九八四》初版封面',
+    'George Orwell': '乔治·奥威尔',
+    'Country': '国家',
+    'United Kingdom': '英国',
+    'Language': '原文语言',
+    'English': '英语',
+    'Genre': '类型',
+    'Dystopian, Satire': '反乌托邦、讽刺',
+    'Published': '出版',
+    '8 June 1949': '1949年6月8日',
+    'Read the book in Readify': '在 Readify 阅读本书',
+    'Background and Legacy': '写作背景与影响',
+    'About the Author': '关于作者',
+    'George Orwell (Eric Arthur Blair, 1903 – 1950)': '乔治·奥威尔（埃里克·亚瑟·布莱尔，1903 – 1950）',
+    'Previous entry': '上一个词条',
+    'Next entry': '下一个词条',
+    'Entity visual still': '词条配图',
+    'Back to Nineteen Eighty-Four': '返回《一九八四》',
+    '89 scenes, from Victory Mansions to the Chestnut Tree Café.': '89 个场景，从胜利大厦一路走到栗树咖啡馆。',
+    'Previous scenes': '上一组场景',
+    'Next scenes': '下一组场景',
+    'Three threads through the novel, each told as one path.': '贯穿全书的三条线索，每条都是一段完整的路径。',
+    'Read the book as a living encyclopedia.': '把一本书读成一部活的百科。',
+    'Apps': '应用',
+    'Read the original': '阅读原著',
+    'Back to top': '回到顶部',
+    'Search entries and pages...': '搜索词条和页面…',
+    'No results': '没有结果',
+    'Pages': '页面',
+    'Entries': '词条',
+    'Summary': '摘要',
+    '89 scenes': '89 个场景',
+    'Three threads': '三条线索'
+  };
+  const LANG_KEY = 'readipedia-lang';
+  const zhStore = () => window.WIKI_STORE_ZH || null;
+  const isZh = () => state.lang === 'zh';
+
+  function t(text) {
+    return isZh() && ZH_UI[text] ? ZH_UI[text] : text;
+  }
+
+  // Display name of a graph entity in the current language. node.label stays
+  // the English key used by articles, images and links.
+  function entityName(id, fallback) {
+    if (isZh()) {
+      const zh = zhStore()?.graph_labels?.[id];
+      if (zh) return zh;
+    }
+    if (fallback) return fallback;
+    const node = getKnowledgeIndex()?.nodesById.get(id);
+    return node?.label || id;
+  }
+
+  function storylineAt(index) {
+    const evt = window.WIKI_STORE?.master?.storylines?.[index];
+    if (!evt || !isZh()) return evt;
+    const zh = zhStore()?.storylines?.find((s) => s.index === evt.index);
+    if (!zh) return evt;
+    // The scraped Chinese text stops mid-sentence, like the English excerpts.
+    const desc = /[。！？”’…]$/.test(zh.description) ? zh.description : `${zh.description}……`;
+    return { ...evt, date: zh.date, title: zh.title, description: desc };
+  }
+
+  function readStoredLang() {
+    try {
+      const saved = localStorage.getItem(LANG_KEY);
+      if (saved === 'en' || saved === 'zh') return saved;
+    } catch (e) { /* storage blocked */ }
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    return /^zh\b/i.test(nav) ? 'zh' : 'en';
+  }
+
+  // Swap static interface text in place. The English original of each text
+  // node and attribute is remembered, so switching back needs no table.
+  const i18nText = new WeakMap();
+  const i18nAttr = new WeakMap();
+  const I18N_SKIP = '#lang-dropdown, .prose, .reading-section > h2, .entity-toc-link, #entity-toc, .filmstrip-thumb, .storyflow-editorial-row, #cmdk-list, #storyline-hero-date, #storyline-hero-title, #view-entity-title, #mobile-continuum-title, script, style';
+  const I18N_ATTRS = ['aria-label', 'title', 'alt', 'placeholder'];
+
+  function swapString(current, record) {
+    const en = record && current === record.zh ? record.en : current;
+    const zh = ZH_UI[en];
+    return { en, zh, value: isZh() && zh ? zh : en };
+  }
+
+  function translateStatic(root = document.body) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return node.parentElement?.closest(I18N_SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const raw = node.nodeValue;
+      const trimmed = raw.trim();
+      const res = swapString(trimmed, i18nText.get(node));
+      if (!res.zh) return;
+      i18nText.set(node, { en: res.en, zh: res.zh });
+      if (res.value !== trimmed) node.nodeValue = raw.replace(trimmed, res.value);
+    });
+    root.querySelectorAll(I18N_ATTRS.map((a) => `[${a}]`).join(',')).forEach((el) => {
+      if (el.closest(I18N_SKIP)) return;
+      let records = i18nAttr.get(el);
+      if (!records) { records = {}; i18nAttr.set(el, records); }
+      I18N_ATTRS.forEach((attr) => {
+        const current = el.getAttribute(attr);
+        if (!current) return;
+        const res = swapString(current, records[attr]);
+        if (!res.zh) return;
+        records[attr] = { en: res.en, zh: res.zh };
+        if (res.value !== current) el.setAttribute(attr, res.value);
+      });
+    });
+  }
+
+  function translateEntityLinks() {
+    document.querySelectorAll('.entity-toc-link[data-id]').forEach((link) => {
+      if (!link.dataset.en) link.dataset.en = link.textContent.trim();
+      link.textContent = entityName(link.dataset.id, link.dataset.en);
+    });
+  }
+
+  function translateStoryflowCards() {
+    const flows = window.WIKI_STORE?.master?.storyflows || [];
+    const zhFlows = zhStore()?.storyflows || {};
+    document.querySelectorAll('.storyflow-editorial-row').forEach((row, i) => {
+      const flow = flows[i];
+      const title = row.querySelector('.storyflow-row-title');
+      const desc = row.querySelector('.storyflow-row-desc');
+      const img = row.querySelector('img');
+      const link = row.querySelector('.card-copy');
+      if (!title || !desc) return;
+      if (!row.dataset.enTitle) {
+        row.dataset.enTitle = title.textContent;
+        row.dataset.enDesc = desc.textContent;
+      }
+      const zh = isZh() && flow ? zhFlows[flow.id] : null;
+      const name = zh ? zh.title : row.dataset.enTitle;
+      title.textContent = name;
+      desc.textContent = zh ? zh.description : row.dataset.enDesc;
+      if (img) img.alt = name;
+      if (link) link.setAttribute('aria-label', zh ? `查看「${name}」` : `Explore ${name}`);
+    });
+  }
+
+  function translateFilmstrip() {
+    document.querySelectorAll('.filmstrip-thumb[data-idx]').forEach((thumb) => {
+      const evt = storylineAt(parseInt(thumb.dataset.idx, 10));
+      if (!evt) return;
+      thumb.title = evt.title;
+      const img = thumb.querySelector('img');
+      if (img) img.alt = evt.title;
+    });
+  }
+
+  function applyLanguage(options = {}) {
+    const zh = isZh();
+    document.documentElement.lang = zh ? 'zh-CN' : 'en';
+    document.title = zh ? '一九八四 — Readipedia' : 'Nineteen Eighty-Four — Readipedia';
+    const langLabel = getEl('lang-current-label');
+    if (langLabel) langLabel.textContent = zh ? '中文' : 'EN';
+    document.querySelectorAll('#lang-dropdown .wiki-dropdown-item').forEach((item) => {
+      item.classList.toggle('active', item.getAttribute('data-lang') === state.lang);
+    });
+
+    translateStatic();
+    translateEntityLinks();
+    translateStoryflowCards();
+    translateFilmstrip();
+    renderBookArticle();
+    if (options.initial) return;
+
+    setStorylineScene(state.currentStorylineIndex, { force: true });
+    if (state.currentEntityId && getEl('view-entity')?.style.display !== 'none') {
+      const model = getEntityArticleModel(state.currentEntityId);
+      if (model) renderEntityPage(model);
+    }
+    if (graphState.continuumEntityId) {
+      const model = getEntityArticleModel(graphState.continuumEntityId);
+      if (model) {
+        renderEntityArticleInto(model, {
+          title: getEl('mobile-continuum-title'),
+          media: getEl('mobile-continuum-media'),
+          image: getEl('mobile-continuum-image'),
+          markdown: getEl('mobile-continuum-markdown')
+        });
+      }
+    }
+    getEl('book-toc')?.__sync?.(true);
+    document.dispatchEvent(new CustomEvent('readipedia:lang'));
+  }
+
+  function setLanguage(lang) {
+    if (lang === state.lang) return;
+    state.lang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* storage blocked */ }
+    applyLanguage();
+  }
+
   function init() {
+    state.lang = readStoredLang();
     renderBookArticle();
     initGraphControls();
     initNavHubClicks();
@@ -130,6 +399,7 @@
     initReadifyCtas();
     initReadifyApps();
     initEntityBackLink();
+    applyLanguage({ initial: true });
 
     // A view id in the URL is also an element id; keep the browser from
     // jumping to it, so every page opens at its title.
@@ -260,7 +530,23 @@
     };
 
     const h1 = getEl('article-h1');
-    if (h1) h1.textContent = state.lang === 'zh' ? '一九八四 (Nineteen Eighty-Four)' : 'Nineteen Eighty-Four';
+    if (h1) h1.textContent = t('Nineteen Eighty-Four');
+    const headings = { 'sec-overview': 'Overview', 'sec-plot': 'Plot', 'sec-themes': 'Themes', 'sec-background': 'Background and Legacy', 'sec-author': 'About the Author' };
+    const zhBook = isZh() ? zhStore() : null;
+    Object.entries(headings).forEach(([id, en], i) => {
+      const h2 = document.querySelector(`#${id} > h2`);
+      if (!h2) return;
+      h2.textContent = zhBook ? (zhBook.book.sections[i]?.title || t(en)) : en;
+    });
+    if (zhBook) {
+      const sections = zhBook.book.sections;
+      const ids = ['text-overview', 'text-plot', 'text-themes', 'text-background'];
+      ids.forEach((id, i) => fill(id, sections[i], () => paragraphs(sections[i].paragraphs)));
+      fill('text-author', zhBook.author?.sections, () => zhBook.author.sections
+        .map((s) => `<h3>${s.title}</h3>${paragraphs(s.paragraphs)}`)
+        .join(''));
+      return;
+    }
     fill('text-overview', art.overview, () => `<p>${art.overview.content}</p>`);
     fill('text-plot', art.plot?.paragraphs, () => paragraphs(art.plot.paragraphs));
     fill('text-themes', art.themes, () => `<p>${art.themes.content}</p>`);
@@ -460,17 +746,16 @@
     return list.length || 89;
   }
 
-  function setStorylineScene(index) {
-    const storylines = window.WIKI_STORE?.master?.storylines || [];
-    const evt = storylines[index];
+  function setStorylineScene(index, options = {}) {
+    const evt = storylineAt(index);
     if (!evt) return;
 
-    const sceneChanged = index !== state.currentStorylineIndex;
+    const sceneChanged = index !== state.currentStorylineIndex || Boolean(options.force);
     state.currentStorylineIndex = index;
 
     const dateEl = getEl('storyline-hero-date');
     if (dateEl && evt.date) {
-      const capDate = evt.date.charAt(0).toUpperCase() + evt.date.slice(1);
+      const capDate = isZh() ? evt.date : evt.date.charAt(0).toUpperCase() + evt.date.slice(1);
       dateEl.textContent = capDate;
     }
 
@@ -2705,7 +2990,7 @@
         .nodeVal('val')
         .nodeLabel((node) => (
           !isMobileGraphViewport() && !graphState.layoutTransition
-            ? (node.label || node.id)
+            ? entityName(node.id, node.label)
             : ''
         ))
         .linkCurvature(0.18)
@@ -3132,7 +3417,7 @@
     launcher.setAttribute('aria-hidden', interactive ? 'false' : 'true');
     launcher.setAttribute(
       'aria-label',
-      continuumReading ? 'Return to Knowledge Graph' : 'Open Knowledge Graph'
+      t(continuumReading ? 'Return to Knowledge Graph' : 'Open Knowledge Graph')
     );
   }
 
@@ -3183,7 +3468,7 @@
       expandButton.tabIndex = isInteractive ? 0 : -1;
       expandButton.setAttribute('aria-hidden', isInteractive ? 'false' : 'true');
       expandButton.setAttribute('aria-expanded', isStableExpanded ? 'true' : 'false');
-      expandButton.setAttribute('aria-label', isStableExpanded ? 'Close graph explorer' : 'Expand graph');
+      expandButton.setAttribute('aria-label', t(isStableExpanded ? 'Close graph explorer' : 'Expand graph'));
     }
     if (launcher) {
       setMobileGraphLauncherPresentation(launcher, {
@@ -3604,7 +3889,7 @@
       expandButton.setAttribute('aria-hidden', closeIsInteractive ? 'false' : 'true');
       expandButton.setAttribute(
         'aria-label',
-        hasArticle ? 'Return to article' : 'Close graph explorer'
+        t(hasArticle ? 'Return to article' : 'Close graph explorer')
       );
       setMobileGraphControlShape(1);
     }
@@ -5241,7 +5526,7 @@
     const isShowing = () => bubble.dataset.show === 'true';
 
     function excerptFor(model) {
-      if (excerptCache.has(model.id)) return excerptCache.get(model.id);
+      if (excerptCache.has(`${state.lang}_${model.id}`)) return excerptCache.get(`${state.lang}_${model.id}`);
       const scratch = document.createElement('div');
       scratch.innerHTML = model.html || '';
       const first = Array.from(scratch.querySelectorAll('p'))
@@ -5249,14 +5534,14 @@
         .find((text) => text.length > 40) || scratch.textContent.replace(/\s+/g, ' ').trim();
       let text = first || '';
       if (text.length > 220) text = `${text.slice(0, 220).replace(/\s+\S*$/, '')}…`;
-      excerptCache.set(model.id, text);
+      excerptCache.set(`${state.lang}_${model.id}`, text);
       return text;
     }
 
     function fill(entityId) {
       const model = getEntityArticleModel(entityId);
       if (!model) return false;
-      titleEl.textContent = model.label;
+      titleEl.textContent = model.name || model.label;
       textEl.textContent = excerptFor(model);
       if (model.imagePath) {
         if (image.getAttribute('src') !== model.imagePath) image.src = model.imagePath;
@@ -5386,12 +5671,16 @@
         .replace(/##\s+Related StoryFlow[\s\S]*$/i, '')
         .trim();
       html = enrichHtmlWithEntityLinks(renderMarkdown(cleanMarkdown), resolvedEntityId, label);
+      if (isZh()) {
+        html = `<p class="lang-fallback-note" lang="zh-CN">本词条暂无中文版，以下为英文原文。</p><div lang="en">${html}</div>`;
+      }
       window.__entityMdCache.set(cacheKey, html);
     }
 
     return {
       id: resolvedEntityId,
       label,
+      name: entityName(resolvedEntityId, label),
       imagePath,
       html
     };
@@ -5399,13 +5688,13 @@
 
   function renderEntityArticleInto(model, targets) {
     if (!model || !targets) return false;
-    if (targets.title) targets.title.textContent = model.label;
+    if (targets.title) targets.title.textContent = model.name || model.label;
     if (targets.markdown) targets.markdown.innerHTML = model.html;
 
     if (targets.media && targets.image) {
       if (model.imagePath) {
         targets.image.src = model.imagePath;
-        targets.image.alt = model.label;
+        targets.image.alt = model.name || model.label;
         targets.media.style.display = '';
         targets.media.setAttribute('aria-hidden', 'false');
       } else if (targets.keepMedia) {
@@ -5608,14 +5897,14 @@
     const article = getEl('view-entity');
     const lead = markdown.firstElementChild;
     const leadIsHeading = lead && headings.includes(lead);
-    if (!leadIsHeading) items.unshift({ id: 'view-entity', label: 'Summary' });
+    if (!leadIsHeading) items.unshift({ id: 'view-entity', label: t('Summary') });
 
     const toc = document.createElement('div');
     toc.className = 'book-toc entity-section-toc';
     toc.id = 'entity-toc';
     const nav = document.createElement('nav');
     nav.className = 'book-toc-inner';
-    nav.setAttribute('aria-label', 'On this page');
+    nav.setAttribute('aria-label', t('On this page'));
     nav.innerHTML = '<span class="book-toc-indicator" aria-hidden="true"></span>';
     items.forEach((item, index) => {
       const link = document.createElement('a');
@@ -5655,6 +5944,7 @@
       { kind: 'page', id: 'btn-storyflow-hub', label: 'StoryFlow', hint: 'Three threads', icon: 'route' }
     ];
     let entities = null;
+    document.addEventListener('readipedia:lang', () => { entities = null; });
     let results = [];
     let activeIndex = 0;
     let closeTimer = 0;
@@ -5666,13 +5956,21 @@
       const query = input.value.trim().toLowerCase();
       if (!entities) {
         entities = getEntityTocEntries().map((e) => ({
-          kind: 'entity', id: e.id, label: e.label, hint: singularCategory(e.category), icon: 'shapes'
+          kind: 'entity',
+          id: e.id,
+          label: e.label,
+          alt: e.link.dataset.en || '',
+          hint: isZh() ? e.category : singularCategory(e.category),
+          icon: 'shapes'
         }));
       }
       const match = (item) => !query
         || item.label.toLowerCase().includes(query)
+        || (item.alt && item.alt.toLowerCase().includes(query))
         || item.hint.toLowerCase().includes(query);
-      const pageHits = pages.filter(match);
+      const pageHits = pages
+        .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
+        .filter(match);
       const entityHits = entities.filter(match)
         .sort((a, b) => {
           if (!query) return 0;
@@ -5685,7 +5983,7 @@
       activeIndex = Math.min(activeIndex, Math.max(0, results.length - 1));
 
       if (!results.length) {
-        list.innerHTML = '<div class="cmdk-empty">No results</div>';
+        list.innerHTML = `<div class="cmdk-empty">${t('No results')}</div>`;
         return;
       }
       let html = '';
@@ -5701,8 +5999,8 @@
           i += 1;
         });
       };
-      group('Pages', pageHits);
-      group('Entries', entityHits);
+      group(t('Pages'), pageHits);
+      group(t('Entries'), entityHits);
       list.innerHTML = html;
       input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
       renderIcons(list);
@@ -5907,9 +6205,6 @@
   function initEntityBackLink() {
     const link = getEl('btn-entity-back');
     if (!link) return;
-    const label = link.querySelector('span');
-    const title = getEl('article-h1')?.textContent.trim();
-    if (label && title) label.textContent = `Back to ${title}`;
     link.addEventListener('click', (event) => {
       event.preventDefault();
       getEl('btn-book-home')?.click();
@@ -6155,7 +6450,8 @@
         toggleMobileSidebar();
         const collapsed = getEl('wiki-sidebar')?.classList.contains('collapsed');
         btnCollapseSidebar.setAttribute('aria-expanded', String(!collapsed));
-        btnCollapseSidebar.setAttribute('aria-label', collapsed ? 'Show sidebar' : 'Hide sidebar');
+        btnCollapseSidebar.setAttribute('aria-label', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
+        btnCollapseSidebar.setAttribute('title', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
       });
     }
 
@@ -6221,16 +6517,10 @@
           e.stopPropagation();
           const selectedLang = item.getAttribute('data-lang');
           if (selectedLang !== state.lang) {
-            state.lang = selectedLang;
-            const langLabel = getEl('lang-current-label');
-            if (langLabel) langLabel.textContent = selectedLang === 'zh' ? '中文' : 'EN';
-            langItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            renderBookArticle();
-            const bookView = getEl('view-book');
-            if (bookView?.classList.contains('active')) {
-              playSoftSwap(Array.from(bookView.querySelectorAll('.article-h1, .prose')));
-            }
+            setLanguage(selectedLang);
+            const view = Array.from(document.querySelectorAll('.wiki-article-view'))
+              .find((el) => el.style.display !== 'none' && el.offsetParent !== null);
+            if (view) playSoftSwap(Array.from(view.querySelectorAll('.article-h1, .reading-section > h2, .prose, .detail-sub')));
           }
           closeLang();
         });

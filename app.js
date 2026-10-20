@@ -202,6 +202,8 @@
     'iOS App': 'iOS 应用',
     'Android App': 'Android 应用',
     'Web App': '网页版',
+    'macOS App': 'macOS 应用',
+    'Windows App': 'Windows 应用',
     'Chrome Extension': 'Chrome 扩展',
     'Download Android APK': '下载 Android APK',
     'About': '关于',

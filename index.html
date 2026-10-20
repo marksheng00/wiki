@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=123" />
+  <link rel="stylesheet" href="./style.css?v=124" />
 </head>
 <body>
 
@@ -788,15 +788,20 @@
     </div>
 
     <article id="mobile-graph-continuum-article" class="mobile-graph-continuum-article" aria-hidden="true">
-      <header class="article-masthead mobile-continuum-masthead">
-        <h1 id="mobile-continuum-title" class="article-h1 mobile-continuum-title"></h1>
+      <header class="article-masthead detail-head mobile-continuum-masthead">
+        <div class="detail-title-row">
+          <h1 id="mobile-continuum-title" class="article-h1 detail-title mobile-continuum-title"></h1>
+        </div>
       </header>
 
-      <aside id="mobile-continuum-media" class="entity-floating-media mobile-continuum-media">
-        <div class="entity-media-wrap mobile-continuum-media-wrap">
-          <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
+      <aside id="mobile-continuum-media" class="entity-floating-media detail-stage mobile-continuum-media">
+        <div class="entity-media-stack">
+          <div class="entity-media-wrap mobile-continuum-media-wrap">
+            <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
+          </div>
+          <span class="cta-beam entity-cta-beam mobile-continuum-cta"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
+          <a href="#" class="detail-back" id="btn-continuum-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Back to Nineteen Eighty-Four</span></a>
         </div>
-        <span class="cta-beam mobile-continuum-cta"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
       </aside>
 
       <div id="mobile-continuum-markdown" class="prose markdown-prose mobile-continuum-markdown"></div>
@@ -828,6 +833,6 @@
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./data/wiki_store_zh.js?v=1" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=116" defer></script>
+  <script src="./app.js?v=117" defer></script>
 </body>
 </html>

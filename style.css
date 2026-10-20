@@ -2078,18 +2078,20 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     width: 44px;
     height: 44px;
     border-radius: var(--radius-pill);
-    background: var(--tt-bg) !important;
+    /* Same round icon button as the header (td .icon-btn), only floating. */
+    background: var(--bg-hover) !important;
     color: var(--text-primary);
     border: none !important;
     outline: none !important;
-    box-shadow: var(--tt-shadow) !important;
+    box-shadow: none !important;
     -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0.85;
-    transition: transform var(--motion-hover), opacity var(--motion-hover), color var(--motion-hover);
+    transition: transform var(--motion-hover), opacity var(--motion-hover), background-color var(--motion-hover);
   }
+  .btn-mobile-graph-launcher:hover { background: var(--bg-hover-strong) !important; }
+  .btn-mobile-graph-launcher:focus-visible { outline: 2px solid var(--brand-blue) !important; outline-offset: 2px; }
   .btn-mobile-graph-launcher.is-graph-morphing {
     transition: none;
   }
@@ -2100,8 +2102,10 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
   }
   .btn-mobile-graph-launcher:active {
     transform: scale(0.92);
-    color: var(--accent);
-    opacity: 1;
+    background: var(--bg-pressed) !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-mobile-graph-launcher:active { transform: none; }
   }
 
   .wiki-main-article {
@@ -2346,12 +2350,6 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
   }
   .mobile-graph-continuum.has-article.is-article-ready .mobile-graph-continuum-article {
     opacity: 1;
-  }
-  .mobile-continuum-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
   }
 
   @media (max-height: 500px) {

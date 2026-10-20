@@ -3478,7 +3478,7 @@
       ? expandedInsets.bottom
       : expandedInsets.bottom * normalized;
     const controlOpacity = returnsToArticle
-      ? launcherHandoff * (0.85 + 0.15 * normalized)
+      ? launcherHandoff
       : 0.35 + 0.65 * normalized;
     const glyphInset = returnsToArticle
       ? MOBILE_GRAPH_CONTROL_ICON_INSET_PX
@@ -3504,7 +3504,7 @@
     }
     if (launcher) {
       setMobileGraphLauncherPresentation(launcher, {
-        opacity: returnsToArticle ? 0.85 * (1 - launcherHandoff) : 0,
+        opacity: returnsToArticle ? 1 - launcherHandoff : 0,
         interactive: isStableSmall && returnsToArticle,
         morphing: transitioning
       });
@@ -3843,7 +3843,7 @@
     const reveal = hasArticle ? getMobileGraphContinuumChromeReveal(progress) : 0;
     const isStableReading = hasArticle && isMobileGraphContinuumStableReading();
     setMobileGraphLauncherPresentation(launcher, {
-      opacity: 0.85 * reveal,
+      opacity: reveal,
       interactive: isStableReading,
       continuumReading: reveal > 0.001,
       morphing: Boolean(
@@ -4276,6 +4276,12 @@
       media: getEl('mobile-continuum-media'),
       image: getEl('mobile-continuum-image'),
       markdown: getEl('mobile-continuum-markdown')
+    });
+    const entries = getEntityTocEntries();
+    renderEntitySiblings(entries, entries.find((e) => e.id === model.id), {
+      view: article,
+      rowId: 'mobile-continuum-siblings',
+      onPick: openEntityInContinuum
     });
 
     graphState.continuumEntityId = model.id;
@@ -5804,19 +5810,23 @@
 
   // Phones (transitions.dev detail pattern): a sideways row of the other
   // entries in the same category stands in for the prev/next arrows.
-  function renderEntitySiblings(entries, entry) {
-    const view = getEl('view-entity');
+  // Same-category entries as a sideways pill row. The entry page and the
+  // graph's second floor each keep one row; `onPick` opens the chosen entry.
+  function renderEntitySiblings(entries, entry, options = {}) {
+    const view = options.view || getEl('view-entity');
+    const rowId = options.rowId || 'entity-siblings';
     if (!view) return;
-    let row = getEl('entity-siblings');
+    let row = getEl(rowId);
     if (!row) {
       row = document.createElement('nav');
-      row.id = 'entity-siblings';
+      row.id = rowId;
       row.className = 'entity-siblings';
+      const onPick = options.onPick || openEntityArticle;
       row.addEventListener('click', (event) => {
         const link = event.target.closest('a[data-id]');
         if (!link) return;
         event.preventDefault();
-        if (link.getAttribute('aria-current') !== 'page') openEntityArticle(link.dataset.id);
+        if (link.getAttribute('aria-current') !== 'page') onPick(link.dataset.id);
       });
       view.insertBefore(row, view.firstElementChild);
     }
@@ -5832,6 +5842,15 @@
         row.scrollLeft = current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2;
       }
     });
+  }
+
+  // A pill on the second floor swaps the article in place, as a graph tap does.
+  function openEntityInContinuum(entityId) {
+    const model = getEntityArticleModel(entityId);
+    if (!model || !showMobileGraphContinuumArticle(model)) return;
+    commitMobileGraphContinuumReadingContext(model.id);
+    const node = state.graphNodeMap?.get(model.id);
+    if (node) transitionMobileGraphFocus(state.sidebarGraph, node);
   }
 
   function initEntityArrows() {
@@ -6273,11 +6292,11 @@
   }
 
   function initEntityBackLink() {
-    const link = getEl('btn-entity-back');
-    if (!link) return;
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      getEl('btn-book-home')?.click();
+    ['btn-entity-back', 'btn-continuum-back'].forEach((id) => {
+      getEl(id)?.addEventListener('click', (event) => {
+        event.preventDefault();
+        getEl('btn-book-home')?.click();
+      });
     });
   }
 

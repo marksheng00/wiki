@@ -38,14 +38,17 @@
     initDetailsAnimation();
     initMobileGraphContinuum();
     initMobileGestures();
-    initNavHistory();
+    const initialRoute = getRouteFromHash();
+    initNavHistory(initialRoute);
     initEntityMentionInteractions();
 
-    // Strict product rule: 首页只能是 bookoverview
-    const initialHash = (window.location.hash || '').replace(/^#/, '');
-    if (initialHash === 'view-storyline' || initialHash === 'view-storyflow') {
+    // A fresh visit lands on the book overview; a refresh restores the page in the URL.
+    if (initialRoute.type === 'view') {
       initBalancedTopologyGraph(createGraphContext('overview'));
-      showArticleView(initialHash, { fromHistory: true });
+      showArticleView(initialRoute.id, { fromHistory: true });
+    } else if (initialRoute.type === 'entity') {
+      initBalancedTopologyGraph(createGraphContext('entity', initialRoute.id), { animate: false });
+      openEntityArticle(initialRoute.id, { fromHistory: true, animateGraph: false });
     } else {
       openBookOverview({ fromHistory: true });
     }
@@ -4831,7 +4834,7 @@
     }
   }
 
-  function initNavHistory() {
+  function initNavHistory(initialRoute) {
     window.addEventListener('popstate', (event) => {
       const stateData = event.state;
       isNavigatingFromHistory = true;
@@ -4858,13 +4861,28 @@
     });
 
     try {
-      const hash = (window.location.hash || '').replace(/^#/, '');
-      if (hash === 'view-storyline' || hash === 'view-storyflow') {
-        window.history.replaceState({ type: 'view', id: hash, timestamp: Date.now() }, '', window.location.hash);
-      } else {
+      const route = initialRoute || getRouteFromHash();
+      if (route.type === 'book') {
         window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', '#book');
+      } else {
+        window.history.replaceState({ type: route.type, id: route.id, timestamp: Date.now() }, '', `#${route.id}`);
       }
     } catch (e) {}
+  }
+
+  function getRouteFromHash() {
+    let hash = (window.location.hash || '').replace(/^#/, '');
+    try {
+      hash = decodeURIComponent(hash);
+    } catch (e) {}
+    if (hash === 'view-storyline' || hash === 'view-storyflow') {
+      return { type: 'view', id: hash };
+    }
+    if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
+      const entityId = resolveEntityId(hash, getKnowledgeIndex());
+      if (entityId) return { type: 'entity', id: entityId };
+    }
+    return { type: 'book', id: 'view-book' };
   }
 
   /* ==========================================================================

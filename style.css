@@ -2525,24 +2525,6 @@ img[data-reveal="pending"].is-swapping {
   flex-direction: column;
   gap: 0.2rem;
 }
-.entity-preview-kind {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-sans);
-  font-size: var(--text-ui-small);
-  font-weight: 400;
-  color: var(--tt-fg);
-  opacity: 0.6;
-  line-height: var(--leading-ui);
-}
-.entity-preview-kind::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--preview-kind-color, var(--accent));
-}
 .entity-preview-title {
   font-family: var(--font-reading);
   font-size: var(--text-ui);
@@ -2812,9 +2794,6 @@ img[data-reveal="pending"].is-swapping {
     width: 100%;
     margin-top: 16px;
   }
-  #view-entity .entity-cta-beam {
-    margin-top: 16px;
-  }
 }
 
 /* Readify call to action: a filled pill wrapped in the libraries.dev border
@@ -2866,27 +2845,102 @@ img[data-reveal="pending"].is-swapping {
 }
 .readify-cta:hover .readify-cta-arrow { transform: translate(2px, -2px); opacity: 1; }
 
-/* Entity pages: a way back to the book's home page, above the title. */
-.detail-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 28px;
-  align-self: flex-start;
-  margin: 0 0 12px -8px;
-  padding: 0 10px 0 6px;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 16px;
-  text-decoration: none;
-  transition: background-color var(--motion-hover), color var(--motion-hover);
+/* Entity stage: the still with the Readify button and the way back to the
+   book under it, all three the same width. */
+.entity-media-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
-.detail-back:hover { background: var(--hover-bg); color: var(--text-primary); text-decoration: none; }
-.detail-back:active { background: var(--active-bg); }
-.detail-back-icon { width: 16px; height: 16px; transition: transform var(--duration-fast) var(--ease-smooth-out); }
+.entity-media-stack .entity-media-wrap,
+.entity-media-stack .infobox-media {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.entity-floating-media.is-imageless .entity-media-wrap { display: none; }
+.entity-cta-beam { display: flex; width: 100%; }
+.entity-cta-beam .readify-cta { width: 100%; justify-content: center; }
+.detail-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  background: var(--surface-btn-bg);
+  box-shadow: var(--surface-btn-shadow);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover), transform var(--motion-hover);
+}
+.detail-back:hover { background: var(--surface-btn-hover); color: var(--text-primary); text-decoration: none; }
+.detail-back:active { transform: scale(var(--scale-medium)); }
+.detail-back-icon { width: 16px; height: 16px; flex: none; transition: transform var(--duration-fast) var(--ease-smooth-out); }
 .detail-back:hover .detail-back-icon { transform: translateX(-2px); }
+@media (max-width: 768px) {
+  .entity-media-stack { width: min(260px, 100%); }
+  .entity-media-stack .entity-media-wrap { width: 100%; }
+  .book-media-stack { width: min(220px, 70%); }
+  #view-entity .entity-floating-media.is-imageless {
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  #view-entity .entity-floating-media.is-imageless .entity-media-stack { width: 100%; }
+}
+
+/* Graph preview: the expand control is a small rounded button inset from
+   the preview's rounded corner (desktop; phones keep the morphing corner). */
+.btn-graph-expand .graph-expand-icon { display: none; }
+@media (min-width: 769px) {
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand {
+    right: 8px;
+    bottom: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--surface-btn-bg);
+    box-shadow: var(--surface-btn-shadow);
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity var(--motion-hover), background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
+  }
+  .sidebar-graph-container:not(.is-expanded):hover .btn-graph-expand,
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:focus-visible {
+    opacity: 1;
+  }
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover {
+    background: var(--surface-btn-hover);
+    color: var(--text-primary);
+  }
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:active {
+    transform: scale(var(--scale-medium));
+  }
+  .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
+  .btn-graph-expand .graph-expand-icon,
+  .btn-graph-expand:hover .graph-expand-icon {
+    display: block;
+    position: static;
+    width: 14px;
+    height: 14px;
+    transform: none;
+  }
+}
+@media (hover: none) and (min-width: 769px) {
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .readify-cta:hover .readify-cta-arrow,
   .detail-back:hover .detail-back-icon { transform: none; }

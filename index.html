@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=98" />
+  <link rel="stylesheet" href="./style.css?v=99" />
 </head>
 <body>
 
@@ -101,6 +101,7 @@
         <div class="sidebar-graph-slot" id="sidebar-graph-slot">
           <div class="sidebar-graph-container" id="sidebar-graph-container">
             <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph" aria-expanded="false">
+              <svg class="graph-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path class="graph-control-desktop-l" d="M2.4 21.6h19.2V2.4" />
                 <g class="graph-control-mobile-morph">
@@ -366,13 +367,15 @@
             <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-background">Legacy</button>
             <button class="detail-tab" type="button" role="tab" aria-selected="false" data-target="sec-author">Author</button>
           </div>
-          <span class="cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
         </div>
 
         <!-- Book stage: cover, facts and the Readify link -->
         <aside class="wiki-infobox detail-stage book-stage">
-          <div class="infobox-media">
-            <img src="./assets/images/book-doc-books-001-1984-4b9fbb7c4955-cover.jpg" alt="Nineteen Eighty-Four original cover" fetchpriority="high" decoding="async" />
+          <div class="entity-media-stack book-media-stack">
+            <div class="infobox-media">
+              <img src="./assets/images/book-doc-books-001-1984-4b9fbb7c4955-cover.jpg" alt="Nineteen Eighty-Four original cover" fetchpriority="high" decoding="async" />
+            </div>
+            <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
           </div>
           <div class="book-stage-side">
           <div class="infobox-meta">
@@ -419,7 +422,6 @@
       <!-- 2. DYNAMIC ENTITY DOSSIER ARTICLE -->
       <article id="view-entity" class="wiki-article-view" style="display:none;">
         <header class="article-masthead detail-head">
-          <a href="#" class="detail-back" id="btn-entity-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Nineteen Eighty-Four</span></a>
           <div class="detail-title-row">
             <h1 class="article-h1 detail-title" id="view-entity-title"></h1>
             <div class="detail-arrows">
@@ -432,10 +434,13 @@
 
         <!-- Entity stage: the still, centred on a grey stage like a live preview -->
         <aside class="entity-floating-media detail-stage" id="view-entity-media" style="display:none;">
-          <div class="entity-media-wrap">
-            <img id="view-entity-img" src="" alt="Entity visual still" decoding="async" loading="lazy" />
+          <div class="entity-media-stack">
+            <div class="entity-media-wrap">
+              <img id="view-entity-img" src="" alt="Entity visual still" decoding="async" loading="lazy" />
+            </div>
+            <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
+            <a href="#" class="detail-back" id="btn-entity-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Back to Nineteen Eighty-Four</span></a>
           </div>
-          <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
         </aside>
 
         <div class="prose markdown-prose" id="view-entity-markdown"></div>
@@ -779,6 +784,6 @@
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=102" defer></script>
+  <script src="./app.js?v=103" defer></script>
 </body>
 </html>

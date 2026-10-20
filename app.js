@@ -5168,7 +5168,6 @@
       <div class="entity-preview-inner">
         <div class="entity-preview-media"><img alt="" decoding="async" /></div>
         <div class="entity-preview-body">
-          <div class="entity-preview-kind"></div>
           <div class="entity-preview-title"></div>
           <div class="entity-preview-text"></div>
         </div>
@@ -5178,7 +5177,6 @@
     const inner = bubble.querySelector('.entity-preview-inner');
     const media = bubble.querySelector('.entity-preview-media');
     const image = media.querySelector('img');
-    const kindEl = bubble.querySelector('.entity-preview-kind');
     const titleEl = bubble.querySelector('.entity-preview-title');
     const textEl = bubble.querySelector('.entity-preview-text');
     const excerptCache = new Map();
@@ -5204,11 +5202,6 @@
     function fill(entityId) {
       const model = getEntityArticleModel(entityId);
       if (!model) return false;
-      const node = getKnowledgeIndex()?.nodesById.get(model.id);
-      const kind = node?.type || '';
-      kindEl.textContent = kind;
-      kindEl.style.display = kind ? '' : 'none';
-      bubble.style.setProperty('--preview-kind-color', getCategoryColor(kind));
       titleEl.textContent = model.label;
       textEl.textContent = excerptFor(model);
       if (model.imagePath) {
@@ -5361,12 +5354,19 @@
         targets.image.alt = model.label;
         targets.media.style.display = '';
         targets.media.setAttribute('aria-hidden', 'false');
+      } else if (targets.keepMedia) {
+        // The entry page keeps its Readify and back buttons without a still.
+        targets.image.removeAttribute('src');
+        targets.image.alt = '';
+        targets.media.style.display = '';
+        targets.media.setAttribute('aria-hidden', 'false');
       } else {
         targets.image.removeAttribute('src');
         targets.image.alt = '';
         targets.media.style.display = 'none';
         targets.media.setAttribute('aria-hidden', 'true');
       }
+      targets.media.classList.toggle('is-imageless', !model.imagePath);
     }
     return true;
   }
@@ -5376,7 +5376,8 @@
       title: getEl('view-entity-title'),
       media: getEl('view-entity-media'),
       image: getEl('view-entity-img'),
-      markdown: getEl('view-entity-markdown')
+      markdown: getEl('view-entity-markdown'),
+      keepMedia: true
     });
     revealImage(getEl('view-entity-img'));
     renderEntityDetailChrome(model.id);
@@ -5645,7 +5646,7 @@
     if (!link) return;
     const label = link.querySelector('span');
     const title = getEl('article-h1')?.textContent.trim();
-    if (label && title) label.textContent = title;
+    if (label && title) label.textContent = `Back to ${title}`;
     link.addEventListener('click', (event) => {
       event.preventDefault();
       getEl('btn-book-home')?.click();

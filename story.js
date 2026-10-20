@@ -98,9 +98,8 @@
   const capitalise = (s) => (isZh() ? s : s.charAt(0).toUpperCase() + s.slice(1));
 
   /* ---------- Storylines: one screening room ----------
-   * The current scene sits in the middle (picture beside its text), with
-   * arrows, swipe and the arrow keys to move; every scene waits below as a
-   * card in a strip that scrolls sideways.
+   * Three things: see the picture, read its text (laid over the picture),
+   * change scene (swipe the picture or pick a thumbnail in the strip below).
    */
 
   let currentScenePos = 0;
@@ -113,10 +112,7 @@
     let html = '';
     for (let i = 0; i < total; i++) {
       const s = sceneAt(i);
-      html += `<button type="button" class="sl-card" data-pos="${i}" aria-label="${esc(s.title)}">
-        <span class="sl-card-media"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></span>
-        <span class="sl-card-title">${esc(s.title)}</span>
-      </button>`;
+      html += `<button type="button" class="filmstrip-thumb sl-thumb" data-pos="${i}" title="${esc(s.title)}" aria-label="${esc(s.title)}"><img src="${esc(s.image)}" alt="" loading="lazy" decoding="async"></button>`;
     }
     strip.innerHTML = html;
     stripBuilt = true;
@@ -135,8 +131,7 @@
     el('sl-date').textContent = capitalise(s.date);
     el('sl-title').textContent = s.title;
     el('sl-text').innerHTML = paragraphs(s.description);
-
-
+    el('sl-scroll').scrollTop = 0;
     if (changed && !options.instant) {
       const stage = el('sl-stage');
       stage.classList.remove('is-swapping');
@@ -146,9 +141,9 @@
 
     const strip = el('sl-strip');
     let active = null;
-    strip.querySelectorAll('.sl-card').forEach((card) => {
+    strip.querySelectorAll('.sl-thumb').forEach((card) => {
       const on = Number(card.dataset.pos) === pos;
-      card.classList.toggle('is-active', on);
+      card.classList.toggle('active', on);
       card.setAttribute('aria-current', on ? 'true' : 'false');
       if (on) active = card;
     });
@@ -171,12 +166,12 @@
   function bindTheater() {
     const strip = el('sl-strip');
     strip?.addEventListener('click', (e) => {
-      const card = e.target.closest('.sl-card');
+      const card = e.target.closest('.sl-thumb');
       if (card) goTo(Number(card.dataset.pos));
     });
 
     // Swipe the picture left or right to change scene.
-    const media = el('sl-media');
+    const media = el('sl-stage');
     let start = null;
     media?.addEventListener('pointerdown', (e) => { start = { x: e.clientX, y: e.clientY }; });
     media?.addEventListener('pointerup', (e) => {

@@ -1,111 +1,38 @@
 /* Storyline and StoryFlow pages (story.js). Built only from the tokens and
    components in style.css: detail head, grey stage, prose, cards, back link. */
 
-/* ---------- Storylines: one screening room ---------- */
-/* Stage: picture and text side by side, no frame; the page scrolls, never the text. */
-.sl-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 32px;
-  align-items: start;
-}
-.sl-media {
-  position: sticky;
-  top: calc(var(--header-h) + 16px);
-  aspect-ratio: 3 / 2;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--bg-hover);
-  box-shadow: var(--media-shadow);
+/* ---------- Storylines: one screening room ----------
+   The picture, its text laid over it, and the strip of scenes reuse the
+   theater components in style.css (.liblib-fused-*, .filmstrip-*). */
+.sl-viewport {
+  /* Picture and strip always fit on one screen; a long scene scrolls
+     inside the text box over the picture. */
+  max-height: calc(100dvh - var(--header-h) - 210px);
+  min-height: 320px;
   touch-action: pan-y;
   user-select: none;
   cursor: grab;
 }
-.sl-media:active { cursor: grabbing; }
-.sl-media img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-.sl-copy { min-width: 0; padding-top: 2px; }
-.sl-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 0 0 8px;
-  font-size: var(--text-ui-small);
-  line-height: 16px;
-  color: var(--text-label);
-}
-.sl-heading {
-  margin: 0 0 16px;
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 32px;
-  letter-spacing: -0.1px;
-  color: var(--text-primary);
-}
-.sl-text { max-width: none; }
-.sl-text p { white-space: pre-line; }
+.sl-viewport:active { cursor: grabbing; }
+.sl-viewport img { pointer-events: none; }
+.sl-viewport .liblib-narrative-scrollbox { user-select: text; cursor: auto; }
+.sl-viewport .liblib-hero-desc p { white-space: pre-line; }
+.sl-thumb { padding: 0; background: none; font: inherit; -webkit-tap-highlight-color: transparent; }
+.sl-thumb:focus-visible { opacity: 1; box-shadow: 0 0 0 2px var(--brand-blue); }
 
 /* A changed scene cross-fades in place. */
 @media (prefers-reduced-motion: no-preference) {
-  .sl-stage.is-swapping .sl-media img,
-  .sl-stage.is-swapping .sl-copy { animation: sl-swap var(--duration-medium) var(--ease-smooth-out); }
+  .sl-viewport.is-swapping img,
+  .sl-viewport.is-swapping .liblib-narrative-scrollbox { animation: sl-swap var(--duration-medium) var(--ease-smooth-out); }
 }
 @keyframes sl-swap {
   from { opacity: 0; filter: blur(3px); }
   to { opacity: 1; filter: blur(0); }
 }
 
-/* Strip: every scene as a card, scrolling sideways. */
-.sl-strip-wrap { position: relative; margin-top: 40px; }
-.sl-strip {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  padding: 4px 2px 8px;
-  margin: 0 -2px;
+@media (max-width: 768px) {
+  .sl-viewport { max-height: calc(100dvh - var(--header-h) - 190px); }
 }
-.sl-strip::-webkit-scrollbar { display: none; }
-.sl-card {
-  flex: none;
-  width: 168px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  scroll-snap-align: start;
-  -webkit-tap-highlight-color: transparent;
-}
-.sl-card-media {
-  display: block;
-  aspect-ratio: 3 / 2;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--bg-hover);
-  box-shadow: inset 0 0 0 1px var(--stage-border);
-  transition: box-shadow var(--duration-quick) var(--ease-out), opacity var(--duration-quick) var(--ease-out);
-}
-.sl-card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sl-card-title {
-  font-size: var(--text-ui);
-  line-height: 18px;
-  color: var(--text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.sl-card:hover .sl-card-title { color: var(--text-primary); }
-.sl-card.is-active .sl-card-media { box-shadow: 0 0 0 2px var(--text-primary); }
-.sl-card.is-active .sl-card-title { color: var(--text-primary); font-weight: 500; }
-.sl-card:focus-visible { outline: none; }
-.sl-card:focus-visible .sl-card-media { box-shadow: 0 0 0 2px var(--brand-blue); }
 
 /* Desktop: StoryFlow sections use the entity page layout, picture floated
    right at the same width, text across the full column. */
@@ -117,19 +44,6 @@
     width: clamp(220px, 34%, 300px);
     margin: 4px 0 20px 32px;
   }
-}
-
-/* Phone: picture, then the strip of scenes, then the text, so the cards stay
-   in reach however long the scene runs. */
-@media (max-width: 768px) {
-  #view-storyline.active { display: flex !important; flex-direction: column; }
-  #view-storyline .sl-stage { display: contents; }
-  #view-storyline .detail-head { order: 0; }
-  #view-storyline .sl-media { order: 1; position: static; }
-  #view-storyline .sl-strip-wrap { order: 2; margin-top: 16px; }
-  #view-storyline .sl-copy { order: 3; margin-top: 20px; }
-  .sl-heading { font-size: 20px; line-height: 28px; margin-bottom: 12px; }
-  .sl-card { width: 132px; }
 }
 
 /* ---------- One StoryFlow: an article, node after node ---------- */

@@ -2948,11 +2948,12 @@ img[data-reveal="pending"].is-swapping {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows var(--acc-collapse) var(--ease-smooth-out), opacity var(--acc-collapse) var(--ease-smooth-out);
+  transition: grid-template-rows var(--acc-collapse) var(--ease-smooth-out), opacity var(--acc-collapse) var(--ease-smooth-out), margin var(--acc-collapse) var(--ease-smooth-out);
 }
 .book-toc.is-open {
   grid-template-rows: 1fr;
   opacity: 1;
+  margin: 2px 0 6px;
   transition-duration: var(--acc-expand);
 }
 .book-toc-inner {
@@ -2961,7 +2962,7 @@ img[data-reveal="pending"].is-swapping {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin: 2px 0 6px 20px;
+  margin: 0 0 0 20px;
   padding-left: 1px;
 }
 .book-toc-inner::before {

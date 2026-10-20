@@ -3428,7 +3428,9 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   transition: color 0.15s ease;
 }
 .nav-burger:hover .nav-burger-box,
-.nav-burger[aria-expanded="true"] .nav-burger-box { color: var(--text-primary); }
+.nav-burger[aria-expanded="true"] .nav-burger-box,
+.btn-sidebar-collapse:hover .nav-burger-box,
+.btn-sidebar-collapse:focus-visible .nav-burger-box { color: var(--text-primary); }
 .nav-burger-line {
   position: absolute;
   left: 1px;

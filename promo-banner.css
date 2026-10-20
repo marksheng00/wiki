@@ -1,0 +1,188 @@
+/* Promo card: a painted card floating at the bottom of the screen, after
+   the OpenDesign campaign bar. The background is a crop of our Golden
+   Country illustration. Title and line on the left, a countdown in the
+   middle, the call to action and close on the right. Shown only while
+   html.has-promo is set (added in <head> unless the reader closed it). */
+
+.promo-bar {
+  --promo-radius: 16px;
+  --promo-fg: #ffffff;
+  --promo-fg-dim: rgba(255, 255, 255, 0.72);
+  --promo-line: rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 700;
+  width: min(880px, calc(100vw - 24px));
+  box-sizing: border-box;
+  display: none;
+  grid-template-columns: minmax(0, auto) 1px auto 1fr auto auto;
+  grid-template-areas: "text rule count . cta close";
+  align-items: center;
+  column-gap: 24px;
+  padding: 14px 12px 14px 28px;
+  border-radius: var(--promo-radius);
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--font-sans);
+  color: var(--promo-fg);
+  background: #2f3a22 url('assets/brand/promo-golden-country.jpg') center 55% / cover no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    0 12px 42px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%);
+  animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) 600ms both;
+}
+html.has-promo .promo-bar { display: grid; }
+[data-theme="dark"] .promo-bar {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 12px 42px rgba(0, 0, 0, 0.5);
+}
+
+/* A soft shade over the painting keeps the white text crisp. */
+.promo-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(12, 16, 8, 0.55) 0%, rgba(12, 16, 8, 0.16) 55%, rgba(12, 16, 8, 0.34) 100%);
+}
+
+.promo-text { grid-area: text; min-width: 0; }
+.promo-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.promo-title-short { display: none; }
+.promo-sub {
+  margin: 2px 0 0;
+  font-size: var(--text-ui);
+  line-height: 18px;
+  color: var(--promo-fg-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.promo-rule { grid-area: rule; align-self: stretch; background: var(--promo-line); margin: 4px 0; }
+
+.promo-count { grid-area: count; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+.promo-count[hidden] { display: none; }
+.promo-count-label { font-size: var(--text-ui-small); line-height: 16px; color: var(--promo-fg-dim); }
+.promo-count-time {
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+/* A digit that just changed settles in from a light blur (td number swap). */
+.promo-digit { display: inline-block; }
+.promo-digit.is-new { animation: promo-digit var(--duration-fast) var(--ease-smooth-out); }
+@keyframes promo-digit {
+  from { opacity: 0; transform: translateY(-4px); filter: blur(var(--blur-small)); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* Call to action: one warm colour picked from the painting. */
+.promo-cta {
+  grid-area: cta;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  color: #f5e2a8;
+  transition: background var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-cta:hover { background: rgba(255, 255, 255, 0.08); }
+.promo-cta:active { transform: scale(var(--scale-medium)); }
+.promo-cta:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 2px; }
+.promo-cta-arrow {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: currentColor;
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
+}
+.promo-cta:hover .promo-cta-arrow { transform: translateX(3px); }
+
+.promo-close {
+  grid-area: close;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: background var(--duration-quick) var(--ease-out), color var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-close:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+.promo-close:active { transform: scale(var(--scale-large)); }
+.promo-close:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 1px; }
+.promo-close svg { width: 18px; height: 18px; }
+
+@keyframes promo-enter {
+  from { opacity: 0; transform: translateX(-50%) translateY(24px); filter: blur(var(--blur-large)); }
+  to { opacity: 1; transform: translateX(-50%); filter: none; }
+}
+.promo-bar.is-leaving {
+  animation: promo-leave var(--duration-fast) var(--ease-smooth-out) both;
+  pointer-events: none;
+}
+@keyframes promo-leave {
+  from { opacity: 1; transform: translateX(-50%); filter: none; }
+  to { opacity: 0; transform: translateX(-50%) translateY(16px) scale(var(--scale-small)); filter: blur(var(--blur-small)); }
+}
+
+/* Keep the floating buttons and the footer's last line clear of the card. */
+html.has-promo .site-footer { padding-bottom: 104px; }
+html.has-promo .btn-top { bottom: calc(2.5rem + 88px); }
+
+@media (max-width: 768px) {
+  .promo-bar {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "text cta close" "count cta close";
+    column-gap: 4px;
+    row-gap: 2px;
+    padding: 12px 6px 12px 16px;
+  }
+  .promo-title { font-size: 15px; line-height: 20px; }
+  .promo-sub, .promo-rule, .promo-title-long { display: none; }
+  .promo-title-short { display: inline; }
+  .promo-count { flex-direction: row; align-items: baseline; gap: 6px; }
+  .promo-count-time { font-size: 13px; line-height: 18px; }
+  .promo-cta { padding: 0 10px; font-size: 14px; }
+  .promo-close { width: 32px; height: 32px; }
+  html.has-promo .btn-mobile-graph-launcher { bottom: calc(1.25rem + 80px + env(safe-area-inset-bottom, 0px)); }
+  /* While the graph sheet or the menu is up, the card steps aside. */
+  body.mobile-continuum-header-active .promo-bar,
+  body.menu-open .promo-bar,
+  body.graph-is-expanded .promo-bar { opacity: 0; pointer-events: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-bar, .promo-bar.is-leaving { animation: none; }
+  .promo-digit.is-new { animation: none; }
+}

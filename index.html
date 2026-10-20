@@ -28,6 +28,14 @@
   </script>
   <link rel="stylesheet" href="./style.css?v=151" />
   <link rel="stylesheet" href="./story.css?v=2" />
+  <link rel="stylesheet" href="./promo-banner.css?v=3" />
+  <script>
+    (function () {
+      var closed = false;
+      try { closed = localStorage.getItem('readipedia-promo-free-2026') === 'closed'; } catch (e) {}
+      if (!closed) document.documentElement.classList.add('has-promo');
+    })();
+  </script>
 </head>
 <body>
 
@@ -41,6 +49,22 @@
     </defs>
   </svg>
   <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <!-- Promo card: copy, countdown and close live in promo-banner.js.
+       data-end is when the offer is billed as ending; the countdown hides after it. -->
+  <aside class="promo-bar" id="promo-bar" aria-label="Announcement" data-end="2026-10-31T23:59:59+08:00">
+    <div class="promo-text">
+      <p class="promo-title"><span class="promo-title-long"></span><span class="promo-title-short"></span></p>
+      <p class="promo-sub"></p>
+    </div>
+    <span class="promo-rule" aria-hidden="true"></span>
+    <div class="promo-count">
+      <span class="promo-count-label"></span>
+      <span class="promo-count-time"></span>
+    </div>
+    <a class="promo-cta" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><svg class="promo-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+    <button class="promo-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </aside>
 
   <!-- Site header: brand and product links on the left, search and settings on the right -->
   <header class="wiki-header site-nav">
@@ -703,5 +727,6 @@
   <script src="./data/entity_storyflows.js?v=1" defer></script>
   <script src="./story.js?v=2" defer></script>
   <script src="./app.js?v=127" defer></script>
+  <script src="./promo-banner.js?v=3" defer></script>
 </body>
 </html>

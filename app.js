@@ -204,7 +204,12 @@
     'Entries': '词条',
     'Summary': '摘要',
     '89 scenes': '89 个场景',
-    'Three threads': '三条线索'
+    'Three threads': '三条线索',
+    'Settings': '设置',
+    'Site language': '界面语言',
+    'Theme': '外观',
+    'Light': '浅色',
+    'Dark': '深色'
   };
   const LANG_KEY = 'readipedia-lang';
   const zhStore = () => window.WIKI_STORE_ZH || null;
@@ -336,6 +341,9 @@
     document.title = zh ? '一九八四 — Readipedia' : 'Nineteen Eighty-Four — Readipedia';
     const langLabel = getEl('lang-current-label');
     if (langLabel) langLabel.textContent = zh ? '中文' : 'EN';
+    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.setLang === state.lang));
+    });
     document.querySelectorAll('#lang-dropdown .wiki-dropdown-item').forEach((item) => {
       item.classList.toggle('active', item.getAttribute('data-lang') === state.lang);
     });
@@ -422,6 +430,7 @@
     initReadifyCtas();
     initReadifyApps();
     initEntityBackLink();
+    initDrawerSettings();
     applyLanguage({ initial: true });
 
     // A view id in the URL is also an element id; keep the browser from
@@ -6311,11 +6320,35 @@
     showArticleView('view-entity', { ...options, fromHistory: true });
   }
 
+  function syncThemeButtons() {
+    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.setTheme === state.theme));
+    });
+  }
+
+  // Phone menu: language, theme and search live in the drawer, not the header.
+  function initDrawerSettings() {
+    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
+      btn.addEventListener('click', () => setLanguage(btn.dataset.setLang));
+    });
+    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.setTheme !== state.theme) toggleTheme();
+      });
+    });
+    syncThemeButtons();
+    getEl('btn-drawer-search')?.addEventListener('click', () => {
+      requestMobileSidebarState(false);
+      getEl('btn-search')?.click();
+    });
+  }
+
   function toggleTheme() {
     const newTheme = state.theme === 'dark' ? 'light' : 'dark';
     const apply = () => {
       state.theme = newTheme;
       document.documentElement.setAttribute('data-theme', newTheme);
+      syncThemeButtons();
       if (state.sidebarGraph) {
         configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
         if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();

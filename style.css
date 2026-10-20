@@ -3237,3 +3237,70 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 /* The logo stands alone in the header and the phone menu, without the wordmark. */
 .wiki-header .brand-word,
 .mobile-sidebar-title .brand-word { display: none !important; }
+
+/* Phones, closer to the original mobile edition: a quiet header (logo left,
+   menu at the far right), no prev/next arrows, and full-width media. */
+.drawer-search,
+.drawer-settings { display: none; }
+@media (max-width: 768px) {
+  .wiki-header-right > :not(.nav-burger) { display: none !important; }
+  .nav-burger.icon-btn { background: transparent; }
+  .detail-arrows { display: none !important; }
+
+  #view-book .infobox-media,
+  #view-entity .entity-media-wrap,
+  .mobile-continuum-media-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+  }
+  #view-entity .entity-media-wrap img,
+  .mobile-continuum-media-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .book-stage-side,
+  .entity-media-stack { width: 100%; max-width: none; }
+  .entity-media-stack .cta-beam,
+  .book-stage-side .cta-beam,
+  .mobile-continuum-cta { display: flex; width: 100%; }
+  .entity-media-stack .readify-cta,
+  .book-stage-side .readify-cta,
+  .mobile-continuum-cta .readify-cta { width: 100%; height: 48px; justify-content: center; font-size: 15px; }
+
+  .mobile-sidebar-header { gap: 8px; }
+  .mobile-sidebar-header .brand { margin-right: auto; }
+  .drawer-search { display: inline-flex; background: transparent; }
+  .drawer-settings { display: block; margin-top: 16px; padding-bottom: 24px; }
+  .drawer-setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 0 12px;
+  }
+  .drawer-setting-label { font-size: 15px; color: var(--text-primary); }
+  .drawer-seg {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 10px;
+    background: var(--bg-hover);
+  }
+  .drawer-seg button {
+    min-width: 56px;
+    height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .drawer-seg button[aria-pressed="true"] {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+}
+@media (max-width: 768px) {
+  .btn-sidebar-close.icon-btn { background: transparent; }
+}

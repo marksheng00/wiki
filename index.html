@@ -26,31 +26,16 @@
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
   </script>
-  <link rel="stylesheet" href="./style.css?v=146" />
+  <link rel="stylesheet" href="./style.css?v=147" />
 </head>
 <body>
 
-  <!-- Readipedia mark: a lit window, defined once and reused by every logo. -->
+  <!-- Readipedia mark: a folded page with a window, defined once and reused by every logo. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
-      <mask id="rpM" maskUnits="userSpaceOnUse" x="0" y="0" width="354" height="454"><rect x="27" y="27" width="300" height="400" fill="#fff"/><rect x="121" y="144.33" width="112" height="149.33" fill="#000"/></mask>
-      <linearGradient id="rpG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00f08a"/><stop offset=".5" stop-color="#36b2f2"/><stop offset="1" stop-color="#0050ff"/></linearGradient>
-      <filter id="rpX" filterUnits="userSpaceOnUse" x="0" y="0" width="354" height="454"><feGaussianBlur stdDeviation="40"/></filter>
-      <filter id="rpS" filterUnits="userSpaceOnUse" x="0" y="0" width="354" height="454"><feGaussianBlur stdDeviation="7"/></filter>
-      <filter id="rpW" filterUnits="userSpaceOnUse" x="0" y="0" width="354" height="454"><feGaussianBlur stdDeviation="12.6"/></filter>
-      <symbol id="rp-mark" viewBox="0 0 354 454">
-        <g filter="url(#rpS)"><g mask="url(#rpM)">
-          <rect x="27" y="27" width="300" height="400" fill="url(#rpG)"/>
-          <g filter="url(#rpX)">
-            <circle cx="62" cy="62" r="115" fill="#00f58c"/>
-            <circle cx="309" cy="107" r="82" fill="#0a22ff"/>
-            <circle cx="213" cy="375" r="112" fill="#0068ff"/>
-            <circle cx="35" cy="419" r="86" fill="#e3e8ff"/>
-            <circle cx="162" cy="159" r="60" fill="#a8ecf2"/>
-            <circle cx="305" cy="195" r="48" fill="#0014ff"/>
-          </g>
-        </g></g>
-        <rect class="rp-mark-glow" x="116" y="139.33" width="122" height="159.33" opacity=".65" filter="url(#rpW)"/>
+      <symbol id="rp-mark" viewBox="0 0 300 400">
+        <path fill-rule="evenodd" fill="currentColor" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/>
+        <path fill="#9a9aa0" d="M204,0V96H300Z"/>
       </symbol>
     </defs>
   </svg>
@@ -62,7 +47,7 @@
       <!-- One slot for the logo and the sidebar toggle: hovering the mark turns it into the toggle. -->
       <div class="brand-combo">
         <a href="#" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
-          <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="12 12 330 430" focusable="false"><use href="#rp-mark"/></svg></span>
+          <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
           <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
         </a>
         <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" title="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
@@ -143,7 +128,7 @@
         <!-- Mobile-Only Fullscreen Navigation Header (Strict 52px Consistent Brand Header) -->
         <div class="mobile-sidebar-header">
           <span class="brand mobile-sidebar-title">
-            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="12 12 330 430" focusable="false"><use href="#rp-mark"/></svg></span>
+            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
             <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
           </span>
           <button class="btn-sidebar-close icon-btn" id="btn-sidebar-close" type="button" aria-label="Close menu">
@@ -789,7 +774,7 @@
       <footer class="site-footer">
         <div class="footer-brand">
           <a href="#" class="brand footer-logo" data-footer-nav="btn-book-home">
-            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="12 12 330 430" focusable="false"><use href="#rp-mark"/></svg></span>
+            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
             <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
           </a>
           <p class="footer-tagline">Read the book as a living encyclopedia.</p>

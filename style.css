@@ -3697,3 +3697,8 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 .nav-get-pro:active { background: var(--bg-pressed); }
 #nav-get-app-label { --wash-base: #6c6c6c; }
 [data-theme="dark"] #nav-get-app-label { --wash-base: #a0a0a0; }
+
+/* The sidebar already links back to the book on wide screens. */
+@media (min-width: 769px) {
+  #btn-entity-back { display: none; }
+}

@@ -136,25 +136,34 @@
 
   let currentFlowId = null;
 
+  // h2 -> h3 and h3 -> h4 in rendered text; the text itself is untouched.
+  function demote(html) {
+    return html.replace(/<(\/?)h([234])\b/g, (m, slash, n) => `<${slash}h${Math.min(Number(n) + 1, 5)}`);
+  }
+
   function renderFlow(id) {
     const flow = flowById(id);
     if (!flow) return false;
     currentFlowId = id;
     const nodes = flow.nodes || [];
     el('flow-title').textContent = flow.title;
-    el('flow-sub').textContent = flow.description;
 
+    // Like an entity page: the flow's own description opens the article, then
+    // one section per node, headings in the sidebar's table of contents.
+    const lead = `<p>${esc(flow.description)}</p>`;
     const note = isZh() ? `<p class="lang-fallback-note" lang="zh-CN">${esc(t('enOnly'))}</p>` : '';
-    el('flow-nodes').innerHTML = note + nodes.map((n, i) => {
+    el('flow-nodes').innerHTML = lead + note + nodes.map((n, i) => {
       const md = nodeMarkdown(n.detail);
       // The node title is already the section heading; drop the copy at the top of the text.
+      // The node's own title is the section heading, so headings inside the
+      // text sit one level below it, as on an entity page.
       const body = md.trim().length > 8
-        ? renderMarkdown(md.replace(/^\s*#\s+[^\n]*\n*/, ''))
+        ? demote(renderMarkdown(md.replace(/^\s*#\s+[^\n]*\n*/, '')))
         : `<p class="sf-missing">${esc(t('missing'))}</p>`;
-      return `<section class="sf-node" id="sf-node-${i}">
-        <h2 class="sf-node-title">${esc(n.title)}</h2>
+      return `<section class="reading-section sf-node" id="sf-node-${i}">
         ${n.image ? `<div class="sf-node-media"><img src="${esc(localImage(n.image))}" alt="${esc(n.title)}" loading="lazy" decoding="async"></div>` : ''}
-        <div class="prose markdown-prose" lang="en">${body}</div>
+        <h2>${esc(n.title)}</h2>
+        <div lang="en">${body}</div>
       </section>`;
     }).join('');
 

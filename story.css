@@ -18,32 +18,25 @@
    right at the same width, text across the full column. */
 @media (min-width: 769px) {
   #view-story-flow { --prose-w: none; }
-  .sf-node .markdown-prose { max-width: none; }
   .sf-node-media {
     float: right;
     width: clamp(220px, 34%, 300px);
-    margin: 4px 0 20px 32px;
+    margin: 4px 0 24px 32px;
   }
 }
 
 /* ---------- One StoryFlow: an article, node after node ---------- */
 
-.sf-node {
-  max-width: none;
-  clear: both;
-  display: flow-root;
-  padding-top: 40px;
-  scroll-margin-top: calc(var(--header-h) + 16px);
+.sf-node { max-width: none; clear: both; display: flow-root; }
+.sf-node + .sf-node { margin-top: 32px; }
+/* Phone: the heading comes first, then the picture, then the text. */
+@media (max-width: 768px) {
+  .sf-node { display: flex; flex-direction: column; }
+  .sf-node > h2 { order: 0; }
+  .sf-node-media { order: 1; }
+  .sf-node > div { order: 2; }
 }
-.sf-node + .sf-node { margin-top: 16px; border-top: 1px solid var(--border-hairline); }
-.sf-node-title {
-  margin: 8px 0 20px;
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 32px;
-  letter-spacing: -0.1px;
-  color: var(--text-primary);
-}
+/* Node picture, framed like the still on an entity page. */
 .sf-node-media {
   aspect-ratio: 16 / 9;
   margin-bottom: 20px;
@@ -104,6 +97,3 @@
 /* The StoryFlow cards lead somewhere now. */
 #view-storyflow .storyflow-editorial-row { cursor: pointer; }
 
-@media (max-width: 768px) {
-  .sf-node-title { font-size: 20px; line-height: 28px; }
-}

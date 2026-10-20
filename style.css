@@ -3172,7 +3172,8 @@ svg.ui-icon { stroke-width: 1.5; }
   .btn-sidebar-collapse.icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
   .btn-sidebar-collapse.icon-btn:active { background: var(--bg-hover-strong); }
 }
-/* Entity rows sit flush with their category heading, no indent. */
-.docs-link--child,
-.toc-cat-list .toc-item { padding-left: 12px; }
-.entity-section-toc .book-toc-inner { margin-left: 20px; }
+/* The Entities heading is a plain label, not a fold control. */
+#grp-entities > summary { cursor: default; pointer-events: none; }
+#grp-entities > summary:hover { background: transparent; }
+#grp-entities > summary::after,
+#grp-entities > summary::-webkit-details-marker { display: none; }

@@ -206,7 +206,11 @@
 
   function initDetailsAnimation() {
     const detailsEls = document.querySelectorAll('details.toc-group, details.toc-cat-details');
+    // The Entities group is a fixed heading: clicking it never folds the list.
+    const entitiesGroup = getEl('grp-entities');
+    entitiesGroup?.querySelector('summary')?.addEventListener('click', (e) => e.preventDefault());
     detailsEls.forEach(details => {
+      if (details === entitiesGroup) return;
       const summary = details.querySelector('summary');
       const content = details.querySelector('.toc-items, .toc-cat-list');
       if (!summary || !content) return;

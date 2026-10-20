@@ -704,21 +704,54 @@ details.toc-cat-details:not([open]) > summary::after {
   transition: color 150ms ease, opacity 150ms ease;
 }
 
+/* Book overview vertical rhythm: every block below the masthead is sized in
+   whole body lines, so the floated infobox rows sit on the same lines as the
+   text beside them. */
+#view-book {
+  container-type: inline-size;
+  --book-line: calc(1.12rem * 1.85);
+  --infobox-w: clamp(220px, 40cqi, 320px);
+}
+#view-book .reading-section {
+  margin-bottom: calc(var(--book-line) * 2);
+}
+#view-book .reading-section h2 {
+  line-height: var(--book-line);
+  margin-bottom: var(--book-line);
+}
+#view-book .prose p {
+  margin-bottom: var(--book-line);
+  text-wrap: pretty;
+}
+#view-book .prose p:last-child {
+  margin-bottom: 0;
+}
+/* Beside the float the text column gets narrow; justifying it there stretches
+   word gaps, so the overview reads ragged-right on narrow stages. */
+@media (min-width: 769px) {
+  @container (max-width: 640px) {
+    #view-book #text-overview p {
+      text-align: left;
+    }
+  }
+}
+
 /* Pure Floating Infobox (100% Zero-Box, Transparent Canvas) */
 .wiki-infobox {
   float: right;
-  width: 320px;
-  margin: 0.5rem 0 -0.65rem 2rem;
+  width: var(--infobox-w);
+  margin: 0 0 var(--book-line) var(--book-line);
   background: transparent;
   padding: 0;
   border: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
 }
 .infobox-media {
   width: 100%;
-  aspect-ratio: 3 / 4.2;
+  height: calc(var(--infobox-w) * 1.4);
+  height: round(nearest, calc(var(--infobox-w) * 1.4), var(--book-line));
   overflow: hidden;
-  margin-bottom: 0.95rem;
+  margin-bottom: 0;
   background: transparent;
 }
 .infobox-media img {
@@ -731,8 +764,7 @@ details.toc-cat-details:not([open]) > summary::after {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.95rem;
-  font-size: 0.88rem;
+  font-size: 1rem;
   margin-bottom: 0;
   box-sizing: border-box;
 }
@@ -740,10 +772,11 @@ details.toc-cat-details:not([open]) > summary::after {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 1rem;
   width: 100%;
   padding: 0;
   border: none;
-  line-height: 1.2;
+  line-height: var(--book-line);
   box-sizing: border-box;
 }
 .infobox-meta-row span {
@@ -752,8 +785,9 @@ details.toc-cat-details:not([open]) > summary::after {
 }
 .infobox-meta-row strong {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   text-align: right;
+  white-space: nowrap;
 }
 .infobox-cta-link {
   display: inline-flex;
@@ -769,6 +803,13 @@ details.toc-cat-details:not([open]) > summary::after {
   margin-top: 0.95rem;
   margin-bottom: 0;
   transition: opacity 160ms ease;
+}
+.wiki-infobox .infobox-cta-link {
+  display: flex;
+  width: fit-content;
+  height: var(--book-line);
+  white-space: nowrap;
+  margin-top: 0;
 }
 .infobox-cta-link:hover {
   text-decoration: none;
@@ -1509,12 +1550,16 @@ details.toc-cat-details:not([open]) > summary::after {
     text-align: center;
   }
 
+  #view-book {
+    --infobox-w: min(320px, 100cqi);
+  }
+
   .wiki-infobox,
   .entity-floating-media {
     float: none !important;
     width: 100% !important;
     max-width: 320px !important;
-    margin: 0 auto 0.95rem auto !important;
+    margin: 0 auto var(--book-line, 0.95rem) auto !important;
     text-align: center;
     display: flex;
     flex-direction: column;

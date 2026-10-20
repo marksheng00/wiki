@@ -49,19 +49,90 @@
   --blur-medium: 3px;
   --blur-large: 8px;
 
-  /* Readipedia motion roles, built only from the tokens above. Pick by what
-     the motion is for, not by how long it should feel:
-     - hover/press feedback: quick, ease-out
-     - surfaces that open (menus, previews, pages): fast/medium in, quick out
-     - panels and drawers: medium in, fast out */
+  /* Pattern variables: the same names and default values transitions.dev
+     ships for each transition, wired to the shared scale above wherever the
+     scale has the value. Each component below reads only these. */
+  /* Menu dropdown */
+  --dropdown-open-dur: var(--duration-fast);
+  --dropdown-close-dur: var(--duration-quick);
+  --dropdown-pre-scale: var(--scale-medium);
+  --dropdown-closing-scale: var(--scale-tiny);
+  --dropdown-ease: var(--ease-smooth-out);
+  /* Panel reveal (sidebar, mobile drawer, graph window) */
+  --panel-open-dur: var(--duration-slow);
+  --panel-close-dur: var(--duration-medium);
+  --panel-blur: var(--blur-small);
+  --panel-ease: var(--ease-smooth-out);
+  /* Page side-by-side */
+  --page-slide-dur: var(--duration-fast);
+  --page-fade-dur: var(--duration-fast);
+  --page-slide-distance: var(--distance-base);
+  --page-blur: var(--blur-medium);
+  --page-slide-ease: var(--ease-smooth-out);
+  --page-fade-ease: var(--ease-smooth-out);
+  /* Card resize (graph layout changes) */
+  --resize-dur: 300ms;
+  --resize-ease: var(--ease-smooth-out);
+  /* Icon swap */
+  --icon-swap-dur: var(--duration-fast);
+  --icon-swap-blur: var(--blur-small);
+  --icon-swap-start-scale: 0.25;
+  --icon-swap-ease: var(--ease-in-out);
+  /* Skeleton loader and reveal */
+  --pulse-dur: 1000ms;
+  --pulse-count: 1;
+  --pulse-min: 0.5;
+  --reveal-dur: var(--duration-slow);
+  --reveal-blur: var(--blur-small);
+  --reveal-ease: var(--ease-in-out);
+  /* Tabs sliding */
+  --tabs-dur: var(--duration-fast);
+  --tabs-ease: var(--ease-smooth-out);
+  /* Tooltip open/close */
+  --tt-in-dur: var(--duration-quick);
+  --tt-out-dur: 50ms;
+  --tt-scale: var(--scale-small);
+  --tt-delay: var(--duration-micro);
+  --tt-in-ease: var(--ease-out);
+  --tt-out-ease: var(--ease-out);
+  --tt-move-dur: 160ms;
+  --tt-move-ease: var(--ease-smooth-out);
+  --tt-bg: #ffffff;
+  --tt-fg: #2f2f2f;
+  --tt-radius: 8px;
+  --tt-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px 0 rgba(0, 0, 0, 0.05), 0 4px 42px 0 rgba(0, 0, 0, 0.06);
+  /* Texts reveal */
+  --stagger-dur: var(--duration-very-slow);
+  --stagger-distance: var(--distance-medium);
+  --stagger-stagger: var(--duration-stagger);
+  --stagger-blur: var(--blur-medium);
+  --stagger-ease: var(--ease-smooth-out);
+  /* Text swap soft */
+  --text-soft-dur: 200ms;
+  --text-soft-blur: var(--blur-small);
+  --text-soft-ease: var(--ease-in-out);
+  /* Accordion expand */
+  --acc-expand: var(--duration-fast);
+  --acc-collapse: var(--duration-fast);
+  --acc-chevron: var(--duration-fast);
+  --acc-ease: var(--ease-smooth-out);
+  /* Toast open / close (back-to-top button) */
+  --toast-open: var(--duration-medium);
+  --toast-close: var(--duration-fast);
+  --toast-distance: 16px;
+  --toast-blur: var(--blur-small);
+  --toast-scale: var(--scale-medium);
+  --toast-ease: var(--ease-smooth-out);
+  /* Learn more hover */
+  --learn-shift: 2px;
+  --learn-in: var(--duration-medium);
+  --learn-out: var(--duration-medium);
+  --learn-ease: var(--ease-smooth-out);
+  /* Hover and press feedback has no transitions.dev pattern of its own; it
+     borrows the tooltip's quick ease-out timing. */
   --motion-hover: var(--duration-quick) var(--ease-out);
-  --motion-open: var(--duration-fast) var(--ease-smooth-out);
-  --motion-close: var(--duration-quick) var(--ease-smooth-out);
-  --motion-panel-open: var(--duration-medium) var(--ease-smooth-out);
-  --motion-panel-close: var(--duration-fast) var(--ease-smooth-out);
 
   --border-color: var(--border-hairline);
-  --surface-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -73,6 +144,11 @@
     --duration-medium: 0ms;
     --duration-slow: 0ms;
     --duration-very-slow: 0ms;
+    --resize-dur: 0ms;
+    --pulse-dur: 0ms;
+    --tt-out-dur: 0ms;
+    --tt-move-dur: 0ms;
+    --text-soft-dur: 0ms;
   }
 }
 
@@ -95,7 +171,10 @@
   --text-muted: #6e7787;
   --accent: #60a5fa;
   --border-hairline: rgba(255, 255, 255, 0.06);
-  --surface-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
+  /* transitions.dev ships light values only; these are the dark pair. */
+  --tt-bg: #1a1c23;
+  --tt-fg: #e6edf3;
+  --tt-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.3), 0 4px 42px 0 rgba(0, 0, 0, 0.4);
 }
 
 *, *::before, *::after {
@@ -242,8 +321,9 @@ svg.lucide, i[data-lucide] {
   margin-top: 0.3rem;
   background: var(--bg-page);
   border: none;
-  border-radius: 10px;
-  box-shadow: var(--surface-shadow);
+  border-radius: var(--tt-radius);
+  background: var(--tt-bg);
+  box-shadow: var(--tt-shadow);
   min-width: 160px;
   display: flex;
   flex-direction: column;
@@ -251,11 +331,14 @@ svg.lucide, i[data-lucide] {
   /* Menu dropdown (transitions.dev): grows from the trigger's corner, opens
      slower than it closes, and closes to a barely smaller scale. */
   transform-origin: top right;
-  transform: scale(var(--scale-medium));
+  transform: scale(var(--dropdown-pre-scale));
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: transform var(--motion-close), opacity var(--motion-close), visibility 0s linear var(--duration-quick);
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity var(--dropdown-close-dur) var(--dropdown-ease),
+    visibility 0s linear var(--dropdown-close-dur);
   z-index: 1000;
 }
 .wiki-dropdown-menu.is-open {
@@ -263,10 +346,13 @@ svg.lucide, i[data-lucide] {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: transform var(--motion-open), opacity var(--motion-open), visibility 0s;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity var(--dropdown-open-dur) var(--dropdown-ease),
+    visibility 0s;
 }
 .wiki-dropdown-menu.is-closing {
-  transform: scale(var(--scale-tiny));
+  transform: scale(var(--dropdown-closing-scale));
 }
 .wiki-dropdown-item {
   padding: 0.45rem 0.6rem;
@@ -301,12 +387,13 @@ svg.lucide, i[data-lucide] {
   /* Hover popover: a tooltip-style delayed appear, instant leave. */
   translate: 50% 0;
   transform-origin: top center;
-  scale: var(--scale-small);
+  scale: var(--tt-scale);
   margin-top: 0.5rem;
-  background: var(--bg-page);
+  background: var(--tt-bg);
+  color: var(--tt-fg);
   border: none;
-  border-radius: 12px;
-  box-shadow: var(--surface-shadow);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
   padding: 0.8rem;
   display: flex;
   flex-direction: column;
@@ -315,7 +402,10 @@ svg.lucide, i[data-lucide] {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--motion-close), scale var(--motion-close), visibility 0s linear var(--duration-quick);
+  transition:
+    opacity var(--tt-out-dur) var(--tt-out-ease),
+    scale var(--tt-out-dur) var(--tt-out-ease),
+    visibility 0s linear var(--tt-out-dur);
   z-index: 1000;
 }
 .wiki-qr-container:hover .wiki-qr-popover,
@@ -324,7 +414,10 @@ svg.lucide, i[data-lucide] {
   scale: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity var(--motion-open) var(--duration-micro), scale var(--motion-open) var(--duration-micro), visibility 0s linear var(--duration-micro);
+  transition:
+    opacity var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    scale var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    visibility 0s linear var(--tt-delay);
 }
 .qr-img {
   width: 120px;
@@ -522,12 +615,12 @@ svg.lucide, i[data-lucide] {
 
 .sidebar-graph-container .graph-tooltip {
   max-width: min(240px, calc(100% - 24px));
-  padding: 0.35rem 0.55rem;
-  border: 1px solid var(--border-hairline);
-  border-radius: 6px;
-  background: rgba(var(--bg-page-rgb), 0.96);
-  color: var(--text-primary);
-  box-shadow: 0 8px 24px rgba(20, 25, 35, 0.12);
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--tt-radius);
+  background: var(--tt-bg);
+  color: var(--tt-fg);
+  box-shadow: var(--tt-shadow);
   font-family: var(--font-sans);
   font-size: 0.76rem;
   font-weight: 600;
@@ -625,7 +718,7 @@ details.toc-cat-details > summary::after {
   content: '▾';
   display: inline-block;
   color: var(--text-muted);
-  transition: transform var(--motion-panel-close);
+  transition: transform var(--acc-chevron) var(--acc-ease);
 }
 details.toc-group > summary::after {
   font-size: 0.72rem;
@@ -637,10 +730,6 @@ details.toc-cat-details[data-expanded="false"] > summary::after,
 details.toc-group:not([open]):not([data-expanded]) > summary::after,
 details.toc-cat-details:not([open]):not([data-expanded]) > summary::after {
   transform: rotate(-90deg);
-}
-details.toc-group[data-expanded="true"] > summary::after,
-details.toc-cat-details[data-expanded="true"] > summary::after {
-  transition: transform var(--motion-panel-open);
 }
 
 .toc-title {
@@ -898,16 +987,15 @@ details.toc-cat-details > summary::after {
   width: 14px;
   height: 14px;
   margin-left: 4px;
-  transition: transform var(--motion-close);
+  transition: transform var(--learn-out) var(--learn-ease);
 }
 /* UX: Strictly horizontal micro-interaction to preserve strict vertical typography bounds */
 .infobox-cta-link:hover .cta-hover-icon {
-  transform: translate(var(--distance-micro), 0);
-  transition: transform var(--motion-open);
+  transform: translate(var(--learn-shift), 0);
+  transition-duration: var(--learn-in);
 }
-.infobox-cta-link:hover .cta-hover-icon[data-lucide="arrow-up-right"],
 .infobox-cta-link:hover svg.lucide-arrow-up-right {
-  transform: translate(2px, -2px);
+  transform: translate(var(--learn-shift), calc(var(--learn-shift) * -1));
 }
 
 /* Entity Editorial Hero Media (Right-Floating on Desktop, Same as Book Overview) */
@@ -1269,7 +1357,7 @@ details.toc-cat-details > summary::after {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity var(--motion-hover), transform var(--duration-slow) var(--ease-smooth-out);
+  transition: opacity var(--motion-hover);
 }
 .storyflow-editorial-row:hover .storyflow-row-media img {
   opacity: 0.88;
@@ -1322,20 +1410,29 @@ details.toc-cat-details > summary::after {
   /* Hidden near the top of the page; rises in once there is somewhere to go back to. */
   opacity: 0;
   visibility: hidden;
-  transform: translateY(var(--distance-base));
-  filter: blur(var(--blur-small));
-  transition: opacity var(--motion-close), transform var(--motion-close), filter var(--motion-close), color var(--motion-hover), visibility 0s linear var(--duration-quick);
+  transform: translateY(var(--toast-distance)) scale(var(--toast-scale));
+  filter: blur(var(--toast-blur));
+  transition:
+    opacity var(--toast-close) var(--toast-ease),
+    transform var(--toast-close) var(--toast-ease),
+    filter var(--toast-close) var(--toast-ease),
+    color var(--motion-hover),
+    visibility 0s linear var(--toast-close);
 }
 .btn-top.is-visible {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   filter: blur(0);
-  transition: opacity var(--motion-open), transform var(--motion-open), filter var(--motion-open), color var(--motion-hover), visibility 0s;
+  transition:
+    opacity var(--toast-open) var(--toast-ease),
+    transform var(--toast-open) var(--toast-ease),
+    filter var(--toast-open) var(--toast-ease),
+    color var(--motion-hover),
+    visibility 0s;
 }
 .btn-top.is-visible:hover {
   color: var(--text-primary);
-  transform: translateY(calc(var(--distance-micro) * -1));
 }
 
 .btn-mobile-graph-launcher {
@@ -1378,15 +1475,28 @@ details.toc-cat-details > summary::after {
      sidebar slides left while a clip at that edge hides what has passed it,
      and the reading column moves with the same timing. The column always
      travels less than the sidebar's edge, so the two never overlap. */
-  /* Opening (sliding back out) takes a little longer than retracting. */
+  /* Panel reveal timing: 400ms out, 350ms back in, with a 2px blur on the
+     retracted side. filter stays none while open so the expanded graph,
+     which is position: fixed inside the sidebar, keeps the viewport as its
+     containing block. */
   .wiki-sidebar {
     clip-path: inset(0 0 0 0);
-    transition: transform var(--motion-panel-open), clip-path var(--motion-panel-open), visibility 0s;
+    filter: none;
+    transition:
+      transform var(--panel-open-dur) var(--panel-ease),
+      clip-path var(--panel-open-dur) var(--panel-ease),
+      filter var(--panel-open-dur) var(--panel-ease),
+      visibility 0s;
   }
   .wiki-sidebar.collapsed {
     transform: translateX(-100%);
     clip-path: inset(0 0 0 100%);
-    transition: transform var(--motion-panel-close), clip-path var(--motion-panel-close), visibility 0s linear var(--duration-fast);
+    filter: blur(var(--panel-blur));
+    transition:
+      transform var(--panel-close-dur) var(--panel-ease),
+      clip-path var(--panel-close-dur) var(--panel-ease),
+      filter var(--panel-close-dur) var(--panel-ease),
+      visibility 0s linear var(--panel-close-dur);
   }
   .wiki-header {
     padding-left: calc(var(--page-inset) + 2rem);
@@ -1402,7 +1512,7 @@ details.toc-cat-details > summary::after {
     width: calc(100% - var(--main-left));
     margin-left: var(--main-left);
     margin-right: 0;
-    transition: margin-left var(--motion-panel-open), width var(--motion-panel-open);
+    transition: margin-left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1413,7 +1523,7 @@ details.toc-cat-details > summary::after {
     max-width: 980px;
   }
   body.sidebar-collapsed .wiki-main-article {
-    transition: margin-left var(--motion-panel-close), width var(--motion-panel-close);
+    transition: margin-left var(--panel-close-dur) var(--panel-ease), width var(--panel-close-dur) var(--panel-ease);
   }
 }
 
@@ -1484,7 +1594,8 @@ details.toc-cat-details > summary::after {
     opacity: 1;
     pointer-events: none;
     /* Closing is the default rule; .is-open carries the slower opening. */
-    transition: transform var(--motion-panel-close);
+    filter: blur(var(--panel-blur));
+    transition: transform var(--panel-close-dur) var(--panel-ease), filter var(--panel-close-dur) var(--panel-ease);
     display: flex;
     flex-direction: column;
     border: none;
@@ -1497,7 +1608,8 @@ details.toc-cat-details > summary::after {
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
-    transition: transform var(--motion-panel-open);
+    filter: none;
+    transition: transform var(--panel-open-dur) var(--panel-ease), filter var(--panel-open-dur) var(--panel-ease);
   }
   .wiki-sidebar.is-closing {
     z-index: 800;
@@ -1957,14 +2069,14 @@ details.toc-cat-details > summary::after {
 .icon-swap > * {
   grid-area: 1 / 1;
   transition:
-    opacity var(--duration-fast) var(--ease-in-out),
-    filter var(--duration-fast) var(--ease-in-out),
-    transform var(--duration-fast) var(--ease-in-out);
+    opacity var(--icon-swap-dur) var(--icon-swap-ease),
+    filter var(--icon-swap-dur) var(--icon-swap-ease),
+    transform var(--icon-swap-dur) var(--icon-swap-ease);
 }
 .icon-swap > [data-icon-state] {
   opacity: 0;
-  filter: blur(var(--blur-small));
-  transform: scale(0.25);
+  filter: blur(var(--icon-swap-blur));
+  transform: scale(var(--icon-swap-start-scale));
 }
 [data-theme="light"] .icon-swap > [data-icon-state="light"],
 [data-theme="dark"] .icon-swap > [data-icon-state="dark"] {
@@ -1976,21 +2088,28 @@ details.toc-cat-details > summary::after {
 /* Skeleton reveal for images: the frame pulses while the file loads, then
    the picture cross-fades in through a soft blur. Images already in cache
    never get the pending state, so they appear at once. */
-@keyframes media-pulse {
-  0%, 100% { background-color: var(--bg-subtle); }
-  50% { background-color: var(--bg-hover); }
-}
 .is-media-loading {
-  animation: media-pulse 1000ms ease-in-out infinite;
+  position: relative;
+}
+.is-media-loading::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-hover);
+  animation: t-skel-pulse var(--pulse-dur) ease-in-out var(--pulse-count);
+}
+@keyframes t-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: var(--pulse-min); }
 }
 img[data-reveal] {
   transition:
-    opacity var(--duration-slow) var(--ease-in-out),
-    filter var(--duration-slow) var(--ease-in-out);
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter var(--reveal-dur) var(--reveal-ease);
 }
 img[data-reveal="pending"] {
   opacity: 0;
-  filter: blur(var(--blur-small));
+  filter: blur(var(--reveal-blur));
 }
 img[data-reveal="pending"].is-swapping {
   transition: none;
@@ -2010,7 +2129,7 @@ img[data-reveal="pending"].is-swapping {
   background: var(--text-primary);
   border-radius: 1px;
   pointer-events: none;
-  transition: translate var(--motion-open), width var(--motion-open);
+  transition: translate var(--tabs-dur) var(--tabs-ease), width var(--tabs-dur) var(--tabs-ease);
 }
 .filmstrip-indicator.is-snapping {
   transition: none;
@@ -2028,33 +2147,33 @@ img[data-reveal="pending"].is-swapping {
   width: var(--preview-w, 320px);
   height: var(--preview-h, auto);
   translate: var(--preview-x, 0px) var(--preview-y, 0px);
-  scale: var(--scale-small);
+  scale: var(--tt-scale);
   transform-origin: var(--preview-origin, 50% 0%);
   overflow: hidden;
-  border-radius: 12px;
-  background: var(--bg-page);
-  color: var(--text-primary);
-  box-shadow: var(--surface-shadow);
+  border-radius: var(--tt-radius);
+  background: var(--tt-bg);
+  color: var(--tt-fg);
+  box-shadow: var(--tt-shadow);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity var(--motion-close),
-    scale var(--motion-close),
-    visibility 0s linear var(--duration-quick),
-    translate var(--duration-fast) var(--ease-smooth-out),
-    height var(--duration-fast) var(--ease-smooth-out);
+    opacity var(--tt-out-dur) var(--tt-out-ease),
+    scale var(--tt-out-dur) var(--tt-out-ease),
+    visibility 0s linear var(--tt-out-dur),
+    translate var(--tt-move-dur) var(--tt-move-ease),
+    height var(--tt-move-dur) var(--tt-move-ease);
 }
 .entity-preview[data-show="true"] {
   opacity: 1;
   scale: 1;
   visibility: visible;
   transition:
-    opacity var(--motion-open),
-    scale var(--motion-open),
-    visibility 0s,
-    translate var(--duration-fast) var(--ease-smooth-out),
-    height var(--duration-fast) var(--ease-smooth-out);
+    opacity var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    scale var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    visibility 0s linear var(--tt-delay),
+    translate var(--tt-move-dur) var(--tt-move-ease),
+    height var(--tt-move-dur) var(--tt-move-ease);
 }
 .entity-preview.is-placing {
   transition: none;
@@ -2062,7 +2181,7 @@ img[data-reveal="pending"].is-swapping {
 .entity-preview-inner {
   display: flex;
   gap: 0.85rem;
-  padding: 0.75rem;
+  padding: 8px 12px;
 }
 .entity-preview-media {
   flex: 0 0 72px;
@@ -2114,7 +2233,8 @@ img[data-reveal="pending"].is-swapping {
   font-family: var(--font-sans);
   font-size: 0.8rem;
   line-height: 1.5;
-  color: var(--text-secondary);
+  color: var(--tt-fg);
+  opacity: 0.8;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
@@ -2129,8 +2249,8 @@ img[data-reveal="pending"].is-swapping {
 /* Theme switch: one cross-fade of the whole page (View Transitions). */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: var(--duration-fast);
-  animation-timing-function: var(--ease-in-out);
+  animation-duration: var(--text-soft-dur);
+  animation-timing-function: var(--text-soft-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2140,7 +2260,7 @@ img[data-reveal="pending"].is-swapping {
   .wiki-main-article.wide-stage {
     transition: none !important;
   }
-  .is-media-loading {
+  .is-media-loading::before {
     animation: none;
   }
 }

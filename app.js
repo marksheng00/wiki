@@ -30,22 +30,73 @@
   /* Motion tokens live in style.css (:root). JS reads them instead of keeping
      its own numbers, so CSS and scripted motion always agree, and both drop
      to zero under prefers-reduced-motion. */
+  // Every getter takes the full custom property name, e.g. motion.ms('--panel-open-dur').
   const motion = {
     raw(name) {
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     },
     ms(name) {
-      const value = this.raw(`--duration-${name}`);
+      const value = this.raw(name);
       const amount = parseFloat(value) || 0;
       return value.endsWith('ms') ? amount : (value.endsWith('s') ? amount * 1000 : amount);
     },
     ease(name) {
-      return this.raw(`--ease-${name}`) || 'ease-out';
+      return this.raw(name) || 'ease-out';
     },
     px(name) {
       return parseFloat(this.raw(name)) || 0;
+    },
+    number(name, fallback = 0) {
+      const value = parseFloat(this.raw(name));
+      return Number.isFinite(value) ? value : fallback;
     }
   };
+
+  // JS-driven motion (graph camera, morphs, layout changes) follows the same
+  // smooth-out curve as CSS, read from --ease-smooth-out.
+  function createCubicBezier(x1, y1, x2, y2) {
+    const ax = 3 * x1 - 3 * x2 + 1;
+    const bx = 3 * x2 - 6 * x1;
+    const cx = 3 * x1;
+    const ay = 3 * y1 - 3 * y2 + 1;
+    const by = 3 * y2 - 6 * y1;
+    const cy = 3 * y1;
+    const sampleX = (t) => ((ax * t + bx) * t + cx) * t;
+    const sampleY = (t) => ((ay * t + by) * t + cy) * t;
+    const slopeX = (t) => (3 * ax * t + 2 * bx) * t + cx;
+    return (x) => {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 8; i += 1) {
+        const error = sampleX(t) - x;
+        if (Math.abs(error) < 1e-6) break;
+        const slope = slopeX(t);
+        if (Math.abs(slope) < 1e-6) break;
+        t -= error / slope;
+      }
+      if (t < 0 || t > 1 || Math.abs(sampleX(t) - x) > 1e-4) {
+        let lo = 0;
+        let hi = 1;
+        t = x;
+        for (let i = 0; i < 30; i += 1) {
+          if (sampleX(t) < x) lo = t; else hi = t;
+          t = (lo + hi) / 2;
+        }
+      }
+      return sampleY(t);
+    };
+  }
+
+  let smoothOutEase = null;
+  function easeSmoothOut(linear) {
+    if (!smoothOutEase) {
+      const match = motion.raw('--ease-smooth-out').match(/cubic-bezier\(([^)]+)\)/);
+      const points = match ? match[1].split(',').map(Number) : [0.22, 1, 0.36, 1];
+      smoothOutEase = createCubicBezier(...points);
+    }
+    return smoothOutEase(linear);
+  }
 
   function scrollBehavior() {
     return prefersReducedMotion() ? 'auto' : 'smooth';
@@ -119,8 +170,8 @@
         const shown = { height: content.offsetHeight + 'px', opacity: 1, filter: 'blur(0px)', overflow: 'hidden' };
         const hidden = { height: '0px', opacity: 0, filter: blur, overflow: 'hidden' };
         const animation = content.animate(closing ? [shown, hidden] : [hidden, shown], {
-          duration: motion.ms(closing ? 'fast' : 'medium'),
-          easing: motion.ease('smooth-out'),
+          duration: motion.ms(closing ? '--acc-collapse' : '--acc-expand'),
+          easing: motion.ease('--acc-ease'),
           fill: 'forwards'
         });
         animation.onfinish = () => {
@@ -192,7 +243,7 @@
         // short host handoff behind it.
         duration: directReadingNavigation || sidebarOwnsOverlayGraph
           ? 0
-          : (isMobileGraphViewport() ? 180 : 420),
+          : motion.ms(isMobileGraphViewport() ? '--dropdown-close-dur' : '--panel-close-dur'),
         destination: isSidebarNavigation ? 'sidebar' : 'article'
       });
     }
@@ -466,7 +517,6 @@
 
   const DESKTOP_GRAPH_CLICK_SLOP_PX = 9;
   const MOBILE_GRAPH_TAP_SLOP_PX = 10;
-  const MOBILE_GRAPH_FOCUS_DURATION_MS = 240;
   const MOBILE_GRAPH_FOCUS_SCALE = 1.75;
   const MOBILE_GRAPH_FOCUS_MIN_GROWTH_PX = 10;
   const MOBILE_GRAPH_FOCUS_MAX_GROWTH_PX = 22;
@@ -1166,9 +1216,6 @@
     return Math.max(0, Math.min(1, value));
   }
 
-  function smoothstep(linear) {
-    return linear * linear * (3 - 2 * linear);
-  }
 
   function prefersReducedMotion() {
     return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1436,7 +1483,7 @@
     if (!graphState.focusedNode) return;
     graphState.hoverNode = null;
     if (isMobileGraphViewport()) {
-      transitionMobileGraphFocus(state.sidebarGraph, null, 220);
+      transitionMobileGraphFocus(state.sidebarGraph, null, motion.ms('--duration-fast'));
       return;
     }
     graphState.focusedNode = null;
@@ -1835,7 +1882,7 @@
     const tick = (now) => {
       if (graphState.cameraTransition !== transition) return;
       const linear = clamp01((now - startedAt) / duration);
-      const eased = smoothstep(linear);
+      const eased = easeSmoothOut(linear);
       applyGraphCamera(graph, lerpGraphCamera(startCamera, targetCamera, eased));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -1846,14 +1893,7 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function mobileGraphFocusEase(progress) {
-    if (progress >= 1) return 1;
-    const response = 4.6;
-    const curve = (value) => 1 - (1 + response * value) * Math.exp(-response * value);
-    return curve(progress) / curve(1);
-  }
-
-  function transitionMobileGraphFocus(graph, nextNode, duration = MOBILE_GRAPH_FOCUS_DURATION_MS) {
+  function transitionMobileGraphFocus(graph, nextNode, duration = motion.ms('--duration-fast')) {
     if (!isMobileGraphViewport() || !graph) return false;
     const data = graph.graphData ? graph.graphData() : null;
     const nodes = data?.nodes || [];
@@ -1914,7 +1954,7 @@
     const tick = (now) => {
       if (graphState.mobileFocusTransition !== transition) return;
       const linear = clamp01((now - startedAt) / duration);
-      apply(mobileGraphFocusEase(linear));
+      apply(easeSmoothOut(linear));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
       } else {
@@ -1967,7 +2007,7 @@
         const linear = clamp01((now - startedAt) / duration);
         // Smooth acceleration and deceleration keeps the interpolation visible
         // instead of completing most of the distance in the first few frames.
-        const eased = smoothstep(linear);
+        const eased = easeSmoothOut(linear);
         if (onProgress) onProgress(toExpansion === 1 ? eased : 1 - eased);
         const target = getTargetRect();
         const rect = {};
@@ -2434,7 +2474,7 @@
     const tick = (now) => {
       if (graphState.layoutTransition !== transition || graphState.dataRevision !== transition.revision) return;
       const linear = clamp01((now - startedAt) / duration);
-      const eased = smoothstep(linear);
+      const eased = easeSmoothOut(linear);
       apply(eased);
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -2478,7 +2518,7 @@
     graphState.pointerGesture = null;
     graphState.pointerGestureRevision += 1;
     ++graphState.dataRevision;
-    const transitionDuration = animate && !reducedMotion ? 420 : 0;
+    const transitionDuration = animate && !reducedMotion ? motion.ms('--resize-dur') : 0;
     graphState.activeTargetPositions = graphData.layout?.targetPositions || new Map();
     state.graphContext = graphData.context;
 
@@ -3313,7 +3353,7 @@
     return lease;
   }
 
-  function expandMobileGraphSidebarOverlayLease(duration = 420) {
+  function expandMobileGraphSidebarOverlayLease(duration = motion.ms('--panel-open-dur')) {
     const lease = graphState.sidebarOverlayLease;
     const container = getEl('sidebar-graph-container');
     const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
@@ -4061,7 +4101,7 @@
     const targetState = typeof forceState === 'boolean' ? forceState : !state.isGraphExpanded;
     const transitionDuration = Number.isFinite(options.duration)
       ? Math.max(0, options.duration)
-      : 420;
+      : motion.ms(targetState ? '--panel-open-dur' : '--panel-close-dur');
     const isStable = state.graphPhase === 'small' || state.graphPhase === 'expanded';
     if (targetState === state.isGraphExpanded && isStable) return Promise.resolve();
     if (!isStable) {
@@ -4321,7 +4361,7 @@
     }
     if (collapseGraph && (state.isGraphExpanded || state.graphPhase !== 'small')) {
       await toggleGraphExpand(false, {
-        duration: isMobile ? 180 : 420,
+        duration: motion.ms(isMobile ? '--dropdown-close-dur' : '--panel-close-dur'),
         destination: 'article'
       });
     }
@@ -4978,56 +5018,51 @@
      ========================================================================== */
   let pageEnterAnimations = [];
 
-  // Page enter: each top-level block rises 8px out of a 3px blur, 40ms apart.
-  // Only the entrance animates; the old page leaves at once, so navigation
-  // never waits on an exit.
+  // Page side-by-side: the incoming page slides 8px in from the right out of
+  // a 3px blur. The old page leaves at once, so navigation never waits.
   function playPageEnter(viewEl) {
     pageEnterAnimations.forEach((animation) => animation.cancel());
     pageEnterAnimations = [];
     if (!canAnimate(viewEl)) return;
-
-    const rows = viewEl.querySelectorAll('.storyflow-editorial-row');
-    const parts = (rows.length ? Array.from(rows) : Array.from(viewEl.children))
-      .filter((el) => el.getClientRects().length > 0)
-      .slice(0, 6);
-    const duration = motion.ms('medium');
-    const stagger = motion.ms('stagger');
-    const easing = motion.ease('smooth-out');
-    const distance = motion.px('--distance-base');
-    const blur = motion.px('--blur-medium');
-    parts.forEach((el, index) => {
-      pageEnterAnimations.push(el.animate([
-        { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
-        { opacity: 1, transform: 'none', filter: 'blur(0px)' }
-      ], { duration, delay: Math.min(index, 3) * stagger, easing, fill: 'backwards' }));
-    });
+    const distance = motion.px('--page-slide-distance');
+    const blur = motion.px('--page-blur');
+    pageEnterAnimations.push(
+      viewEl.animate(
+        [{ transform: `translateX(${distance}px)`, filter: `blur(${blur}px)` }, { transform: 'none', filter: 'blur(0px)' }],
+        { duration: motion.ms('--page-slide-dur'), easing: motion.ease('--page-slide-ease') }
+      ),
+      viewEl.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: motion.ms('--page-fade-dur'), easing: motion.ease('--page-fade-ease') }
+      )
+    );
   }
 
   // Text swap soft: content replaced in place cross-blurs, with no movement.
   function playSoftSwap(elements) {
-    const duration = motion.ms('fast');
-    const blur = motion.px('--blur-small');
+    const duration = motion.ms('--text-soft-dur');
+    const blur = motion.px('--text-soft-blur');
     elements.forEach((el) => {
       if (!canAnimate(el)) return;
       el.animate([
         { opacity: 0, filter: `blur(${blur}px)` },
         { opacity: 1, filter: 'blur(0px)' }
-      ], { duration, easing: motion.ease('in-out') });
+      ], { duration, easing: motion.ease('--text-soft-ease') });
     });
   }
 
   // Texts reveal: stacked lines rise 12px out of a blur, staggered.
   function playTextsReveal(elements) {
-    const duration = motion.ms('very-slow');
-    const stagger = motion.ms('stagger');
-    const distance = motion.px('--distance-medium');
-    const blur = motion.px('--blur-medium');
+    const duration = motion.ms('--stagger-dur');
+    const stagger = motion.ms('--stagger-stagger');
+    const distance = motion.px('--stagger-distance');
+    const blur = motion.px('--stagger-blur');
     elements.filter(Boolean).forEach((el, index) => {
       if (!canAnimate(el)) return;
       el.animate([
         { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
         { opacity: 1, transform: 'none', filter: 'blur(0px)' }
-      ], { duration, delay: index * stagger, easing: motion.ease('smooth-out'), fill: 'backwards' });
+      ], { duration, delay: index * stagger, easing: motion.ease('--stagger-ease'), fill: 'backwards' });
     });
   }
 
@@ -5074,13 +5109,14 @@
   }
 
   /* Entity preview bubble (transitions.dev tooltip pattern): one bubble for
-     every entity link, with a hover-intent delay before the first appear,
-     a quick hide, and a glide between links while it is open. */
+     every entity link. CSS owns the 80ms appear delay and the 50ms hide;
+     while it is open, moving to another link glides the same bubble there.
+     Links in running text are separated by words rather than sitting side by
+     side like toolbar buttons, so leaving a link waits one --tt-delay before
+     hiding, long enough to reach a neighbouring link and glide. */
   function initEntityPreview() {
     if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-    const SHOW_DELAY_MS = 350;
-    const HIDE_GRACE_MS = 120;
     const GAP_PX = 8;
     const EDGE_PX = 16;
     const MAX_WIDTH_PX = 320;
@@ -5109,7 +5145,6 @@
     const titleEl = bubble.querySelector('.entity-preview-title');
     const textEl = bubble.querySelector('.entity-preview-text');
     const excerptCache = new Map();
-    let showTimer = null;
     let hideTimer = null;
     let currentChip = null;
     let pointer = { x: 0, y: 0 };
@@ -5191,9 +5226,7 @@
     }
 
     function hide() {
-      clearTimeout(showTimer);
       clearTimeout(hideTimer);
-      showTimer = null;
       hideTimer = null;
       if (currentChip) currentChip.removeAttribute('aria-describedby');
       currentChip = null;
@@ -5201,23 +5234,16 @@
       bubble.setAttribute('aria-hidden', 'true');
     }
 
-    function request(chip, delay) {
+    function request(chip) {
       clearTimeout(hideTimer);
       hideTimer = null;
       if (chip === currentChip && isShowing()) return;
-      clearTimeout(showTimer);
-      if (isShowing() || delay <= 0) {
-        place(chip);
-      } else {
-        showTimer = setTimeout(() => place(chip), delay);
-      }
+      place(chip);
     }
 
     function release() {
-      clearTimeout(showTimer);
-      showTimer = null;
       clearTimeout(hideTimer);
-      hideTimer = setTimeout(hide, HIDE_GRACE_MS);
+      hideTimer = setTimeout(hide, motion.ms('--tt-delay'));
     }
 
     document.addEventListener('pointermove', (e) => {
@@ -5226,7 +5252,7 @@
     document.addEventListener('pointerover', (e) => {
       if (e.pointerType && e.pointerType !== 'mouse') return;
       const chip = e.target.closest?.('.entity-mention-chip');
-      if (chip) request(chip, SHOW_DELAY_MS);
+      if (chip) request(chip);
     });
     document.addEventListener('pointerout', (e) => {
       const chip = e.target.closest?.('.entity-mention-chip');
@@ -5236,7 +5262,7 @@
     });
     document.addEventListener('focusin', (e) => {
       const chip = e.target.closest?.('.entity-mention-chip');
-      if (chip && chip.matches(':focus-visible')) request(chip, 0);
+      if (chip && chip.matches(':focus-visible')) request(chip);
     });
     document.addEventListener('focusout', (e) => {
       if (e.target.closest?.('.entity-mention-chip')) release();
@@ -5246,7 +5272,7 @@
       if (e.key === 'Escape') hide();
     });
     window.addEventListener('scroll', () => {
-      if (showTimer || isShowing()) hide();
+      if (isShowing()) hide();
     }, { passive: true, capture: true });
     window.addEventListener('resize', hide, { passive: true });
   }
@@ -5584,7 +5610,7 @@
         langDropdown.classList.remove('is-open');
         btnLang.setAttribute('aria-expanded', 'false');
         clearTimeout(closeTimer);
-        closeTimer = setTimeout(() => langDropdown.classList.remove('is-closing'), motion.ms('quick'));
+        closeTimer = setTimeout(() => langDropdown.classList.remove('is-closing'), motion.ms('--dropdown-close-dur'));
       };
       btnLang.setAttribute('aria-haspopup', 'true');
       btnLang.setAttribute('aria-expanded', 'false');

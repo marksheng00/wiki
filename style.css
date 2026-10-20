@@ -3178,13 +3178,14 @@ img[data-reveal="pending"].is-swapping {
     padding: 0;
     border: 0;
     border-radius: var(--radius-pill);
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    /* Ghost until hovered, so the open state doesn't read as pressed. */
+    background: transparent;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: opacity var(--duration-fast) var(--ease-smooth-out), background-color var(--duration-fast) var(--ease-smooth-out), color var(--duration-fast) var(--ease-smooth-out);
   }
   .btn-sidebar-collapse:hover,
-  .btn-sidebar-collapse:focus-visible { background: var(--bg-hover-strong); color: var(--text-primary); }
+  .btn-sidebar-collapse:focus-visible { background: var(--bg-hover); color: var(--text-primary); }
   .btn-sidebar-collapse:active { background: var(--bg-pressed); }
 
   body.sidebar-collapsed .btn-sidebar-collapse {

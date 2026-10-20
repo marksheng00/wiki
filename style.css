@@ -1,26 +1,45 @@
 /* ==========================================================================
-   Readipedia Next-Generation Typographic Reader
-   Claude-Grade Serif Typography · Classic Modern Colors · Balanced Geometry
+   Readipedia reader
+   Visual system and motion follow transitions.dev (Jakub Antalik): Inter,
+   a neutral grey palette, 13px interface text, 8/12px radii, pill buttons,
+   1.5px icon strokes and the transitions.dev motion tokens below.
    ========================================================================== */
 
 :root {
-  /* Claude.ai / Anthropic Signature Serif System */
-  --font-serif: 'Newsreader', 'Source Serif 4', 'Copernicus', 'Tiempos Text', 'Charter', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-reading: var(--font-sans);
 
-  /* Light Theme (Classic Pure Modern Palette) */
-  --bg-page: #ffffff;
-  --bg-page-rgb: 255, 255, 255;
-  --bg-subtle: #f8f9fb;
-  --bg-hover: #f1f3f7;
+  /* Palette (light) */
+  --bg-page: #fdfdfd;
+  --bg-page-rgb: 253, 253, 253;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f9f9f9;
+  --bg-hover: #f4f4f4;
+  --bg-hover-strong: #f1f1f1;
+  --bg-pressed: #eae9e9;
 
-  --text-primary: #18191b;
-  --text-secondary: #4b5563;
-  --text-muted: #8c93a0;
+  --text-primary: #0d0d0d;
+  --text-secondary: #6c6c6c;
+  --text-muted: #8f8f8f;
 
-  --accent: #2563eb;
+  --accent: #0073e5;
+  --accent-hover: #0064c8;
+  --accent-soft: rgba(0, 115, 229, 0.09);
 
   --border-hairline: rgba(0, 0, 0, 0.06);
+  --stage-border: rgba(0, 0, 0, 0.04);
+
+  /* Shape and type scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 50px;
+  --text-ui: 13px;
+  --text-ui-small: 12px;
+  --leading-ui: 16px;
+  --icon-stroke: 1.5;
+  --body-size: 1.0625rem;
+  --body-leading: 1.7;
 
   /* Motion tokens, adapted from transitions.dev by Jakub Antalik (https://github.com/Jakubantalik/transitions.dev). Free for personal/commercial use; do not redistribute the library itself. */
   --duration-stagger: 40ms;
@@ -98,7 +117,7 @@
   --tt-move-dur: 160ms;
   --tt-move-ease: var(--ease-smooth-out);
   --tt-bg: #ffffff;
-  --tt-fg: #2f2f2f;
+  --tt-fg: #1b1b1b;
   --tt-radius: 8px;
   --tt-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px 0 rgba(0, 0, 0, 0.05), 0 4px 42px 0 rgba(0, 0, 0, 0.06);
   /* Texts reveal */
@@ -162,19 +181,25 @@
 }
 
 [data-theme="dark"] {
-  --bg-page: #121316;
-  --bg-page-rgb: 18, 19, 22;
-  --bg-subtle: #1a1c23;
-  --bg-hover: #242731;
-  --text-primary: #e6edf3;
-  --text-secondary: #9da7b7;
-  --text-muted: #6e7787;
-  --accent: #60a5fa;
+  color-scheme: dark;
+  --bg-page: #121212;
+  --bg-page-rgb: 18, 18, 18;
+  --bg-surface: #181818;
+  --bg-subtle: #181818;
+  --bg-hover: #232323;
+  --bg-hover-strong: #2a2a2a;
+  --bg-pressed: #262626;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(202, 202, 202, 0.7);
+  --text-muted: #8f8f8f;
+  --accent: #55cfff;
+  --accent-hover: #74d8ff;
+  --accent-soft: rgba(85, 207, 255, 0.12);
   --border-hairline: rgba(255, 255, 255, 0.06);
-  /* transitions.dev ships light values only; these are the dark pair. */
-  --tt-bg: #1a1c23;
-  --tt-fg: #e6edf3;
-  --tt-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.3), 0 4px 42px 0 rgba(0, 0, 0, 0.4);
+  --stage-border: rgba(255, 255, 255, 0.02);
+  --tt-bg: #202020;
+  --tt-fg: #fbfbfb;
+  --tt-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 4px 42px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
 }
 
 *, *::before, *::after {
@@ -195,10 +220,10 @@ html {
 body {
   background-color: var(--bg-page);
   color: var(--text-primary);
-  font-family: var(--font-serif);
+  font-family: var(--font-reading);
   font-optical-sizing: auto;
-  font-size: 1.1rem;
-  line-height: 1.82;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -211,14 +236,14 @@ svg.lucide, i[data-lucide] {
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  stroke-width: 1.8;
+  stroke-width: var(--icon-stroke);
 }
 .nav-icon {
   width: 16px;
   height: 16px;
   margin-right: 0.5rem;
   flex-shrink: 0;
-  stroke-width: 1.8;
+  stroke-width: var(--icon-stroke);
 }
 
 /* ==========================================================================
@@ -246,21 +271,20 @@ svg.lucide, i[data-lucide] {
 }
 
 .btn-sidebar-toggle {
-  background: transparent;
+  background: var(--bg-hover);
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
   transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
 }
 .btn-sidebar-toggle:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--bg-hover-strong);
 }
 
 .wiki-logo {
@@ -269,8 +293,8 @@ svg.lucide, i[data-lucide] {
 }
 .wiki-logo-text {
   font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text-primary);
 }
@@ -281,7 +305,7 @@ svg.lucide, i[data-lucide] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 8px;
   margin: 0 2rem;
 }
 
@@ -289,25 +313,32 @@ svg.lucide, i[data-lucide] {
 .wiki-header-right {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 8px;
   font-family: var(--font-sans);
 }
 
+/* Pill icon button: 36px circle on a soft grey chip. */
 .wiki-icon-btn {
-  background: transparent;
+  background: var(--bg-hover);
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 0.35rem;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  -webkit-tap-highlight-color: transparent;
   transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
 }
 .wiki-icon-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--bg-hover-strong);
+}
+.wiki-icon-btn:active,
+.btn-sidebar-toggle:active {
+  background: var(--bg-pressed);
 }
 
 .wiki-lang-container {
@@ -318,16 +349,15 @@ svg.lucide, i[data-lucide] {
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 0.3rem;
-  background: var(--bg-page);
   border: none;
-  border-radius: var(--tt-radius);
+  border-radius: var(--radius-lg);
   background: var(--tt-bg);
   box-shadow: var(--tt-shadow);
-  min-width: 160px;
+  width: 240px;
   display: flex;
   flex-direction: column;
-  padding: 0.35rem;
+  padding: 6px;
+  margin-top: 6px;
   /* Menu dropdown (transitions.dev): grows from the trigger's corner, opens
      slower than it closes, and closes to a barely smaller scale. */
   transform-origin: top right;
@@ -355,21 +385,25 @@ svg.lucide, i[data-lucide] {
   transform: scale(var(--dropdown-closing-scale));
 }
 .wiki-dropdown-item {
-  padding: 0.45rem 0.6rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 400;
+  line-height: var(--leading-ui);
+  color: var(--tt-fg);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--motion-hover), color var(--motion-hover);
+  transition: background-color 100ms ease;
 }
 .wiki-dropdown-item:hover:not(.disabled) {
   background: var(--bg-hover);
-  color: var(--text-primary);
 }
 .wiki-dropdown-item.active {
-  color: var(--accent);
   background: var(--bg-hover);
-  font-weight: 600;
+  font-weight: 500;
 }
 .wiki-dropdown-item.disabled {
   opacity: 0.4;
@@ -388,13 +422,13 @@ svg.lucide, i[data-lucide] {
   translate: 50% 0;
   transform-origin: top center;
   scale: var(--tt-scale);
-  margin-top: 0.5rem;
+  margin-top: 6px;
   background: var(--tt-bg);
   color: var(--tt-fg);
   border: none;
-  border-radius: var(--tt-radius);
+  border-radius: var(--radius-lg);
   box-shadow: var(--tt-shadow);
-  padding: 0.8rem;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -426,9 +460,11 @@ svg.lucide, i[data-lucide] {
   display: block;
 }
 .qr-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui-small);
+  line-height: var(--leading-ui);
+  color: var(--text-secondary);
+  font-weight: 400;
   white-space: nowrap;
 }
 
@@ -540,6 +576,13 @@ svg.lucide, i[data-lucide] {
   overflow: hidden;
   cursor: grab;
 }
+@media (min-width: 769px) {
+  .sidebar-graph-container:not(.is-expanded) .topology-pure-canvas {
+    border-radius: var(--radius-lg);
+    outline: 1px solid var(--stage-border);
+    outline-offset: -1px;
+  }
+}
 .topology-pure-canvas .force-graph-container {
   width: 100%;
   height: 100%;
@@ -581,7 +624,7 @@ svg.lucide, i[data-lucide] {
   -webkit-backdrop-filter: blur(16px) saturate(130%);
   
   /* Pure flat background tint. The mask-image will handle fading BOTH the blur and the tint perfectly. */
-  background: rgba(248, 249, 251, 0.94);
+  background: rgba(var(--bg-page-rgb), 0.94);
   
   /* Cartesian Intersection Mask:
      - Top-Left (0% ~ 45%): Solid 100% opacity. Perfect backdrop for the graph nodes.
@@ -597,9 +640,6 @@ svg.lucide, i[data-lucide] {
   mask-composite: intersect;
 }
 
-[data-theme="dark"] .sidebar-graph-container.is-expanded::before {
-  background: rgba(26, 28, 35, 0.94);
-}
 
 /* Layer 2 (Topmost Graph Canvas): 100% Solid & Crisp Nodes, Zero Mask */
 .sidebar-graph-container.is-expanded .topology-pure-canvas {
@@ -622,9 +662,9 @@ svg.lucide, i[data-lucide] {
   color: var(--tt-fg);
   box-shadow: var(--tt-shadow);
   font-family: var(--font-sans);
-  font-size: 0.76rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: var(--leading-ui);
   white-space: normal;
   pointer-events: none;
   z-index: 8;
@@ -648,6 +688,11 @@ svg.lucide, i[data-lucide] {
   /* Ultimate Performance Optimization: Isolate layout thrashing from accordion animations */
   contain: layout paint;
 }
+.wiki-nav-hub > *,
+.wiki-nav-hub summary,
+.toc-item {
+  flex-shrink: 0;
+}
 .wiki-nav-hub::-webkit-scrollbar {
   width: 3px;
 }
@@ -655,24 +700,25 @@ svg.lucide, i[data-lucide] {
   background: var(--bg-hover);
 }
 
-/* Hub Entry Links */
+/* Hub Entry Links: transitions.dev menu rows (32px, 13px, 8px radius,
+   grey fill on hover and for the current page). */
 .nav-hub-item {
   display: flex;
   align-items: center;
-  padding: 0.38rem 0.4rem;
-  font-size: 0.88rem;
-  font-weight: 600;
+  height: 32px;
+  padding: 0 8px;
+  font-size: var(--text-ui);
+  line-height: var(--leading-ui);
+  font-weight: 500;
   color: var(--text-primary);
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: color var(--motion-hover);
+  transition: background-color var(--motion-hover);
 }
-.nav-hub-item:hover {
-  color: var(--accent);
-}
+.nav-hub-item:hover,
 .nav-hub-item.active {
-  color: var(--accent);
+  background: var(--bg-hover);
 }
 
 /* Level 1 Sticky: Book Overview Header */
@@ -680,6 +726,9 @@ svg.lucide, i[data-lucide] {
   position: sticky;
   top: 0px;
   z-index: 30;
+  box-shadow: 0 0 0 4px var(--bg-page);
+}
+#btn-book-home:not(:hover):not(.active) {
   background: var(--bg-page);
 }
 
@@ -694,34 +743,38 @@ details.toc-group > summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.38rem 0.4rem;
+  height: 32px;
+  padding: 0 8px;
   cursor: pointer;
   user-select: none;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: var(--text-ui);
+  line-height: var(--leading-ui);
+  font-weight: 500;
   color: var(--text-primary);
   background: var(--bg-page);
   position: sticky;
-  top: 32px;
+  top: 36px;
   z-index: 25;
-  border-radius: 4px;
-  transition: color var(--motion-hover);
+  border-radius: var(--radius-md);
+  transition: background-color var(--motion-hover);
 }
 details.toc-group > summary::-webkit-details-marker {
   display: none;
 }
 details.toc-group > summary:hover {
-  color: var(--accent);
+  background: var(--bg-hover);
 }
 details.toc-group > summary::after,
 details.toc-cat-details > summary::after {
-  content: '▾';
-  display: inline-block;
-  color: var(--text-muted);
+  content: '';
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background-color: var(--text-secondary);
+  /* Chevron drawn with a 1.5px stroke to match the icon set. */
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
   transition: transform var(--acc-chevron) var(--acc-ease);
-}
-details.toc-group > summary::after {
-  font-size: 0.72rem;
 }
 /* data-expanded flips at the start of the click, so the chevron turns with
    the list instead of waiting for <details> to close at the end. */
@@ -740,81 +793,75 @@ details.toc-cat-details:not([open]):not([data-expanded]) > summary::after {
 .toc-items {
   display: flex;
   flex-direction: column;
-  padding-left: 0.45rem;
-  margin-top: 0.15rem;
+  padding-left: 8px;
+  margin-top: 2px;
 }
 
-/* Level 2 Sub-categories (Inside Entities): Stacked at top: 64px */
+/* Level 2 Sub-categories (Inside Entities): group labels */
 details.toc-cat-details {
   display: flex;
   flex-direction: column;
-  margin-top: 0.22rem;
-  margin-bottom: 0.18rem;
+  margin-top: 4px;
 }
 details.toc-cat-details > summary {
   list-style: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  padding: 0.24rem 0.4rem;
+  height: 28px;
+  font-size: var(--text-ui);
+  line-height: var(--leading-ui);
+  font-weight: 400;
+  color: var(--text-secondary);
+  padding: 0 8px;
   cursor: pointer;
   user-select: none;
   background: var(--bg-page);
   position: sticky;
-  top: 64px;
+  top: 68px;
   z-index: 20;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
   transition: color var(--motion-hover);
 }
 details.toc-cat-details > summary::-webkit-details-marker {
   display: none;
 }
 details.toc-cat-details > summary:hover {
-  color: var(--accent);
-}
-details.toc-cat-details > summary::after {
-  font-size: 0.65rem;
+  color: var(--text-primary);
 }
 
 .toc-cat-list {
   display: flex;
   flex-direction: column;
-  gap: 0.08rem;
-  padding-left: 0.45rem;
-  margin-top: 0.12rem;
-  margin-bottom: 0.25rem;
+  gap: 0;
+  padding-left: 0;
+  margin-bottom: 4px;
 }
 
 /* Standard Entity Article Links */
 .toc-item {
   display: flex;
   align-items: center;
-  padding: 0.24rem 0.4rem;
-  color: var(--text-secondary);
+  min-height: 32px;
+  padding: 0 8px;
+  color: var(--text-primary);
   text-decoration: none;
-  font-size: 0.84rem;
+  font-size: var(--text-ui);
   font-weight: 400;
-  line-height: 1.45;
+  line-height: var(--leading-ui);
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color var(--motion-hover);
+  transition: background-color var(--motion-hover);
 }
 .toc-item:hover {
-  color: var(--accent);
-  background: transparent;
+  background: var(--bg-hover);
 }
 .toc-item.active {
-  color: var(--accent);
-  font-weight: 600;
-  background: transparent;
+  font-weight: 500;
+  background: var(--bg-hover);
 }
 
 /* ==========================================================================
@@ -858,9 +905,9 @@ details.toc-cat-details > summary::after {
   justify-content: center;
 }
 .article-h1 {
-  font-family: var(--font-serif);
+  font-family: var(--font-reading);
   font-size: 3rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.12;
   color: var(--text-primary);
@@ -873,7 +920,7 @@ details.toc-cat-details > summary::after {
    text beside them. */
 #view-book {
   container-type: inline-size;
-  --book-line: calc(1.12rem * 1.85);
+  --book-line: calc(var(--body-size) * var(--body-leading));
   --infobox-w: clamp(220px, 40cqi, 320px);
 }
 #view-book .reading-section {
@@ -913,7 +960,7 @@ details.toc-cat-details > summary::after {
   background: transparent;
   padding: 0;
   border: none;
-  font-family: var(--font-serif);
+  font-family: var(--font-reading);
 }
 .infobox-media {
   width: 100%;
@@ -921,7 +968,8 @@ details.toc-cat-details > summary::after {
   height: round(nearest, calc(var(--infobox-w) * 1.4), var(--book-line));
   overflow: hidden;
   margin-bottom: 0;
-  background: transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
 }
 .infobox-media img {
   width: 100%;
@@ -933,7 +981,7 @@ details.toc-cat-details > summary::after {
   width: 100%;
   display: flex;
   flex-direction: column;
-  font-size: 1rem;
+  font-size: var(--body-size);
   margin-bottom: 0;
   box-sizing: border-box;
 }
@@ -949,7 +997,7 @@ details.toc-cat-details > summary::after {
   box-sizing: border-box;
 }
 .infobox-meta-row span {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-align: left;
 }
 .infobox-meta-row strong {
@@ -962,13 +1010,12 @@ details.toc-cat-details > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--text-ui);
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--text-primary);
   text-decoration: none;
-  line-height: 1;
+  line-height: var(--leading-ui);
   margin-top: 0.95rem;
   margin-bottom: 0;
 }
@@ -1012,7 +1059,8 @@ details.toc-cat-details > summary::after {
   aspect-ratio: 3 / 4.2;
   overflow: hidden;
   margin-bottom: 0;
-  background: transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
   display: block;
 }
 .entity-floating-media img {
@@ -1027,13 +1075,12 @@ details.toc-cat-details > summary::after {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--text-ui);
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--text-primary);
   text-decoration: none;
-  line-height: 1;
+  line-height: var(--leading-ui);
   margin-top: 0.95rem;
   margin-bottom: 0;
 }
@@ -1043,8 +1090,8 @@ details.toc-cat-details > summary::after {
   margin-bottom: 3.5rem;
 }
 .reading-section h2 {
-  font-family: var(--font-serif);
-  font-size: 1.65rem;
+  font-family: var(--font-reading);
+  font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -1053,17 +1100,13 @@ details.toc-cat-details > summary::after {
 
 .prose p {
   color: var(--text-primary);
-  font-size: 1.12rem;
-  line-height: 1.85;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
   margin-bottom: 1.35rem;
-  text-align: justify;
-  /* Museum-grade Micro-typography */
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
+  text-align: left;
+  text-wrap: pretty;
   hanging-punctuation: first last;
-  font-feature-settings: "onum" 1, "pnum" 1, "kern" 1, "liga" 1;
-  word-spacing: -0.03em;
+  font-feature-settings: "kern" 1, "liga" 1, "cv11" 1;
 }
 .prose p:last-child {
   margin-bottom: 0;
@@ -1073,7 +1116,7 @@ details.toc-cat-details > summary::after {
   text-decoration: none;
 }
 .prose a:hover {
-  text-decoration: underline;
+  color: var(--accent-hover);
 }
 
 /* Author Section */
@@ -1082,32 +1125,33 @@ details.toc-cat-details > summary::after {
 }
 .author-lead-name {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 0.85rem;
   font-family: var(--font-sans);
 }
 .author-block h3 {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 500;
   margin: 1.5rem 0 0.4rem;
   font-family: var(--font-sans);
 }
 
 /* Entity Dossier View */
 .markdown-prose {
-  font-size: 1.12rem;
-  line-height: 1.85;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
   color: var(--text-primary);
 }
 .markdown-prose h2 {
-  font-family: var(--font-serif);
-  font-size: 1.6rem;
+  font-family: var(--font-reading);
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
   font-weight: 500;
   margin: 2.25rem 0 0.85rem;
 }
 .markdown-prose h3 {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 500;
   margin: 1.5rem 0 0.45rem;
   font-family: var(--font-sans);
 }
@@ -1120,29 +1164,26 @@ details.toc-cat-details > summary::after {
   font-style: italic;
   color: var(--text-secondary);
   border: none;
+  border-left: 2px solid var(--bg-hover);
 }
 
 /* P2: Bidirectional Entity Mentions */
 .entity-mention-chip {
   color: var(--accent);
-  text-decoration: underline dotted;
-  text-underline-offset: 3.5px;
-  font-weight: 600;
+  text-decoration: none;
+  font-weight: 500;
   cursor: pointer;
   /* The hover tint bleeds 2px past the word; negative margins keep the
      word spacing exactly as if the link were plain text. */
   padding: 1px 2px;
   margin: 0 -2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   transition: background-color var(--motion-hover), color var(--motion-hover);
 }
 .entity-mention-chip:hover {
-  background: rgba(37, 99, 235, 0.10);
-  text-decoration: underline solid;
-}
-[data-theme="dark"] .entity-mention-chip:hover {
-  background: rgba(96, 165, 250, 0.15);
+  color: var(--accent-hover);
+  background: var(--accent-soft);
 }
 
 
@@ -1162,7 +1203,8 @@ details.toc-cat-details > summary::after {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #0d0e11;
+  border-radius: var(--radius-lg);
+  background: #0d0d0d;
 }
 
 .liblib-fused-viewport img {
@@ -1193,18 +1235,17 @@ details.toc-cat-details > summary::after {
   display: flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: var(--text-ui);
   margin-bottom: 0.25rem;
 }
 
 .liblib-fused-meta .liblib-date {
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
 .liblib-fused-overlay .liblib-hero-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-reading);
   font-size: 1.55rem;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -1241,7 +1282,7 @@ details.toc-cat-details > summary::after {
   line-height: 1.62;
   color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  text-align: justify;
+  text-align: left;
 }
 .liblib-fused-overlay .liblib-hero-desc p {
   margin-bottom: 0.65rem;
@@ -1259,20 +1300,22 @@ details.toc-cat-details > summary::after {
   margin-top: 1rem;
 }
 .filmstrip-arrow-btn {
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-hover);
   border: none;
-  color: var(--text-muted);
+  color: var(--text-primary);
   cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
-  padding: 0 0.35rem;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   transition: color var(--motion-hover), background-color var(--motion-hover), transform var(--motion-hover);
 }
 .filmstrip-arrow-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--bg-hover-strong);
 }
 
 .liblib-filmstrip-track {
@@ -1296,6 +1339,7 @@ details.toc-cat-details > summary::after {
   height: 54px;
   min-width: 96px;
   overflow: hidden;
+  border-radius: var(--radius-md);
   cursor: pointer;
   border: none;
   outline: none;
@@ -1349,7 +1393,8 @@ details.toc-cat-details > summary::after {
   min-width: 260px;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
   flex-shrink: 0;
 }
 .storyflow-row-media img {
@@ -1372,8 +1417,8 @@ details.toc-cat-details > summary::after {
 }
 
 .storyflow-row-title {
-  font-family: var(--font-serif);
-  font-size: 1.4rem;
+  font-family: var(--font-reading);
+  font-size: 1.3rem;
   font-weight: 500;
   letter-spacing: -0.015em;
   color: var(--text-primary);
@@ -1386,7 +1431,7 @@ details.toc-cat-details > summary::after {
   line-height: 1.7;
   color: var(--text-secondary);
   margin: 0;
-  text-align: justify;
+  text-align: left;
 }
 
 .storyflow-row-content .infobox-cta-link {
@@ -1398,10 +1443,13 @@ details.toc-cat-details > summary::after {
   position: fixed;
   bottom: 2.5rem;
   right: 2.5rem;
-  background: transparent;
+  width: 36px;
+  height: 36px;
+  background: var(--bg-hover);
   border: none;
-  padding: 0.5rem;
-  color: var(--text-muted);
+  border-radius: var(--radius-pill);
+  padding: 0;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1432,7 +1480,7 @@ details.toc-cat-details > summary::after {
     visibility 0s;
 }
 .btn-top.is-visible:hover {
-  color: var(--text-primary);
+  background: var(--bg-hover-strong);
 }
 
 .btn-mobile-graph-launcher {
@@ -1654,8 +1702,8 @@ details.toc-cat-details > summary::after {
   }
   .mobile-sidebar-title {
     font-family: var(--font-sans);
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--text-primary);
     line-height: 1;
@@ -1761,13 +1809,14 @@ details.toc-cat-details > summary::after {
     bottom: calc(1.25rem + env(safe-area-inset-bottom));
     right: 1.25rem;
     z-index: 80;
-    width: 42px;
-    height: 42px;
-    background: transparent !important;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    background: var(--tt-bg) !important;
     color: var(--text-primary);
     border: none !important;
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--tt-shadow) !important;
     -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
@@ -2186,7 +2235,7 @@ img[data-reveal="pending"].is-swapping {
 .entity-preview-media {
   flex: 0 0 72px;
   height: 96px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--bg-subtle);
 }
@@ -2208,12 +2257,11 @@ img[data-reveal="pending"].is-swapping {
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-sans);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  line-height: 1.4;
+  font-size: var(--text-ui-small);
+  font-weight: 400;
+  color: var(--tt-fg);
+  opacity: 0.6;
+  line-height: var(--leading-ui);
 }
 .entity-preview-kind::before {
   content: '';
@@ -2223,18 +2271,17 @@ img[data-reveal="pending"].is-swapping {
   background: var(--preview-kind-color, var(--accent));
 }
 .entity-preview-title {
-  font-family: var(--font-serif);
-  font-size: 1.08rem;
+  font-family: var(--font-reading);
+  font-size: var(--text-ui);
   font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  line-height: var(--leading-ui);
 }
 .entity-preview-text {
   font-family: var(--font-sans);
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font-size: var(--text-ui-small);
+  line-height: var(--leading-ui);
   color: var(--tt-fg);
-  opacity: 0.8;
+  opacity: 0.7;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;

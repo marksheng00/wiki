@@ -6,17 +6,17 @@
   <title>Nineteen Eighty-Four — Readipedia</title>
   <meta name="description" content="A pure, rectilinear, Claude-grade typographic reader edition of George Orwell's Nineteen Eighty-Four." />
   
-  <!-- Claude-grade Serif & Modern Sans Typography -->
+  <!-- Inter, the typeface of the transitions.dev visual system (SIL OFL) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..500&display=swap" rel="stylesheet" />
 
   <!-- Vendor Engines (Non-blocking Deferred Loading) -->
   <script src="./assets/vendor/lucide.min.js" defer></script>
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=93" />
+  <link rel="stylesheet" href="./style.css?v=94" />
 </head>
 <body>
 
@@ -452,7 +452,7 @@
 
           <!-- Bottom Horizontal Filmstrip Track (All 89 Scenes) -->
           <div class="liblib-filmstrip-wrap">
-            <button class="filmstrip-arrow-btn prev" id="btn-filmstrip-prev">‹</button>
+            <button class="filmstrip-arrow-btn prev" id="btn-filmstrip-prev" aria-label="Previous scenes"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></button>
             <div class="liblib-filmstrip-track" id="liblib-filmstrip-track">
     <div class="filmstrip-thumb active" data-idx="0" title="Arrival at Victory Mansions">
       <img src="./assets/images/event-timeline-doc-books-001-1984-1-2025169e6643-timeline.jpg" alt="Arrival at Victory Mansions" loading="lazy" />
@@ -634,7 +634,7 @@
       <img src="./assets/images/event-timeline-doc-books-001-1984-89-d5a051aa69fa-timeline.jpg" alt="Appendix on Newspeak" loading="lazy" />
     </div>
             </div>
-            <button class="filmstrip-arrow-btn next" id="btn-filmstrip-next">›</button>
+            <button class="filmstrip-arrow-btn next" id="btn-filmstrip-next" aria-label="Next scenes"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></button>
           </div>
 
         </div>
@@ -717,6 +717,6 @@
 
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
-  <script src="./app.js?v=98" defer></script>
+  <script src="./app.js?v=99" defer></script>
 </body>
 </html>

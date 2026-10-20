@@ -150,10 +150,58 @@
     }
   }
 
+  /* Interface icons, drawn on a 16px grid with a 1.5px line so they stay
+     crisp at the 14 to 18px sizes the site uses. Any icon not listed here
+     (the logo's book) still comes from Lucide. */
+  const UI_ICONS = {
+      "search": "<circle cx=\"7.25\" cy=\"7.25\" r=\"4.5\"/><path d=\"M10.5 10.5 13.25 13.25\"/>",
+      "x": "<path d=\"M4.25 4.25 11.75 11.75M11.75 4.25 4.25 11.75\"/>",
+      "menu": "<rect x=\"2\" y=\"2.75\" width=\"12\" height=\"10.5\" rx=\"2.25\"/><path d=\"M6.25 2.75v10.5\"/>",
+      "equal": "<path d=\"M3 6h10M3 10h10\"/>",
+      "chevron-down": "<path d=\"M4.75 6.25 8 9.5l3.25-3.25\"/>",
+      "chevron-left": "<path d=\"M9.75 4.75 6.5 8l3.25 3.25\"/>",
+      "chevron-right": "<path d=\"M6.25 4.75 9.5 8l-3.25 3.25\"/>",
+      "arrow-right": "<path d=\"M3.25 8h9.5M8.75 4l4 4-4 4\"/>",
+      "arrow-left": "<path d=\"M12.75 8h-9.5M7.25 4l-4 4 4 4\"/>",
+      "arrow-up": "<path d=\"M8 12.75v-9.5M4 7.25l4-4 4 4\"/>",
+      "arrow-up-right": "<path d=\"M4.75 11.25 11.25 4.75M5.75 4.75h5.5v5.5\"/>",
+      "arrow-down-to-line": "<path d=\"M8 2.75v7.25M4.75 6.75 8 10l3.25-3.25M3.25 13.25h9.5\"/>",
+      "sun": "<circle cx=\"8\" cy=\"8\" r=\"2.75\"/><path d=\"M8 1.75V3M8 13v1.25M1.75 8H3M13 8h1.25M3.58 3.58l.88.88M11.54 11.54l.88.88M3.58 12.42l.88-.88M11.54 4.46l.88-.88\"/>",
+      "moon": "<path d=\"M13.25 9.75A5.5 5.5 0 1 1 6.25 2.75a4.25 4.25 0 0 0 7 7Z\"/>",
+      "languages": "<path d=\"M2.25 4h6.5M5.5 2.5V4M7.5 4c-.55 2.5-2.25 4.5-4.75 5.75M3.75 6.25c.85 1.5 2.15 2.65 3.75 3.4M8.5 13.5l2.5-6 2.5 6M9.3 11.6h3.4\"/>",
+      "globe": "<circle cx=\"8\" cy=\"8\" r=\"6.25\"/><path d=\"M1.75 8h12.5M8 1.75c1.6 1.75 2.4 3.85 2.4 6.25S9.6 12.5 8 14.25C6.4 12.5 5.6 10.4 5.6 8S6.4 3.5 8 1.75Z\"/>",
+      "book-open": "<path d=\"M8 4.5C6.85 3.55 5.1 3 2.75 3v9.5c2.35 0 4.1.55 5.25 1.5 1.15-.95 2.9-1.5 5.25-1.5V3C10.9 3 9.15 3.55 8 4.5Zm0 0V14\"/>",
+      "network": "<circle cx=\"8\" cy=\"3.75\" r=\"1.75\"/><circle cx=\"3.75\" cy=\"12.25\" r=\"1.75\"/><circle cx=\"12.25\" cy=\"12.25\" r=\"1.75\"/><path d=\"M7.2 5.3 4.6 10.7M8.8 5.3l2.6 5.4M5.5 12.25h5\"/>",
+      "film": "<rect x=\"2.75\" y=\"2.75\" width=\"10.5\" height=\"10.5\" rx=\"2\"/><path d=\"M5.5 2.75v10.5M10.5 2.75v10.5M2.75 8h2.75M10.5 8h2.75\"/>",
+      "route": "<circle cx=\"4\" cy=\"12\" r=\"1.75\"/><circle cx=\"12\" cy=\"4\" r=\"1.75\"/><path d=\"M5.75 12H10a2 2 0 0 0 0-4H6a2 2 0 0 1 0-4h4.25\"/>",
+      "shapes": "<path d=\"M4 2.25h5.25L12 5v8.75H4Z\"/><path d=\"M9.25 2.25V5H12M6.25 8.25h3.5M6.25 10.75h3.5\"/>"
+  };
+
+  function renderIcons(root = document) {
+    root.querySelectorAll('i[data-lucide]').forEach((el) => {
+      const name = el.getAttribute('data-lucide');
+      const body = UI_ICONS[name];
+      if (!body) return;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      Array.from(el.attributes).forEach((attr) => {
+        if (attr.name !== 'data-lucide') svg.setAttribute(attr.name, attr.value);
+      });
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '1.5');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.classList.add('lucide', 'ui-icon', `ui-icon-${name}`);
+      svg.innerHTML = body;
+      el.replaceWith(svg);
+    });
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+
   function initIcons() {
-    if (window.lucide?.createIcons) {
-      window.lucide.createIcons();
-    }
+    renderIcons();
   }
 
   function initDetailsAnimation() {
@@ -5653,7 +5701,7 @@
       group('Entries', entityHits);
       list.innerHTML = html;
       input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
-      if (window.lucide?.createIcons) window.lucide.createIcons();
+      renderIcons(list);
     };
 
     const setActive = (index) => {

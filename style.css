@@ -3159,3 +3159,20 @@ img[data-reveal="pending"].is-swapping {
 .apps-item[data-app="windows"] .brand-glyph,
 .drawer-app[data-app="windows"] .brand-glyph { transform: scale(.88); }
 .apps-item-icon .brand-glyph { width: 16px; height: 16px; }
+svg.ui-icon { stroke-width: 1.5; }
+
+/* The sidebar toggle is a plain icon until hovered, so it never looks
+   switched on. */
+@media (min-width: 769px) {
+  .btn-sidebar-collapse.icon-btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 10px;
+  }
+  .btn-sidebar-collapse.icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .btn-sidebar-collapse.icon-btn:active { background: var(--bg-hover-strong); }
+}
+/* Entity rows sit flush with their category heading, no indent. */
+.docs-link--child,
+.toc-cat-list .toc-item { padding-left: 12px; }
+.entity-section-toc .book-toc-inner { margin-left: 20px; }

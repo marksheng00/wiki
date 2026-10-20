@@ -3052,8 +3052,8 @@
               getMobileGraphFocusWeight(getLinkEndpointId(link.source)),
               getMobileGraphFocusWeight(getLinkEndpointId(link.target))
             );
-            const baseAlpha = isDark ? 0.22 : 0.16;
-            const focusedAlpha = isDark ? 0.38 : 0.3;
+            const baseAlpha = isDark ? 0.32 : 0.16;
+            const focusedAlpha = isDark ? 0.55 : 0.3;
             const alpha = baseAlpha + (focusedAlpha - baseAlpha) * focusWeight;
             return makeColor(alpha);
           }
@@ -3062,9 +3062,9 @@
           if (activeId) {
             const isConnected = getLinkEndpointId(link.source) === activeId
               || getLinkEndpointId(link.target) === activeId;
-            if (isConnected) return makeColor(isDark ? 0.42 : 0.34);
+            if (isConnected) return makeColor(isDark ? 0.6 : 0.34);
           }
-          return makeColor(isDark ? 0.18 : 0.12);
+          return makeColor(isDark ? 0.28 : 0.12);
         })
         .onNodeDrag((node) => {
           bindNodeDragToPointerGesture(node);
@@ -3152,6 +3152,15 @@
             ctx.restore();
           } else {
             fillGraphCircle(ctx, node.x, node.y, radius, getCategoryColor(node.type));
+          }
+          // Dark mode: the portraits are mostly dark, so a light hairline
+          // ring keeps each node readable against the dark page.
+          if (state.theme === 'dark') {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 1.25 / scale;
+            ctx.strokeStyle = isFocused || isHovered ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.42)';
+            ctx.stroke();
           }
 
           ctx.restore();
@@ -4515,6 +4524,11 @@
     if (!container || !state.sidebarGraph || !slot) return Promise.resolve();
 
     const targetState = typeof forceState === 'boolean' ? forceState : !state.isGraphExpanded;
+    if (!isMobileGraphViewport()) {
+      const control = getEl('btn-graph-expand');
+      control?.setAttribute('aria-label', t(targetState ? 'Close graph explorer' : 'Expand graph'));
+      control?.setAttribute('aria-expanded', String(targetState));
+    }
     const transitionDuration = Number.isFinite(options.duration)
       ? Math.max(0, options.duration)
       : graphMs(420);

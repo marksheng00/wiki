@@ -2808,9 +2808,14 @@ img[data-reveal="pending"].is-swapping {
   height: 40px;
   padding: 0 16px 0 14px;
   border-radius: 20px;
-  background: #17181c;
-  color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .12);
+  /* libraries.dev beam button: a surface pill, not black or white. */
+  background: #ffffff;
+  color: #17181c;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(196, 196, 196, 0.1);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -2821,15 +2826,19 @@ img[data-reveal="pending"].is-swapping {
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--motion-hover), transform var(--motion-hover);
 }
-.readify-cta:hover { background: #2b2c32; color: #ffffff; text-decoration: none; }
-.readify-cta:active { transform: scale(var(--scale-medium)); }
-.readify-cta:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
+.readify-cta:hover { background: #fafafa; color: #17181c; text-decoration: none; }
+.readify-cta:active { transform: scale(var(--scale-medium)); background: #f1f1f1; }
+.readify-cta:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
 [data-theme="dark"] .readify-cta {
-  background: #f4f4f5;
-  color: #111113;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  background: #1d1d1d;
+  color: #fbfbfb;
+  box-shadow:
+    0 1px 1px 0 rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
-[data-theme="dark"] .readify-cta:hover { background: #ffffff; color: #111113; }
+[data-theme="dark"] .readify-cta:hover { background: #242424; color: #fbfbfb; }
+[data-theme="dark"] .readify-cta:active { background: #282828; }
 .readify-cta-icon { width: 16px; height: 16px; flex: none; }
 .readify-cta-arrow {
   width: 14px;
@@ -3160,20 +3169,21 @@ img[data-reveal="pending"].is-swapping {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    margin-top: -16px;
+    /* Same round icon button as every other header control. */
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
     padding: 0;
     border: 0;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--text-secondary);
+    border-radius: var(--radius-pill);
+    background: var(--bg-hover);
+    color: var(--text-primary);
     cursor: pointer;
     transition: opacity var(--duration-fast) var(--ease-smooth-out), background-color var(--duration-fast) var(--ease-smooth-out), color var(--duration-fast) var(--ease-smooth-out);
   }
   .btn-sidebar-collapse:hover,
-  .btn-sidebar-collapse:focus-visible { background: var(--bg-hover); color: var(--text-primary); }
-  .btn-sidebar-collapse:active { background: var(--bg-hover-strong); }
+  .btn-sidebar-collapse:focus-visible { background: var(--bg-hover-strong); color: var(--text-primary); }
+  .btn-sidebar-collapse:active { background: var(--bg-pressed); }
 
   body.sidebar-collapsed .btn-sidebar-collapse {
     right: auto;
@@ -3554,4 +3564,45 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     backdrop-filter: blur(20px);
   }
   .wiki-sidebar .mobile-sidebar-header { background: transparent; }
+}
+
+/* One component per job on every screen size:
+   - Search uses the same grey fill as the other header buttons.
+   - The Readify button is one height (44px) everywhere.
+   - The open graph closes with the same round ✕ button on desktop as on
+     phones. */
+.nav-search { background: var(--bg-hover); }
+.nav-search:hover { background: var(--bg-hover-strong); }
+.readify-cta,
+.entity-media-stack .readify-cta,
+.book-stage-side .readify-cta,
+.mobile-continuum-cta .readify-cta { height: 44px; font-size: 14px; }
+.cta-beam, .readify-cta { border-radius: 22px; }
+.btn-graph-expand .graph-close-icon { display: none; }
+@media (min-width: 769px) {
+  .sidebar-graph-container.is-expanded .btn-graph-expand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    top: 12px;
+    right: 12px;
+    bottom: auto;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    opacity: 1;
+    z-index: 5;
+  }
+  .sidebar-graph-container.is-expanded .btn-graph-expand:hover { background: var(--bg-hover-strong); }
+  .sidebar-graph-container.is-expanded .btn-graph-expand:active { background: var(--bg-pressed); }
+  .sidebar-graph-container.is-expanded .btn-graph-expand > svg { display: none !important; }
+  .sidebar-graph-container.is-expanded .btn-graph-expand > .graph-close-icon {
+    display: block !important;
+    position: static;
+    width: 16px;
+    height: 16px;
+    transform: none;
+  }
 }

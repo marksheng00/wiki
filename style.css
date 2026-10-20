@@ -1785,7 +1785,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     width: var(--sidebar-w);
     min-width: var(--sidebar-w);
     left: var(--page-inset);
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(0 -16px 0 0); /* room for the graph corner arc */
     filter: none;
     transition:
       transform var(--panel-open-dur) var(--panel-ease),
@@ -2896,47 +2896,45 @@ img[data-reveal="pending"].is-swapping {
   #view-entity .entity-floating-media.is-imageless .entity-media-stack { width: 100%; }
 }
 
-/* Graph preview: the expand control is a short arc that follows the
-   preview's rounded corner, inset a little, like the resize corner of a
-   window on iPad. It thickens and darkens on hover (desktop; phones keep the
-   morphing corner). */
-.btn-graph-expand .graph-expand-icon { display: none; }
+/* Graph preview (desktop): the expand control is a short arc just outside
+   the preview's rounded corner, concentric with it, like the resize corner
+   of a window on iPad. It darkens and thickens on hover. Phones keep the
+   morphing corner button inside the preview. */
+.graph-corner-arc { display: none; }
 @media (min-width: 769px) {
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand {
-    right: 0;
-    bottom: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 0 0 14px 0;
-    background: transparent;
-    box-shadow: none;
-    color: var(--text-muted);
-    opacity: .55;
-    transition: opacity var(--motion-hover), color var(--motion-hover);
-  }
-  .sidebar-graph-container:not(.is-expanded):hover .btn-graph-expand { opacity: .85; }
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover,
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:focus-visible {
-    opacity: 1;
-    color: var(--text-primary);
-  }
-  .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
-  .btn-graph-expand .graph-expand-icon,
-  .btn-graph-expand:hover .graph-expand-icon {
+  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand { display: none; }
+  .graph-corner-arc {
     display: block;
     position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 24px;
-    height: 24px;
-    transform: none;
+    right: -8px;
+    bottom: -8px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    opacity: .6;
+    cursor: nwse-resize;
+    z-index: 11;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity var(--motion-hover), color var(--motion-hover);
+  }
+  .graph-corner-arc svg {
+    display: block;
+    width: 28px;
+    height: 28px;
     stroke-width: 2.4;
-    transition: stroke-width var(--duration-fast) var(--ease-smooth-out);
+    transition: stroke-width var(--duration-fast) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-smooth-out);
   }
-  .btn-graph-expand:hover .graph-expand-icon { stroke-width: 2.8; }
-  .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:active .graph-expand-icon {
-    transform: translate(1px, 1px);
-  }
+  .sidebar-graph-slot:hover .graph-corner-arc { opacity: .9; }
+  .graph-corner-arc:hover { opacity: 1; color: var(--text-primary); }
+  .graph-corner-arc:hover svg { stroke-width: 2.8; transform: translate(1px, 1px); }
+  .sidebar-graph-slot:has(.sidebar-graph-container.is-expanded) .graph-corner-arc,
+  body.graph-is-expanded .graph-corner-arc { opacity: 0; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .graph-corner-arc:hover svg { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .readify-cta:hover .readify-cta-arrow,

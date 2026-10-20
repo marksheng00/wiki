@@ -4704,6 +4704,10 @@
   }
 
   function initGraphControls() {
+    getEl('btn-graph-corner-arc')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      getEl('btn-graph-expand')?.click();
+    });
     const expandBtn = getEl('btn-graph-expand');
     if (expandBtn) {
       const claimGraphMorphControl = (e) => {

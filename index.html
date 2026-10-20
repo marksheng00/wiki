@@ -15,7 +15,7 @@
   <script src="./assets/vendor/marked.min.js" defer></script>
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css?v=103" />
+  <link rel="stylesheet" href="./style.css?v=104" />
 </head>
 <body>
 
@@ -99,9 +99,11 @@
 
         <!-- 1. BALANCED TOPOLOGY CANVAS -->
         <div class="sidebar-graph-slot" id="sidebar-graph-slot">
+          <button class="graph-corner-arc" id="btn-graph-corner-arc" type="button" aria-label="Expand graph" tabindex="-1">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M23 6A17 17 0 0 1 6 23" /></svg>
+          </button>
           <div class="sidebar-graph-container" id="sidebar-graph-container">
             <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph" aria-expanded="false">
-              <svg class="graph-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M19 6.5V10A9 9 0 0 1 10 19H6.5" /></svg>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path class="graph-control-desktop-l" d="M2.4 21.6h19.2V2.4" />
                 <g class="graph-control-mobile-morph">
@@ -781,6 +783,6 @@
   <!-- Precompiled Store & Controller -->
   <script src="./data/wiki_store.js?v=40" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
-  <script src="./app.js?v=105" defer></script>
+  <script src="./app.js?v=106" defer></script>
 </body>
 </html>

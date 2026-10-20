@@ -479,6 +479,8 @@ svg.lucide, i[data-lucide] {
 .wiki-nav-hub {
   flex: 1;
   overflow-y: auto;
+  /* Reaching the end of the list must not hand the scroll to the page. */
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -1424,6 +1426,7 @@ details.toc-cat-details:not([open]) > summary::after {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 

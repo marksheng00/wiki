@@ -5157,7 +5157,19 @@
     }
   }
 
+  // The sidebar is fixed, so a wheel over any part of it that is not its own
+  // scrolling list (the graph preview, padding) would otherwise scroll the page.
+  function initSidebarScrollIsolation() {
+    const sidebar = getEl('wiki-sidebar');
+    if (!sidebar) return;
+    sidebar.addEventListener('wheel', (event) => {
+      if (isMobileGraphViewport() || event.ctrlKey) return;
+      if (!event.target.closest('.wiki-nav-hub')) event.preventDefault();
+    }, { passive: false });
+  }
+
   function initHeaderControls() {
+    initSidebarScrollIsolation();
     const btnToggleSidebar = getEl('btn-toggle-sidebar');
     if (btnToggleSidebar) {
       btnToggleSidebar.addEventListener('click', toggleMobileSidebar);

@@ -38,8 +38,47 @@
   --text-ui-small: 12px;
   --leading-ui: 16px;
   --icon-stroke: 1.5;
-  --body-size: 1.0625rem;
-  --body-leading: 1.7;
+  --body-size: 14px;
+  --body-leading: 24px;
+
+  /* Page grid (transitions.dev docs) */
+  --header-h: 68px;
+  --page-max: 1192px;
+  --page-inset: 12px;
+  --sidebar-w: 200px;
+  --sidebar-gap: 56px;
+  --prose-w: 686px;
+
+  /* Surfaces and text roles */
+  --text-body: #3f3f3f;
+  --text-label: #767676;
+  --link-decoration: rgba(13, 13, 13, 0.3);
+  --chip-bg: rgba(0, 0, 0, 0.03);
+  --hover-bg: rgba(0, 0, 0, 0.03);
+  --active-bg: rgba(0, 0, 0, 0.05);
+  --pill-fg: rgba(13, 13, 13, 0.6);
+  --nav-search-fg: #838383;
+  --brand-blue: #0053e3;
+  --brand-blue-bg: rgba(0, 115, 255, 0.08);
+  --brand-blue-bg-hover: rgba(0, 115, 255, 0.12);
+  --stage-bg: #f9f9f9;
+  --card-bg: #ffffff;
+  --card-bg-hover: #fcfcfc;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  --surface-btn-bg: #ffffff;
+  --surface-btn-hover: #f7f7f7;
+  --surface-btn-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), inset 0 -1px 0 0 rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(196, 196, 196, 0.1), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --media-shadow: 0 -1px 0 0 rgba(0, 0, 0, 0.06), 0 2px 6px 0 rgba(0, 0, 0, 0.05), 0 4px 42px 0 rgba(0, 0, 0, 0.06);
+  --tabs-bg: #f1f1f1;
+  --tabs-indicator: #ffffff;
+  --tabs-indicator-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --code-bg: rgba(0, 0, 0, 0.04);
+  --code-border: rgba(0, 0, 0, 0.08);
+  --kbd-bg: rgba(0, 0, 0, 0.04);
+  --cmdk-active: #f4f4f5;
+  --overlay-bg: rgba(15, 15, 15, 0.28);
+  --modal-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 4px 42px 0 rgba(0, 0, 0, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.06);
 
   /* Motion tokens, adapted from transitions.dev by Jakub Antalik (https://github.com/Jakubantalik/transitions.dev). Free for personal/commercial use; do not redistribute the library itself. */
   --duration-stagger: 40ms;
@@ -104,6 +143,10 @@
   --reveal-dur: var(--duration-slow);
   --reveal-blur: var(--blur-small);
   --reveal-ease: var(--ease-in-out);
+  /* Modal open/close (search palette) */
+  --modal-open-dur: var(--duration-fast);
+  --modal-close-dur: var(--duration-quick);
+  --modal-ease: var(--ease-smooth-out);
   /* Tabs sliding */
   --tabs-dur: var(--duration-fast);
   --tabs-ease: var(--ease-smooth-out);
@@ -163,6 +206,8 @@
     --duration-medium: 0ms;
     --duration-slow: 0ms;
     --duration-very-slow: 0ms;
+    --modal-open-dur: 0ms;
+    --modal-close-dur: 0ms;
     --resize-dur: 0ms;
     --pulse-dur: 0ms;
     --tt-out-dur: 0ms;
@@ -199,6 +244,35 @@
   --stage-border: rgba(255, 255, 255, 0.02);
   --tt-bg: #202020;
   --tt-fg: #fbfbfb;
+  --text-body: #ededed;
+  --text-label: #767676;
+  --link-decoration: rgba(255, 255, 255, 0.3);
+  --chip-bg: rgba(255, 255, 255, 0.05);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --active-bg: rgba(255, 255, 255, 0.08);
+  --pill-fg: rgba(237, 237, 237, 0.6);
+  --nav-search-fg: #9a9a9a;
+  --brand-blue: #7cd4ff;
+  --brand-blue-bg: rgba(85, 207, 255, 0.14);
+  --brand-blue-bg-hover: rgba(85, 207, 255, 0.2);
+  --stage-bg: #131313;
+  --card-bg: #181818;
+  --card-bg-hover: #1a1a1a;
+  --card-border: rgba(196, 196, 196, 0.07);
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  --surface-btn-bg: rgba(255, 255, 255, 0.04);
+  --surface-btn-hover: rgba(255, 255, 255, 0.08);
+  --surface-btn-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --media-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.3), 0 4px 42px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --tabs-bg: #202020;
+  --tabs-indicator: #454545;
+  --tabs-indicator-shadow: none;
+  --code-bg: rgba(255, 255, 255, 0.06);
+  --code-border: rgba(255, 255, 255, 0.12);
+  --kbd-bg: rgba(255, 255, 255, 0.06);
+  --cmdk-active: rgba(255, 255, 255, 0.06);
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --modal-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 42px 0 rgba(0, 0, 0, 0.5), 0 2px 6px 0 rgba(0, 0, 0, 0.3);
   --tt-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 4px 42px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
 }
 
@@ -224,7 +298,6 @@ body {
   font-optical-sizing: auto;
   font-size: var(--body-size);
   line-height: var(--body-leading);
-  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
@@ -247,69 +320,125 @@ svg.lucide, i[data-lucide] {
 }
 
 /* ==========================================================================
-   Header
+   Header (transitions.dev site nav: brand, text pills, search and settings)
    ========================================================================== */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  z-index: 3000;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  background: var(--text-primary);
+  color: var(--bg-page);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus-visible {
+  transform: none;
+}
+
 .wiki-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 52px;
+  height: var(--header-h);
   z-index: 100;
   background: var(--bg-page);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 var(--page-inset);
   border: none;
+  font-family: var(--font-sans);
 }
 
 .wiki-header-left {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 33px;
+  min-width: 0;
 }
 
-.btn-sidebar-toggle {
-  background: var(--bg-hover);
-  border: none;
-  color: var(--text-primary);
-  cursor: pointer;
+/* Brand: mark plus a two-tone wordmark. */
+.brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-pill);
-  transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
-}
-.btn-sidebar-toggle:hover {
-  background: var(--bg-hover-strong);
-}
-
-.wiki-logo {
+  gap: 4px;
+  padding: 5px 0;
+  color: var(--text-primary);
   text-decoration: none;
-  color: var(--text-primary);
+  transition: transform var(--duration-slow) var(--ease-smooth-out);
 }
-.wiki-logo-text {
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
+.brand:active {
+  transform: scale(var(--scale-medium));
 }
-
-/* Center Controls (Language & Theme) */
-.wiki-header-center {
-  flex: 1;
-  display: flex;
+.brand-mark {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 0 2rem;
+  width: 24px;
+  height: 24px;
+  color: var(--text-primary);
+}
+.brand-word {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 15px;
+  letter-spacing: -0.15px;
+  white-space: nowrap;
+}
+.brand-word-strong {
+  color: var(--text-primary);
+}
+.brand-word-dim {
+  color: var(--text-secondary);
 }
 
-/* Right Controls */
+.wiki-header-center,
+.site-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Text pill: muted label, grey chip on hover or when current. */
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 36px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: var(--leading-ui);
+  color: var(--text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
+}
+.nav-pill:hover,
+.nav-pill.is-active,
+.wiki-qr-container:focus-within > .nav-pill,
+.wiki-qr-container:hover > .nav-pill {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.nav-pill-chevron {
+  width: 14px;
+  height: 14px;
+  margin-right: -4px;
+}
+
 .wiki-header-right {
   display: flex;
   align-items: center;
@@ -317,7 +446,73 @@ svg.lucide, i[data-lucide] {
   font-family: var(--font-sans);
 }
 
-/* Pill icon button: 36px circle on a soft grey chip. */
+.nav-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  color: var(--nav-search-fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-quick) var(--ease-smooth-out);
+}
+.nav-search:hover {
+  background: var(--bg-hover);
+}
+.nav-search-kbd {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.nav-get-pro {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-blue-bg);
+  color: var(--brand-blue);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--duration-quick) var(--ease-smooth-out);
+}
+.nav-get-pro:hover {
+  background: var(--brand-blue-bg-hover);
+}
+
+.icon-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--bg-hover);
+  color: var(--pill-fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: var(--leading-ui);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
+}
+
+/* Round icon button: 36px circle on a soft grey chip. */
+.icon-btn,
 .wiki-icon-btn {
   background: var(--bg-hover);
   border: none;
@@ -329,16 +524,25 @@ svg.lucide, i[data-lucide] {
   width: 36px;
   height: 36px;
   padding: 0;
+  flex-shrink: 0;
   border-radius: var(--radius-pill);
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--motion-hover), color var(--motion-hover), transform var(--motion-hover);
 }
-.wiki-icon-btn:hover {
+.icon-btn:hover,
+.wiki-icon-btn:hover,
+.icon-btn-pill:hover {
   background: var(--bg-hover-strong);
+  color: var(--text-primary);
 }
+.icon-btn:active,
 .wiki-icon-btn:active,
-.btn-sidebar-toggle:active {
+.icon-btn-pill:active {
   background: var(--bg-pressed);
+}
+/* The menu button only exists on phones; the docs sidebar is always shown on wider screens. */
+.nav-burger {
+  display: none;
 }
 
 .wiki-lang-container {
@@ -474,7 +678,7 @@ svg.lucide, i[data-lucide] {
    ========================================================================== */
 .wiki-body-wrap {
   width: 100%;
-  margin-top: 52px;
+  margin-top: var(--header-h);
   display: flex;
   position: relative;
 }
@@ -483,18 +687,18 @@ svg.lucide, i[data-lucide] {
    LEFT SIDEBAR: Fixed, Rock-Solid, Never Moves on Page Scroll
    ========================================================================== */
 .wiki-sidebar {
-  width: 320px;
-  min-width: 320px;
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
   position: fixed;
-  top: 52px;
+  top: var(--header-h);
   left: 0;
   bottom: 0;
-  height: calc(100vh - 52px);
+  height: calc(100vh - var(--header-h));
   z-index: 50;
   font-family: var(--font-sans);
   background: var(--bg-page);
   border: none;
-  padding: 2.5rem 1.25rem 2rem 2rem;
+  padding: 32px 0 0;
 }
 .wiki-sidebar.collapsed {
   visibility: hidden;
@@ -510,10 +714,10 @@ svg.lucide, i[data-lucide] {
 /* 1. Topology Canvas & HUD Info Bar */
 .sidebar-graph-slot {
   width: 100%;
-  height: 145px;
+  height: 140px;
   position: relative;
   flex-shrink: 0;
-  margin-bottom: 0.85rem;
+  margin-bottom: 16px;
 }
 
 .sidebar-graph-container {
@@ -523,6 +727,9 @@ svg.lucide, i[data-lucide] {
   box-sizing: border-box;
   overflow: hidden;
   isolation: isolate;
+}
+.sidebar-graph-container:not(.is-expanded) {
+  border-radius: 14px;
 }
 
 /* Zero-Box Mirrored-L Corner Expand Handle (Bottom-Right) */
@@ -578,9 +785,9 @@ svg.lucide, i[data-lucide] {
 }
 @media (min-width: 769px) {
   .sidebar-graph-container:not(.is-expanded) .topology-pure-canvas {
-    border-radius: var(--radius-lg);
-    outline: 1px solid var(--stage-border);
-    outline-offset: -1px;
+    border-radius: 14px;
+    background: var(--stage-bg);
+    box-shadow: inset 0 0 0 1px var(--stage-border);
   }
 }
 .topology-pure-canvas .force-graph-container {
@@ -600,10 +807,10 @@ svg.lucide, i[data-lucide] {
 /* EXPANDED FLOATING LARGE WINDOW (Golden Ratio 32-35% Page Area · 100% Solid Graph on Diffuse Backdrop) */
 .sidebar-graph-container.is-expanded {
   position: fixed;
-  top: 52px;
+  top: var(--header-h);
   left: 0;
   width: 50vw;
-  height: calc((100vh - 52px) * 0.50);
+  height: calc((100vh - var(--header-h)) * 0.50);
   z-index: 100;
   pointer-events: auto;
   padding: 0;
@@ -612,34 +819,15 @@ svg.lucide, i[data-lucide] {
   background: transparent;
 }
 
-/* Layer 1.5 (Middle Backdrop Underlay): Only this layer has the diffuse gradient & blur! */
-.sidebar-graph-container.is-expanded::before {
-  content: '';
-  position: absolute;
-  /* Strictly confine the blur to the window itself. The purpose of the blur is only to act as a backdrop for the graph nodes. */
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-  
-  /* Pure flat background tint. The mask-image will handle fading BOTH the blur and the tint perfectly. */
-  background: rgba(var(--bg-page-rgb), 0.94);
-  
-  /* Cartesian Intersection Mask:
-     - Top-Left (0% ~ 45%): Solid 100% opacity. Perfect backdrop for the graph nodes.
-     - Right Edge (100%): Decays to 0% opacity. Perfectly eliminates any sharp vertical bounding box edge.
-     - Bottom Edge (100%): Decays to 0% opacity. Perfectly eliminates any sharp horizontal bounding box edge.
-     - Top-Right Corner: Intersects to 0% opacity. Safely protects the <h1> hovering title from being obscured!
-  */
-  -webkit-mask-image: linear-gradient(to right, black 0%, black 45%, transparent 100%),
-                      linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, black 0%, black 45%, transparent 100%),
-              linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
-  mask-composite: intersect;
+/* Desktop: the expanded graph is a floating panel, white with the modal
+   shadow and the 24px radius of a stage. */
+@media (min-width: 769px) {
+  .sidebar-graph-container.is-expanded {
+    border-radius: 24px;
+    background: var(--tt-bg);
+    box-shadow: var(--modal-shadow);
+  }
 }
-
 
 /* Layer 2 (Topmost Graph Canvas): 100% Solid & Crisp Nodes, Zero Mask */
 .sidebar-graph-container.is-expanded .topology-pure-canvas {
@@ -674,7 +862,9 @@ svg.lucide, i[data-lucide] {
   display: none;
 }
 
-/* 2. Navigation Hub */
+/* 2. Navigation Hub: transitions.dev docs sidebar. Small grey group labels,
+   32px rows with a 12px radius, a grey fill for the current page, and
+   folding categories whose chevron turns from right to down. */
 .wiki-nav-hub {
   flex: 1;
   overflow-y: auto;
@@ -682,294 +872,371 @@ svg.lucide, i[data-lucide] {
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding-right: 0.35rem;
+  gap: 0;
+  padding: 0 0 8px;
   position: relative;
-  /* Ultimate Performance Optimization: Isolate layout thrashing from accordion animations */
+  scrollbar-width: none;
+  /* Isolate layout work from the accordion animations. */
   contain: layout paint;
+}
+.wiki-nav-hub::-webkit-scrollbar {
+  display: none;
 }
 .wiki-nav-hub > *,
 .wiki-nav-hub summary,
 .toc-item {
   flex-shrink: 0;
 }
-.wiki-nav-hub::-webkit-scrollbar {
-  width: 3px;
-}
-.wiki-nav-hub::-webkit-scrollbar-thumb {
-  background: var(--bg-hover);
-}
 
-/* Hub Entry Links: transitions.dev menu rows (32px, 13px, 8px radius,
-   grey fill on hover and for the current page). */
-.nav-hub-item {
-  display: flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 8px;
-  font-size: var(--text-ui);
-  line-height: var(--leading-ui);
-  font-weight: 500;
-  color: var(--text-primary);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background-color var(--motion-hover);
-}
-.nav-hub-item:hover,
-.nav-hub-item.active {
-  background: var(--bg-hover);
-}
-
-/* Level 1 Sticky: Book Overview Header */
-#btn-book-home {
-  position: sticky;
-  top: 0px;
-  z-index: 30;
-  box-shadow: 0 0 0 4px var(--bg-page);
-}
-#btn-book-home:not(:hover):not(.active) {
-  background: var(--bg-page);
-}
-
-/* Level 1 Sticky: Entities (149) Directory Header */
-details.toc-group {
-  display: flex;
-  flex-direction: column;
-}
-
+.docs-group-label,
 details.toc-group > summary {
   list-style: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 32px;
-  padding: 0 8px;
-  cursor: pointer;
+  padding: 9px 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  color: var(--text-label);
   user-select: none;
-  font-size: var(--text-ui);
-  line-height: var(--leading-ui);
-  font-weight: 500;
-  color: var(--text-primary);
-  background: var(--bg-page);
-  position: sticky;
-  top: 36px;
-  z-index: 25;
-  border-radius: var(--radius-md);
-  transition: background-color var(--motion-hover);
 }
-details.toc-group > summary::-webkit-details-marker {
+details.toc-group {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+}
+details.toc-group > summary {
+  cursor: pointer;
+}
+details.toc-group > summary::-webkit-details-marker,
+details.toc-cat-details > summary::-webkit-details-marker {
   display: none;
 }
-details.toc-group > summary:hover {
-  background: var(--bg-hover);
+.toc-title {
+  display: flex;
+  align-items: center;
 }
-details.toc-group > summary::after,
+/* Counts are kept in the markup for search and screen readers only. */
+.docs-count {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.toc-items {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Rows: links, fold heads and entity entries share one shape. */
+.docs-link,
+.nav-hub-item,
+.toc-item,
+details.toc-cat-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 400;
+  line-height: var(--leading-ui);
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms, color 140ms;
+}
+.docs-link-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toc-item {
+  display: block;
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.docs-link--child,
+.toc-cat-list .toc-item {
+  padding-left: 24px;
+}
+.docs-link:hover,
+.nav-hub-item:hover,
+.toc-item:hover,
+details.toc-cat-details > summary:hover {
+  background: var(--hover-bg);
+}
+.docs-link.active,
+.nav-hub-item.active,
+.toc-item.active {
+  background: var(--active-bg);
+}
+
+details.toc-cat-details {
+  display: flex;
+  flex-direction: column;
+}
+details.toc-cat-details > summary {
+  list-style: none;
+  padding: 0 8px 0 12px;
+}
 details.toc-cat-details > summary::after {
   content: '';
   width: 16px;
   height: 16px;
   flex-shrink: 0;
   background-color: var(--text-secondary);
-  /* Chevron drawn with a 1.5px stroke to match the icon set. */
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
   transition: transform var(--acc-chevron) var(--acc-ease);
 }
 /* data-expanded flips at the start of the click, so the chevron turns with
    the list instead of waiting for <details> to close at the end. */
-details.toc-group[data-expanded="false"] > summary::after,
-details.toc-cat-details[data-expanded="false"] > summary::after,
-details.toc-group:not([open]):not([data-expanded]) > summary::after,
-details.toc-cat-details:not([open]):not([data-expanded]) > summary::after {
-  transform: rotate(-90deg);
-}
-
-.toc-title {
-  display: flex;
-  align-items: center;
-}
-
-.toc-items {
-  display: flex;
-  flex-direction: column;
-  padding-left: 8px;
-  margin-top: 2px;
-}
-
-/* Level 2 Sub-categories (Inside Entities): group labels */
-details.toc-cat-details {
-  display: flex;
-  flex-direction: column;
-  margin-top: 4px;
-}
-details.toc-cat-details > summary {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 28px;
-  font-size: var(--text-ui);
-  line-height: var(--leading-ui);
-  font-weight: 400;
-  color: var(--text-secondary);
-  padding: 0 8px;
-  cursor: pointer;
-  user-select: none;
-  background: var(--bg-page);
-  position: sticky;
-  top: 68px;
-  z-index: 20;
-  border-radius: var(--radius-md);
-  transition: color var(--motion-hover);
-}
-details.toc-cat-details > summary::-webkit-details-marker {
-  display: none;
-}
-details.toc-cat-details > summary:hover {
-  color: var(--text-primary);
+details.toc-cat-details[data-expanded="true"] > summary::after,
+details.toc-cat-details[open]:not([data-expanded]) > summary::after {
+  transform: rotate(90deg);
 }
 
 .toc-cat-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding-left: 0;
-  margin-bottom: 4px;
-}
-
-/* Standard Entity Article Links */
-.toc-item {
-  display: flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 8px;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-size: var(--text-ui);
-  font-weight: 400;
-  line-height: var(--leading-ui);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background-color var(--motion-hover);
-}
-.toc-item:hover {
-  background: var(--bg-hover);
-}
-.toc-item.active {
-  font-weight: 500;
-  background: var(--bg-hover);
 }
 
 /* ==========================================================================
-   RIGHT: Main Reading Stage Views (Permanently Screen-Centered at 50vw Axis)
+   RIGHT: Reading column (transitions.dev docs and detail pages)
    ========================================================================== */
 .wiki-main-article {
   width: 100%;
-  max-width: 860px;
-  margin: 0 auto;
-  min-height: calc(100vh - 52px);
+  min-height: calc(100vh - var(--header-h));
   box-sizing: border-box;
-  padding: 2.5rem 2rem 6rem;
+  padding: 32px 0 0;
   position: relative;
   z-index: 10;
-}
-
-.wiki-main-article.wide-stage {
-  max-width: 980px;
-  min-height: calc(100vh - 52px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 1.5rem 2rem;
 }
 
 .wiki-article-view {
   display: none;
   width: 100%;
+  /* A view id in the URL must not scroll the page past the title. */
+  scroll-margin-top: 100vh;
 }
 .wiki-article-view.active {
   display: block;
 }
 
-/* Masthead Header */
-.article-masthead {
-  margin-bottom: 2.5rem;
-  text-align: center;
+/* Detail head: title (with prev/next arrows), muted subtitle. */
+.article-masthead,
+.detail-head {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  padding-top: 4px;
+  margin-bottom: 21px;
+}
+.detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.article-h1,
+.detail-title {
+  font-family: var(--font-sans);
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 42px;
+  letter-spacing: -0.18px;
+  color: var(--text-primary);
+  text-align: left;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.detail-sub {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--text-secondary);
+}
+.detail-sub:empty {
+  display: none;
+}
+.detail-arrows {
+  display: flex;
+  gap: 15px;
+  flex-shrink: 0;
+  margin-top: -2px;
+}
+.detail-arrow {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-.article-h1 {
-  font-family: var(--font-reading);
-  font-size: 3rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
-
-/* Book overview vertical rhythm: every block below the masthead is sized in
-   whole body lines, so the floated infobox rows sit on the same lines as the
-   text beside them. */
-#view-book {
-  container-type: inline-size;
-  --book-line: calc(var(--body-size) * var(--body-leading));
-  --infobox-w: clamp(220px, 40cqi, 320px);
-}
-#view-book .reading-section {
-  margin-bottom: var(--book-line);
-}
-/* Headings sit directly on their text; the blank line above separates sections. */
-#view-book .reading-section h2 {
-  line-height: var(--book-line);
-  padding-top: var(--book-line);
-  margin-bottom: 0;
-}
-#view-book #sec-overview h2 {
-  padding-top: 0;
-}
-#view-book .prose p {
-  margin-bottom: var(--book-line);
-  text-wrap: pretty;
-}
-#view-book .prose p:last-child {
-  margin-bottom: 0;
-}
-/* Beside the float the text column gets narrow; justifying it there stretches
-   word gaps, so the overview reads ragged-right on narrow stages. */
-@media (min-width: 769px) {
-  @container (max-width: 640px) {
-    #view-book #text-overview p {
-      text-align: left;
-    }
-  }
-}
-
-/* Pure Floating Infobox (100% Zero-Box, Transparent Canvas) */
-.wiki-infobox {
-  float: right;
-  width: var(--infobox-w);
-  margin: 0 0 0 var(--book-line);
-  background: transparent;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: none;
-  font-family: var(--font-reading);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms, opacity 140ms;
+}
+.detail-arrow:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+.detail-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Action row: sliding tabs on the left, outlined pill buttons on the right. */
+.detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.detail-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 48px;
+  background: var(--tabs-bg);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.detail-tabs::-webkit-scrollbar {
+  display: none;
+}
+.detail-tab {
+  position: relative;
+  z-index: 1;
+  height: 30px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 48px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--tabs-dur) var(--tabs-ease);
+}
+.detail-tab[aria-selected="true"] {
+  color: var(--text-primary);
+}
+.detail-tabs-indicator {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 30px;
+  width: 0;
+  border-radius: 48px;
+  background: var(--tabs-indicator);
+  box-shadow: var(--tabs-indicator-shadow);
+  transition:
+    transform var(--tabs-dur) var(--tabs-ease),
+    width var(--tabs-dur) var(--tabs-ease);
+  pointer-events: none;
+}
+
+/* Outlined pill button (Remix / Copy prompt). */
+.detail-prompt,
+.infobox-cta-link,
+.entity-cta-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-btn-bg);
+  box-shadow: var(--surface-btn-shadow);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 14px;
+  color: var(--text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover), transform var(--motion-hover);
+}
+.detail-prompt:hover,
+.infobox-cta-link:hover,
+.entity-cta-link:hover {
+  background: var(--surface-btn-hover);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.detail-prompt:active,
+.infobox-cta-link:active,
+.entity-cta-link:active {
+  transform: scale(var(--scale-medium));
+}
+.detail-prompt-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Stage: the grey preview panel every detail page is built around. */
+.detail-stage,
+.entity-floating-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  min-height: 460px;
+  padding: 40px 24px;
+  margin: 0 0 40px;
+  border-radius: 24px;
+  background: var(--stage-bg);
+  box-shadow: inset 0 0 0 1px var(--stage-border);
+  overflow: hidden;
+}
+
+/* Book stage: the cover sits beside a short fact list. */
+.book-stage {
+  gap: 40px;
 }
 .infobox-media {
-  width: 100%;
-  height: calc(var(--infobox-w) * 1.4);
-  height: round(nearest, calc(var(--infobox-w) * 1.4), var(--book-line));
+  flex-shrink: 0;
+  width: 240px;
+  aspect-ratio: 5 / 7;
   overflow: hidden;
-  margin-bottom: 0;
   border-radius: var(--radius-lg);
-  background: var(--bg-subtle);
+  background: var(--bg-hover);
+  box-shadow: var(--media-shadow);
 }
 .infobox-media img {
   width: 100%;
@@ -977,215 +1244,171 @@ details.toc-cat-details > summary:hover {
   object-fit: cover;
   display: block;
 }
+.book-stage-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 260px;
+}
 .infobox-meta {
   width: 100%;
   display: flex;
   flex-direction: column;
-  font-size: var(--body-size);
-  margin-bottom: 0;
-  box-sizing: border-box;
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
 }
 .infobox-meta-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  width: 100%;
-  padding: 0;
-  border: none;
-  line-height: var(--book-line);
-  box-sizing: border-box;
+  align-items: center;
+  gap: 16px;
+  height: 32px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.infobox-meta-row:last-child {
+  border-bottom: 0;
 }
 .infobox-meta-row span {
   color: var(--text-secondary);
-  text-align: left;
 }
 .infobox-meta-row strong {
   color: var(--text-primary);
-  font-weight: 400;
+  font-weight: 500;
   text-align: right;
   white-space: nowrap;
 }
-.infobox-cta-link {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-sans);
-  font-size: var(--text-ui);
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  text-decoration: none;
-  line-height: var(--leading-ui);
-  margin-top: 0.95rem;
-  margin-bottom: 0;
-}
-.wiki-infobox .infobox-cta-link {
-  display: flex;
-  width: fit-content;
-  height: var(--book-line);
-  white-space: nowrap;
-  margin-top: 0;
-}
-.infobox-cta-link:hover {
-  text-decoration: none;
-  color: var(--text-primary);
-}
-.cta-hover-icon {
-  width: 14px;
-  height: 14px;
-  margin-left: 4px;
-  transition: transform var(--learn-out) var(--learn-ease);
-}
-/* UX: Strictly horizontal micro-interaction to preserve strict vertical typography bounds */
-.infobox-cta-link:hover .cta-hover-icon {
-  transform: translate(var(--learn-shift), 0);
-  transition-duration: var(--learn-in);
-}
-.infobox-cta-link:hover svg.lucide-arrow-up-right {
-  transform: translate(var(--learn-shift), calc(var(--learn-shift) * -1));
-}
 
-/* Entity Editorial Hero Media (Right-Floating on Desktop, Same as Book Overview) */
+/* Entity stage: the still, centred, with the Readify button under it. */
 .entity-floating-media {
-  float: right;
-  width: 320px;
-  margin: 0.5rem 0 -0.65rem 2rem;
-  background: transparent;
-  display: block;
-  clear: right;
+  flex-direction: column;
 }
 .entity-media-wrap {
-  width: 100%;
-  aspect-ratio: 3 / 4.2;
+  height: 320px;
+  aspect-ratio: 3 / 4;
+  max-width: 100%;
   overflow: hidden;
-  margin-bottom: 0;
   border-radius: var(--radius-lg);
-  background: var(--bg-subtle);
-  display: block;
+  background: var(--bg-hover);
+  box-shadow: var(--media-shadow);
 }
 .entity-floating-media img {
   width: 100%;
   height: 100%;
-  aspect-ratio: 3 / 4.2;
   object-fit: cover;
   object-position: center 20%;
   display: block;
 }
-.entity-cta-link {
-  display: inline-flex;
-  align-items: center;
+
+/* Reading sections */
+.reading-section {
+  max-width: var(--prose-w);
+  margin-bottom: 32px;
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+.reading-section h2,
+.markdown-prose h2 {
   font-family: var(--font-sans);
-  font-size: var(--text-ui);
+  font-size: 16px;
   font-weight: 500;
+  line-height: 24px;
   letter-spacing: 0;
   color: var(--text-primary);
-  text-decoration: none;
-  line-height: var(--leading-ui);
-  margin-top: 0.95rem;
-  margin-bottom: 0;
+  margin: 0 0 12px;
 }
-
-/* Reading Sections */
-.reading-section {
-  margin-bottom: 3.5rem;
+.markdown-prose h2 {
+  margin-top: 32px;
 }
-.reading-section h2 {
-  font-family: var(--font-reading);
-  font-size: 1.5rem;
+.markdown-prose > h2:first-child {
+  margin-top: 0;
+}
+.markdown-prose h3,
+.author-block h3 {
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: -0.02em;
+  line-height: 24px;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin: 20px 0 4px;
 }
 
-.prose p {
-  color: var(--text-primary);
+.prose,
+.markdown-prose {
+  max-width: var(--prose-w);
   font-size: var(--body-size);
   line-height: var(--body-leading);
-  margin-bottom: 1.35rem;
+  color: var(--text-body);
+}
+.prose p {
+  color: var(--text-body);
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  margin-bottom: 12px;
   text-align: left;
   text-wrap: pretty;
-  hanging-punctuation: first last;
   font-feature-settings: "kern" 1, "liga" 1, "cv11" 1;
 }
 .prose p:last-child {
   margin-bottom: 0;
 }
-.prose a {
-  color: var(--accent);
-  text-decoration: none;
+.prose ul,
+.prose ol {
+  margin: 0 0 12px 20px;
 }
-.prose a:hover {
-  color: var(--accent-hover);
+.prose li {
+  margin-bottom: 4px;
+}
+.prose strong {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Links read as text with a soft underline that darkens on hover. */
+.prose a,
+.entity-mention-chip {
+  color: var(--text-primary);
+  font-weight: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--link-decoration);
+  cursor: pointer;
+  transition: text-decoration-color var(--motion-hover);
+}
+.prose a:hover,
+.entity-mention-chip:hover {
+  color: var(--text-primary);
+  text-decoration-color: currentColor;
+}
+
+.prose code,
+.markdown-prose code {
+  font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 1px 4px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--text-primary);
 }
 
 /* Author Section */
-.author-block {
-  padding-top: 0.25rem;
-}
 .author-lead-name {
-  font-size: 1.15rem;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 0.85rem;
-  font-family: var(--font-sans);
-}
-.author-block h3 {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin: 1.5rem 0 0.4rem;
-  font-family: var(--font-sans);
+  line-height: 24px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
-/* Entity Dossier View */
-.markdown-prose {
-  font-size: var(--body-size);
-  line-height: var(--body-leading);
-  color: var(--text-primary);
-}
-.markdown-prose h2 {
-  font-family: var(--font-reading);
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
-  font-weight: 500;
-  margin: 2.25rem 0 0.85rem;
-}
-.markdown-prose h3 {
-  font-size: 1.15rem;
-  font-weight: 500;
-  margin: 1.5rem 0 0.45rem;
-  font-family: var(--font-sans);
-}
-.markdown-prose p {
-  margin-bottom: 1.35rem;
-}
 .markdown-prose blockquote {
-  padding: 0.5rem 1.5rem;
-  margin: 1.5rem 0;
-  font-style: italic;
+  padding: 0 0 0 16px;
+  margin: 16px 0;
   color: var(--text-secondary);
   border: none;
-  border-left: 2px solid var(--bg-hover);
+  border-left: 2px solid var(--bg-hover-strong);
 }
-
-/* P2: Bidirectional Entity Mentions */
-.entity-mention-chip {
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
-  /* The hover tint bleeds 2px past the word; negative margins keep the
-     word spacing exactly as if the link were plain text. */
-  padding: 1px 2px;
-  margin: 0 -2px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  transition: background-color var(--motion-hover), color var(--motion-hover);
-}
-.entity-mention-chip:hover {
-  color: var(--accent-hover);
-  background: var(--accent-soft);
-}
-
 
 /* ==========================================================================
    3. STORYLINES: Sharp Unboxed Theater & Opacity-based Filmstrip Rail
@@ -1203,8 +1426,9 @@ details.toc-cat-details > summary:hover {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 24px;
   background: #0d0d0d;
+  box-shadow: inset 0 0 0 1px var(--stage-border);
 }
 
 .liblib-fused-viewport img {
@@ -1220,7 +1444,7 @@ details.toc-cat-details > summary:hover {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 1.5rem 2.25rem 0.25rem 2.25rem;
+  padding: 24px 32px 8px;
   background: linear-gradient(
     to top,
     rgba(10, 11, 14, 0.94) 0%,
@@ -1245,13 +1469,13 @@ details.toc-cat-details > summary:hover {
 }
 
 .liblib-fused-overlay .liblib-hero-title {
-  font-family: var(--font-reading);
-  font-size: 1.55rem;
+  font-family: var(--font-sans);
+  font-size: 20px;
   font-weight: 500;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.2px;
   color: #ffffff;
-  line-height: 1.22;
-  margin-bottom: 0.4rem;
+  line-height: 24px;
+  margin-bottom: 8px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
@@ -1278,8 +1502,8 @@ details.toc-cat-details > summary:hover {
 }
 
 .liblib-fused-overlay .liblib-hero-desc {
-  font-size: 0.98rem;
-  line-height: 1.62;
+  font-size: 14px;
+  line-height: 24px;
   color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   text-align: left;
@@ -1296,16 +1520,16 @@ details.toc-cat-details > summary:hover {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 8px;
+  margin-top: 16px;
 }
 .filmstrip-arrow-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-hover);
+  width: 36px;
+  height: 36px;
+  background: var(--chip-bg);
   border: none;
   color: var(--text-primary);
   cursor: pointer;
@@ -1315,7 +1539,7 @@ details.toc-cat-details > summary:hover {
   transition: color var(--motion-hover), background-color var(--motion-hover), transform var(--motion-hover);
 }
 .filmstrip-arrow-btn:hover {
-  background: var(--bg-hover-strong);
+  background: var(--bg-hover);
 }
 
 .liblib-filmstrip-track {
@@ -1339,7 +1563,7 @@ details.toc-cat-details > summary:hover {
   height: 54px;
   min-width: 96px;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   cursor: pointer;
   border: none;
   outline: none;
@@ -1367,75 +1591,107 @@ details.toc-cat-details > summary:hover {
 }
 
 /* ==========================================================================
-   4. STORYFLOW: Split Editorial Catalog Rows (100% Line-Free & Unboxed)
+   4. STORYFLOW: transitions.dev library cards (white card, inset grey stage,
+   title and subtitle under it, round action button on the right)
    ========================================================================== */
-.storyflow-editorial-catalog {
-  display: flex;
-  flex-direction: column;
-  gap: 3.25rem;
-  margin-top: 0.5rem;
+.cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
 }
-
-.storyflow-editorial-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 2rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  content-visibility: auto;
-  contain-intrinsic-size: 800px 180px;
-  contain: layout paint;
+.card {
+  position: relative;
+  height: 344px;
+  border-radius: 24px;
+  background-color: var(--card-bg);
+  box-shadow:
+    var(--card-shadow),
+    inset 0 0 0 1px var(--card-border),
+    inset 0 -1px 0 0 var(--card-border);
+  cursor: pointer;
+  transition: box-shadow var(--duration-quick) ease, background-color 200ms ease;
 }
-
-.storyflow-row-media {
-  width: 260px;
-  min-width: 260px;
-  aspect-ratio: 16 / 9;
+.card:hover {
+  background-color: var(--card-bg-hover);
+}
+.card-stage {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  height: 260px;
+  border-radius: 14px;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--bg-subtle);
-  flex-shrink: 0;
+  background: var(--stage-bg);
 }
-.storyflow-row-media img {
+.card-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--stage-border);
+  pointer-events: none;
+}
+.card-stage img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity var(--motion-hover);
+  transition: transform var(--duration-very-slow) var(--ease-smooth-out);
 }
-.storyflow-editorial-row:hover .storyflow-row-media img {
-  opacity: 0.88;
+.card:hover .card-stage img {
+  transform: scale(1.02);
 }
-
-.storyflow-row-content {
+.card-meta {
+  position: absolute;
+  left: 20px;
+  bottom: 18px;
+  width: calc(100% - 40px - 44px);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.45rem;
-  flex: 1;
+  gap: 6px;
 }
-
-.storyflow-row-title {
-  font-family: var(--font-reading);
-  font-size: 1.3rem;
+.card-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
   font-weight: 500;
-  letter-spacing: -0.015em;
+  line-height: 18px;
+  letter-spacing: 0;
   color: var(--text-primary);
-  line-height: 1.25;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.storyflow-row-desc {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
+.card-subtitle {
+  font-size: var(--text-ui);
+  line-height: 16px;
+  color: var(--text-label);
   margin: 0;
-  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.storyflow-row-content .infobox-cta-link {
-  margin-top: 0.35rem;
+.card-copy {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 24px;
+  background: var(--bg-hover);
+  color: var(--pill-fg);
+  transition: background-color var(--motion-hover), color var(--motion-hover);
+}
+.card:hover .card-copy,
+.card-copy:hover {
+  background: var(--bg-hover-strong);
+  color: var(--text-primary);
 }
 
 /* Minimal Back to Top (Desktop Only) */
@@ -1505,29 +1761,21 @@ details.toc-cat-details > summary:hover {
    Responsive Multi-Device Adaptations
    ========================================================================== */
 
-/* Desktop, laptop and tablet (>= 769px) share one layout: a fixed-width
-   sidebar plus a reading column capped at --main-max, centered as one page.
-   Narrow screens shrink the sidebar; wide screens center the whole page so
-   the sidebar always stays beside the text. */
+/* Desktop, laptop and tablet (>= 769px): the transitions.dev docs grid. One
+   1192px page centred on the screen, a 200px sidebar, 56px of air, then the
+   reading column. The header lines up with the same edges. */
 @media (min-width: 769px) {
   body {
-    --sidebar-w: 320px;
-    --main-max: 860px;
-    --page-inset: max(0px, calc((100vw - var(--sidebar-w) - var(--main-max)) / 2));
-    --main-left: calc(var(--page-inset) + var(--sidebar-w));
+    --page-inset: max(24px, calc((100vw - var(--page-max)) / 2));
+    --main-left: calc(var(--page-inset) + var(--sidebar-w) + var(--sidebar-gap));
   }
   body.sidebar-collapsed {
-    --main-left: max(0px, calc((100vw - var(--main-max)) / 2));
+    --main-left: var(--page-inset);
   }
-  /* Collapse behaves like a drawer retracting into the page's left edge: the
-     sidebar slides left while a clip at that edge hides what has passed it,
-     and the reading column moves with the same timing. The column always
-     travels less than the sidebar's edge, so the two never overlap. */
-  /* Panel reveal timing: 400ms out, 350ms back in, with a 2px blur on the
-     retracted side. filter stays none while open so the expanded graph,
-     which is position: fixed inside the sidebar, keeps the viewport as its
-     containing block. */
   .wiki-sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    left: var(--page-inset);
     clip-path: inset(0 0 0 0);
     filter: none;
     transition:
@@ -1546,51 +1794,31 @@ details.toc-cat-details > summary:hover {
       filter var(--panel-close-dur) var(--panel-ease),
       visibility 0s linear var(--panel-close-dur);
   }
-  .wiki-header {
-    padding-left: calc(var(--page-inset) + 2rem);
-    padding-right: calc(var(--page-inset) + 2rem);
-  }
-  .wiki-sidebar {
-    width: var(--sidebar-w);
-    min-width: var(--sidebar-w);
-    left: var(--page-inset);
-  }
-  .wiki-main-article,
-  .wiki-main-article.wide-stage {
-    width: calc(100% - var(--main-left));
+  .wiki-main-article {
+    width: calc(100% - var(--main-left) - var(--page-inset));
     margin-left: var(--main-left);
     margin-right: 0;
     transition: margin-left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-  .wiki-main-article {
-    max-width: var(--main-max);
-  }
-  .wiki-main-article.wide-stage {
-    max-width: 980px;
   }
   body.sidebar-collapsed .wiki-main-article {
     transition: margin-left var(--panel-close-dur) var(--panel-ease), width var(--panel-close-dur) var(--panel-ease);
   }
 }
 
-@media (min-width: 769px) and (max-width: 1440px) {
-  body {
-    --sidebar-w: 280px;
-  }
-  .wiki-sidebar {
-    padding: 2.5rem 1rem 2rem 1.5rem;
+/* Small laptops and tablets: the header drops the app pills before the
+   reading column gets cramped. */
+@media (min-width: 769px) and (max-width: 1180px) {
+  .site-nav-menu .nav-pill:not(.wiki-qr-container .nav-pill) {
+    display: none;
   }
 }
-
-@media (min-width: 769px) and (max-width: 1180px) {
+@media (min-width: 769px) and (max-width: 960px) {
   body {
-    --sidebar-w: 260px;
+    --sidebar-gap: 32px;
   }
-  .wiki-main-article,
-  .wiki-main-article.wide-stage {
-    padding-right: 1.75rem;
+  .nav-get-pro,
+  .nav-search-kbd {
+    display: none;
   }
 }
 
@@ -1601,13 +1829,37 @@ details.toc-cat-details > summary:hover {
     overscroll-behavior: none;
   }
 
-  /* Header: clean mobile bar matching desktop height */
+  /* Header: mark only, round icon buttons, menu button at the far right. */
   .wiki-header {
-    height: 52px;
-    padding: 0 1.25rem;
+    padding: 0 12px;
   }
-  .wiki-header-center {
+  .wiki-header-center,
+  .brand-word,
+  .nav-search-label,
+  .nav-search-kbd,
+  #lang-current-label {
     display: none;
+  }
+  .wiki-header .brand-word {
+    display: none;
+  }
+  .wiki-header-right {
+    gap: 6px;
+  }
+  .nav-search {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .icon-btn-pill {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+  .nav-burger {
+    display: flex;
   }
   body.mobile-continuum-header-active .wiki-header {
     z-index: 760;
@@ -1685,13 +1937,14 @@ details.toc-cat-details > summary:hover {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Strict Design Consistency: Exact 52px Height, Exact Font Size/Weight, Exact Padding */
+  /* The menu repeats the header: brand on the left, close button where the
+     menu button was. */
   .mobile-sidebar-header {
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
+    height: var(--header-h);
+    min-height: var(--header-h);
+    max-height: var(--header-h);
     box-sizing: border-box;
-    padding: env(safe-area-inset-top, 0px) 1.25rem 0 1.25rem;
+    padding: env(safe-area-inset-top, 0px) 12px 0 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1700,43 +1953,16 @@ details.toc-cat-details > summary:hover {
     flex-shrink: 0;
     background: var(--bg-page);
   }
-  .mobile-sidebar-title {
-    font-family: var(--font-sans);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    line-height: 1;
-  }
-  
-  /* Minimalist Pure X Close Button: 100% Zero-Border, Zero-Background, Pure X */
-  .btn-sidebar-close {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
-    color: var(--text-secondary);
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    cursor: pointer;
-    transition: color var(--motion-hover);
-  }
-  .btn-sidebar-close:hover,
-  .btn-sidebar-close:active {
-    color: var(--text-primary);
-    background: transparent;
+  .mobile-sidebar-title .brand-word {
+    display: inline;
   }
 
   .wiki-sidebar .sidebar-graph-slot {
-    padding: 0 1.25rem;
-    margin: 0.25rem 0 0.5rem 0;
+    padding: 0 18px;
+    margin: 8px 0 16px 0;
     box-sizing: border-box;
     width: 100%;
-    height: 145px;
+    height: 160px;
   }
 
   .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .topology-pure-canvas {
@@ -1794,8 +2020,43 @@ details.toc-cat-details > summary:hover {
     display: none !important;
   }
 
+  /* Menu list: the transitions.dev mobile menu type, large book links and
+     muted sub links. */
   .wiki-sidebar .wiki-nav-hub {
-    padding: 0 1.25rem calc(2.5rem + env(safe-area-inset-bottom)) 1.25rem;
+    padding: 0 18px calc(40px + env(safe-area-inset-bottom)) 18px;
+  }
+  .wiki-sidebar .docs-group-label,
+  .wiki-sidebar details.toc-group > summary {
+    height: 36px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 16px;
+  }
+  .wiki-sidebar .nav-hub-item {
+    height: 44px;
+    min-height: 44px;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+  }
+  .wiki-sidebar details.toc-cat-details > summary {
+    height: 40px;
+    min-height: 40px;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.17px;
+    color: var(--text-secondary);
+  }
+  .wiki-sidebar details.toc-cat-details[data-expanded="true"] > summary {
+    color: var(--text-primary);
+  }
+  .wiki-sidebar .toc-item {
+    height: 40px;
+    min-height: 40px;
+    line-height: 40px;
+    font-size: 15px;
   }
 
   /* Mobile Floating Quick Graph Launcher: 100% Zero-Border, Crisp, Clean & Highly Visible */
@@ -1841,46 +2102,68 @@ details.toc-cat-details > summary:hover {
   .wiki-main-article {
     margin-left: 0 !important;
     width: 100% !important;
-    padding: 1.25rem 1.25rem 6rem !important;
+    padding: 24px 12px 0 !important;
     max-width: 100% !important;
-    font-size: 1.05rem;
-    line-height: 1.72;
   }
 
-  .article-masthead {
-    text-align: center;
-    display: flex;
+  .article-h1,
+  .detail-title {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.14px;
+  }
+  .detail-sub {
+    font-size: 15px;
+    line-height: 22px;
+    margin-top: 8px;
+  }
+  .detail-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  .detail-arrows {
+    gap: 8px;
+    margin-top: 1px;
+  }
+  .detail-actions {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+    align-items: stretch;
   }
-
-  .article-h1 {
-    font-size: 2.1rem;
-    line-height: 1.18;
-    text-align: center;
+  .detail-actions .detail-prompt {
+    align-self: flex-start;
   }
-
-  #view-book {
-    --infobox-w: min(320px, 100cqi);
-  }
-
-  .wiki-infobox,
+  .detail-stage,
   .entity-floating-media {
-    float: none !important;
-    width: 100% !important;
-    max-width: 320px !important;
-    margin: 0 auto var(--book-line, 0.95rem) auto !important;
-    text-align: center;
-    display: flex;
+    min-height: 0;
+    padding: 24px 16px;
+    margin-bottom: 32px;
+    border-radius: 20px;
+  }
+  .book-stage {
     flex-direction: column;
+    gap: 24px;
+  }
+  .infobox-media {
+    width: min(220px, 70%);
+  }
+  .book-stage-side {
+    width: 100%;
+    max-width: 320px;
     align-items: center;
   }
-
   .entity-media-wrap {
-    max-width: 360px;
-    margin: 0 auto 0.75rem auto;
+    height: auto;
+    width: min(260px, 100%);
+  }
+
+  .site-footer {
+    flex-direction: column;
+    gap: 32px;
+    padding-top: 80px;
+  }
+  .footer-cols {
+    gap: 40px;
+    flex-wrap: wrap;
   }
 
   /* 100% Fullscreen Graph Explorer Mode */
@@ -1922,31 +2205,12 @@ details.toc-cat-details > summary:hover {
     z-index: 810 !important;
   }
 
-  /* StoryFlow rows switch to clean mobile cards */
-  .storyflow-editorial-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .storyflow-row-media {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .storyflow-row-title {
-    font-size: 1.25rem;
-  }
-
-  .storyflow-editorial-catalog {
-    gap: 2.25rem;
-  }
-
   /* The mobile graph/article controller has one physical Y coordinate. The
      graph stays mounted as the rear floor; an independent article sheet moves
      over it. The sheet owns normal native scrolling only after it has landed. */
   .mobile-graph-continuum {
     --mobile-continuum-peek: clamp(112px, 18dvh, 168px);
-    --mobile-continuum-header-height: 52px;
+    --mobile-continuum-header-height: var(--header-h);
     --mobile-continuum-sheet-y: calc(100dvh - var(--mobile-continuum-peek));
     --mobile-continuum-graph-shift: 0px;
     --mobile-continuum-graph-scale: 1;
@@ -2049,7 +2313,7 @@ details.toc-cat-details > summary:hover {
       calc(100dvh - var(--mobile-continuum-header-height))
     );
     min-height: 0;
-    padding: 1.25rem 1.25rem calc(6rem + env(safe-area-inset-bottom));
+    padding: 24px 12px calc(96px + env(safe-area-inset-bottom));
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
@@ -2303,11 +2567,202 @@ img[data-reveal="pending"].is-swapping {
 @media (prefers-reduced-motion: reduce) {
   .wiki-sidebar,
   .wiki-sidebar.collapsed,
-  .wiki-main-article,
-  .wiki-main-article.wide-stage {
+  .wiki-main-article {
     transition: none !important;
   }
   .is-media-loading::before {
     animation: none;
   }
+}
+
+/* ==========================================================================
+   Footer (brand and tagline on the left, link columns on the right)
+   ========================================================================== */
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: auto;
+  padding: 112px 0 40px;
+  font-family: var(--font-sans);
+}
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.footer-logo .brand-word-strong,
+.footer-logo .brand-mark {
+  color: var(--text-secondary);
+}
+.footer-tagline {
+  font-size: var(--text-ui);
+  line-height: 18.2px;
+  color: var(--text-secondary);
+}
+.footer-cols {
+  display: flex;
+  gap: 60px;
+}
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 80px;
+}
+.footer-col-title {
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 18.2px;
+  color: var(--text-secondary);
+}
+.footer-col a {
+  font-size: var(--text-ui);
+  line-height: 18.2px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--motion-hover);
+}
+.footer-col a:hover {
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   Search palette (Ctrl K). Modal open/close from transitions.dev: the panel
+   scales up from 0.96 with a short blur, and closes faster than it opens.
+   ========================================================================== */
+.cmdk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 126px 16px 16px;
+  background: var(--overlay-bg);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity var(--modal-close-dur) var(--modal-ease);
+}
+.cmdk-overlay[hidden] {
+  display: none;
+}
+.cmdk-overlay.is-open {
+  opacity: 1;
+  transition-duration: var(--modal-open-dur);
+}
+.cmdk-panel {
+  width: 560px;
+  max-width: 100%;
+  max-height: calc(100dvh - 160px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: var(--tt-bg);
+  box-shadow: var(--modal-shadow);
+  overflow: hidden;
+  transform: scale(var(--scale-large));
+  filter: blur(var(--blur-small));
+  transition:
+    transform var(--modal-close-dur) var(--modal-ease),
+    filter var(--modal-close-dur) var(--modal-ease);
+}
+.cmdk-overlay.is-open .cmdk-panel {
+  transform: scale(1);
+  filter: blur(0);
+  transition-duration: var(--modal-open-dur);
+}
+.cmdk-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.cmdk-search-ic {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--text-primary);
+}
+.cmdk-input::placeholder {
+  color: var(--text-muted);
+}
+.cmdk-esc {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--kbd-bg);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.cmdk-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  max-height: 340px;
+}
+.cmdk-group-label {
+  padding: 10px 8px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.cmdk-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+.cmdk-item[aria-selected="true"] {
+  background: var(--cmdk-active);
+}
+.cmdk-item-ic {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.cmdk-item-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmdk-item-hint {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.cmdk-empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: var(--text-ui);
+  color: var(--text-muted);
 }

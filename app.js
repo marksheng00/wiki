@@ -123,6 +123,17 @@
     initEntityPreview();
     initImageReveals();
     initBackToTopVisibility();
+    initEntityArrows();
+    initBookTabs();
+    initSearchPalette();
+    initFooterLinks();
+
+    // A view id in the URL is also an element id; keep the browser from
+    // jumping to it, so every page opens at its title.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.addEventListener('load', () => {
+      if (/^#view-/.test(location.hash)) window.scrollTo({ top: 0, behavior: 'instant' });
+    }, { once: true });
 
     // A fresh visit lands on the book overview; a refresh restores the page in the URL.
     if (initialRoute.type === 'view') {
@@ -1614,6 +1625,11 @@
   }
 
   // Left edge of the centered page on wide screens (0 when the page is full-width).
+  function getHeaderHeight() {
+    const header = document.querySelector('.wiki-header');
+    return Math.max(0, header?.getBoundingClientRect().height || 68);
+  }
+
   function getDesktopPageInsetLeft() {
     const sidebar = getEl('wiki-sidebar');
     return sidebar ? parseFloat(getComputedStyle(sidebar).left) || 0 : 0;
@@ -1625,7 +1641,7 @@
       return { width: window.innerWidth, height };
     }
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-    const usableHeight = Math.max(1, window.innerHeight - 52);
+    const usableHeight = Math.max(1, window.innerHeight - getHeaderHeight());
     const minWidth = Math.min(420, viewportWidth);
     const minHeight = Math.min(300, usableHeight);
     const width = Math.min(760, viewportWidth, Math.max(minWidth, Math.round(viewportWidth * 0.48)));
@@ -4198,7 +4214,7 @@
           const size = getExpandedGraphSize(isMobile);
           return {
             left: isMobile ? 0 : getDesktopPageInsetLeft(),
-            top: isMobile ? 0 : 52,
+            top: isMobile ? 0 : getHeaderHeight() + 8,
             width: size.width,
             height: size.height
           };
@@ -4992,6 +5008,7 @@
       targetEl.style.display = 'block';
       targetEl.classList.add('active');
     }
+    if (targetViewId === 'view-book') getEl('book-tabs')?.__place?.();
 
     const mainArticle = document.querySelector('.wiki-main-article');
     if (mainArticle) {
@@ -5322,7 +5339,7 @@
       if (model.imagePath) {
         targets.image.src = model.imagePath;
         targets.image.alt = model.label;
-        targets.media.style.display = 'block';
+        targets.media.style.display = '';
         targets.media.setAttribute('aria-hidden', 'false');
       } else {
         targets.image.removeAttribute('src');
@@ -5342,6 +5359,267 @@
       markdown: getEl('view-entity-markdown')
     });
     revealImage(getEl('view-entity-img'));
+    renderEntityDetailChrome(model.id);
+  }
+
+  // Entries in sidebar order, used by the prev/next arrows and the search palette.
+  function getEntityTocEntries() {
+    return Array.from(document.querySelectorAll('.entity-toc-link')).map((link) => {
+      const group = link.closest('details.toc-cat-details');
+      const category = group?.querySelector('summary .docs-link-label')?.textContent.trim() || '';
+      return { id: link.getAttribute('data-id'), label: link.textContent.trim(), category, link };
+    });
+  }
+
+  function singularCategory(category) {
+    if (/ies$/.test(category)) return category.replace(/ies$/, 'y');
+    if (/s$/.test(category) && !/ss$/.test(category)) return category.slice(0, -1);
+    return category;
+  }
+
+  // Subtitle and prev/next arrows of an entity page.
+  function renderEntityDetailChrome(entityId) {
+    const entries = getEntityTocEntries();
+    const index = entries.findIndex((entry) => entry.id === entityId);
+    const entry = entries[index];
+    const sub = getEl('view-entity-sub');
+    if (sub) {
+      sub.textContent = entry
+        ? `${singularCategory(entry.category)} in Nineteen Eighty-Four`
+        : 'An entry in Nineteen Eighty-Four';
+    }
+    const prev = getEl('btn-entity-prev');
+    const next = getEl('btn-entity-next');
+    if (prev) {
+      prev.disabled = index <= 0;
+      prev.dataset.target = index > 0 ? entries[index - 1].id : '';
+    }
+    if (next) {
+      next.disabled = index < 0 || index >= entries.length - 1;
+      next.dataset.target = index >= 0 && index < entries.length - 1 ? entries[index + 1].id : '';
+    }
+  }
+
+  function initEntityArrows() {
+    ['btn-entity-prev', 'btn-entity-next'].forEach((id) => {
+      const button = getEl(id);
+      if (!button) return;
+      button.addEventListener('click', async () => {
+        const target = button.dataset.target;
+        if (!target) return;
+        await prepareForPageNavigation();
+        openEntityArticle(target);
+      });
+    });
+  }
+
+  /* Book sections as sliding tabs (transitions.dev tabs pattern): the white
+     pill travels to the chosen tab, and follows the section in view. */
+  function initBookTabs() {
+    const tabs = getEl('book-tabs');
+    if (!tabs) return;
+    const buttons = Array.from(tabs.querySelectorAll('.detail-tab'));
+    const indicator = tabs.querySelector('.detail-tabs-indicator');
+    let lockUntil = 0;
+
+    const select = (button, instant = false) => {
+      buttons.forEach((b) => b.setAttribute('aria-selected', String(b === button)));
+      if (!indicator || !button) return;
+      if (instant) indicator.style.transition = 'none';
+      indicator.style.width = `${button.offsetWidth}px`;
+      indicator.style.transform = `translateX(${button.offsetLeft}px)`;
+      if (instant) {
+        indicator.getBoundingClientRect();
+        indicator.style.transition = '';
+      }
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const section = getEl(button.dataset.target);
+        select(button);
+        if (!section) return;
+        lockUntil = performance.now() + 900;
+        const top = section.getBoundingClientRect().top + window.scrollY - getHeaderHeight() - 24;
+        window.scrollTo({ top: button === buttons[0] ? 0 : top, behavior: scrollBehavior() });
+      });
+    });
+
+    let frame = 0;
+    const spy = () => {
+      frame = 0;
+      const view = getEl('view-book');
+      if (!view?.classList.contains('active') || performance.now() < lockUntil) return;
+      const line = getHeaderHeight() + 120;
+      let current = buttons[0];
+      buttons.forEach((button) => {
+        const section = getEl(button.dataset.target);
+        if (section && section.getBoundingClientRect().top <= line) current = button;
+      });
+      if (current.getAttribute('aria-selected') !== 'true') select(current);
+    };
+    window.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(spy);
+    }, { passive: true });
+    window.addEventListener('resize', () => {
+      const active = buttons.find((b) => b.getAttribute('aria-selected') === 'true') || buttons[0];
+      select(active, true);
+    });
+    const place = () => select(buttons.find((b) => b.getAttribute('aria-selected') === 'true') || buttons[0], true);
+    if (document.fonts?.ready) document.fonts.ready.then(place);
+    requestAnimationFrame(place);
+    tabs.__place = place;
+  }
+
+  /* Search palette (Ctrl K): pages and every entity, filtered as you type. */
+  function initSearchPalette() {
+    const overlay = getEl('cmdk');
+    const input = getEl('cmdk-input');
+    const list = getEl('cmdk-list');
+    const trigger = getEl('btn-search');
+    if (!overlay || !input || !list) return;
+
+    const pages = [
+      { kind: 'page', id: 'btn-book-home', label: 'Overview', hint: 'Nineteen Eighty-Four', icon: 'book-open' },
+      { kind: 'page', id: 'btn-storylines-hub', label: 'Storylines', hint: '89 scenes', icon: 'film' },
+      { kind: 'page', id: 'btn-storyflow-hub', label: 'StoryFlow', hint: 'Three threads', icon: 'route' }
+    ];
+    let entities = null;
+    let results = [];
+    let activeIndex = 0;
+    let closeTimer = 0;
+    let lastFocus = null;
+
+    const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const render = () => {
+      const query = input.value.trim().toLowerCase();
+      if (!entities) {
+        entities = getEntityTocEntries().map((e) => ({
+          kind: 'entity', id: e.id, label: e.label, hint: singularCategory(e.category), icon: 'shapes'
+        }));
+      }
+      const match = (item) => !query
+        || item.label.toLowerCase().includes(query)
+        || item.hint.toLowerCase().includes(query);
+      const pageHits = pages.filter(match);
+      const entityHits = entities.filter(match)
+        .sort((a, b) => {
+          if (!query) return 0;
+          const aStarts = a.label.toLowerCase().startsWith(query) ? 0 : 1;
+          const bStarts = b.label.toLowerCase().startsWith(query) ? 0 : 1;
+          return aStarts - bStarts;
+        })
+        .slice(0, query ? 60 : 12);
+      results = [...pageHits, ...entityHits];
+      activeIndex = Math.min(activeIndex, Math.max(0, results.length - 1));
+
+      if (!results.length) {
+        list.innerHTML = '<div class="cmdk-empty">No results</div>';
+        return;
+      }
+      let html = '';
+      let i = 0;
+      const group = (title, items) => {
+        if (!items.length) return;
+        html += `<div class="cmdk-group-label">${title}</div>`;
+        items.forEach((item) => {
+          html += `<div class="cmdk-item" role="option" id="cmdk-opt-${i}" data-index="${i}" aria-selected="${i === activeIndex}">`
+            + `<i data-lucide="${item.icon}" class="cmdk-item-ic"></i>`
+            + `<span class="cmdk-item-label">${escapeHtml(item.label)}</span>`
+            + `<span class="cmdk-item-hint">${escapeHtml(item.hint)}</span></div>`;
+          i += 1;
+        });
+      };
+      group('Pages', pageHits);
+      group('Entries', entityHits);
+      list.innerHTML = html;
+      input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+    };
+
+    const setActive = (index) => {
+      if (!results.length) return;
+      activeIndex = (index + results.length) % results.length;
+      list.querySelectorAll('.cmdk-item').forEach((el) => {
+        el.setAttribute('aria-selected', String(Number(el.dataset.index) === activeIndex));
+      });
+      input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
+      list.querySelector(`[data-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+    };
+
+    const open = () => {
+      clearTimeout(closeTimer);
+      lastFocus = document.activeElement;
+      overlay.hidden = false;
+      input.value = '';
+      activeIndex = 0;
+      render();
+      overlay.getBoundingClientRect();
+      overlay.classList.add('is-open');
+      input.focus();
+    };
+    const close = () => {
+      if (overlay.hidden) return;
+      overlay.classList.remove('is-open');
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => { overlay.hidden = true; }, motion.ms('--modal-close-dur'));
+      if (lastFocus?.focus) lastFocus.focus({ preventScroll: true });
+    };
+    const choose = async (item) => {
+      if (!item) return;
+      close();
+      if (item.kind === 'page') {
+        getEl(item.id)?.click();
+      } else {
+        await prepareForPageNavigation();
+        openEntityArticle(item.id);
+      }
+    };
+
+    trigger?.addEventListener('click', open);
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === overlay) close();
+    });
+    input.addEventListener('input', () => { activeIndex = 0; render(); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }
+      else if (e.key === 'Enter') { e.preventDefault(); choose(results[activeIndex]); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    });
+    list.addEventListener('mousemove', (e) => {
+      const item = e.target.closest('.cmdk-item');
+      if (item && Number(item.dataset.index) !== activeIndex) setActive(Number(item.dataset.index));
+    });
+    list.addEventListener('click', (e) => {
+      const item = e.target.closest('.cmdk-item');
+      if (item) choose(results[Number(item.dataset.index)]);
+    });
+    document.addEventListener('keydown', (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (overlay.hidden) open(); else close();
+      } else if (e.key === '/' && !typing && overlay.hidden) {
+        e.preventDefault();
+        open();
+      }
+    });
+    if (trigger && /Mac|iPhone|iPad/.test(navigator.platform)) {
+      const kbd = trigger.querySelector('.nav-search-kbd');
+      if (kbd) kbd.textContent = '⌘K';
+    }
+  }
+
+  // Footer links reuse the sidebar entries.
+  function initFooterLinks() {
+    document.querySelectorAll('[data-footer-nav]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        getEl(link.dataset.footerNav)?.click();
+      });
+    });
   }
 
   function activateEntityTocLink(entityId) {
@@ -5630,6 +5908,8 @@
           const selectedLang = item.getAttribute('data-lang');
           if (selectedLang !== state.lang) {
             state.lang = selectedLang;
+            const langLabel = getEl('lang-current-label');
+            if (langLabel) langLabel.textContent = selectedLang === 'zh' ? '中文' : 'EN';
             langItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             renderBookArticle();

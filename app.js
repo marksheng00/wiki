@@ -5787,6 +5787,14 @@
       if (device && READIFY_APPS[device] && labels[device]) {
         cta.href = READIFY_APPS[device];
         label.textContent = labels[device];
+        // Show the platform's own mark (Apple, Windows, App Store, Android).
+        const glyph = document.querySelector(`.apps-item[data-app="${device}"] .brand-glyph`);
+        const icon = cta.querySelector('.nav-get-pro-icon');
+        if (glyph && icon) {
+          const mark = glyph.cloneNode(true);
+          mark.classList.add('nav-get-pro-icon');
+          icon.replaceWith(mark);
+        }
       } else {
         cta.href = READIFY_APPS.web;
         label.textContent = 'Open Readify';

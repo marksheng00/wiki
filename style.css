@@ -3153,3 +3153,9 @@ img[data-reveal="pending"].is-swapping {
     margin-right: -21px;
   }
 }
+
+/* Platform marks (Simple Icons, CC0; the Windows mark is drawn here). */
+.brand-glyph { display: block; width: 16px; height: 16px; flex: none; }
+.apps-item[data-app="windows"] .brand-glyph,
+.drawer-app[data-app="windows"] .brand-glyph { transform: scale(.88); }
+.apps-item-icon .brand-glyph { width: 16px; height: 16px; }

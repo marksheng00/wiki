@@ -2076,10 +2076,10 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     bottom: calc(1.25rem + env(safe-area-inset-bottom));
     right: 1.25rem;
     z-index: 80;
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-pill);
-    /* Same round icon button as the header (td .icon-btn), only floating. */
+    /* td .icon-btn exactly (36px, 16px icon), only floating. */
     background: var(--bg-hover) !important;
     color: var(--text-primary);
     border: none !important;

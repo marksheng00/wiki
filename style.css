@@ -2614,6 +2614,48 @@ img[data-reveal="pending"].is-swapping {
 .footer-col a:hover {
   color: var(--text-primary);
 }
+.footer-col span {
+  font-size: var(--text-ui);
+  line-height: 18.2px;
+  color: var(--text-label);
+}
+/* Copyright and social links span the full width under the columns. */
+.site-footer { flex-wrap: wrap; row-gap: 48px; }
+.footer-bottom {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-hairline);
+}
+.footer-copy {
+  margin: 0;
+  font-size: var(--text-ui);
+  line-height: 18.2px;
+  color: var(--text-label);
+}
+.footer-socials { display: flex; gap: 4px; }
+.footer-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  transition: background-color var(--motion-hover), color var(--motion-hover);
+}
+.footer-social:hover { background: var(--bg-hover); color: var(--text-primary); }
+.footer-social:active { background: var(--bg-pressed); }
+.footer-social .brand-glyph { width: 15px; height: 15px; }
+@media (max-width: 768px) {
+  .site-footer { flex-wrap: nowrap; row-gap: 32px; }
+  .footer-bottom { flex-basis: auto; width: 100%; flex-direction: column-reverse; align-items: flex-start; }
+  .footer-socials { margin-left: -8px; }
+  .footer-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px; }
+}
 
 /* ==========================================================================
    Search palette (Ctrl K). Modal open/close from transitions.dev: the panel

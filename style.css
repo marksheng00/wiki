@@ -3217,3 +3217,23 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* Phones: no panel around the image and its buttons; they sit on the page. */
+@media (max-width: 768px) {
+  .detail-stage,
+  .entity-floating-media {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+  /* Storylines: a taller frame leaves room for the scene text over the image. */
+  .liblib-fused-viewport { aspect-ratio: 4 / 5; border-radius: 20px; }
+  .liblib-fused-overlay { padding: 20px 20px 8px; }
+  .liblib-narrative-scrollbox { max-height: 34%; }
+}
+
+/* The logo stands alone in the header and the phone menu, without the wordmark. */
+.wiki-header .brand-word,
+.mobile-sidebar-title .brand-word { display: none !important; }

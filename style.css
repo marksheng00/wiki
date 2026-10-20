@@ -2980,3 +2980,9 @@ img[data-reveal="pending"].is-swapping {
 .book-media-stack .infobox-media { margin-bottom: 0; }
 .book-toc:not(.is-open) .book-toc-inner { visibility: hidden; transition: visibility 0s var(--acc-collapse); }
 .entity-section-toc .book-toc-inner { margin-left: 30px; }
+/* Book page: the infobox starts level with the book title, not with the
+   first section heading. Wide enough screens only, so the title never runs
+   into it. */
+@media (min-width: 1024px) {
+  .wiki-infobox.detail-stage { margin-top: calc(4px - 67px); }
+}

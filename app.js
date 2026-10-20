@@ -6457,40 +6457,12 @@
     else if (darkQuery?.addListener) darkQuery.addListener(onSystemChange);
   }
 
-  // "Open Readify": each letter carries its own beam colours, circling inside
-  // it at its own pace, direction and starting point, so the light moves in
-  // many small orbits rather than one sweep. The plain words stay readable to
-  // screen readers; the letters are decoration.
+  // Header app button label; kept in sync with the language by hand because
+  // the gradient text styling lives on this element.
   function setGlowLabel(label, en) {
     if (!label) return;
     label.dataset.en = en;
-    const text = t(en);
-    label.setAttribute('aria-label', text);
-    label.textContent = '';
-    let seed = 7;
-    const rand = () => {
-      seed = (seed * 9301 + 49297) % 233280;
-      return seed / 233280;
-    };
-    Array.from(text).forEach((ch) => {
-      const span = document.createElement('span');
-      span.setAttribute('aria-hidden', 'true');
-      if (/\s/.test(ch)) {
-        span.className = 'glow-space';
-        span.textContent = ch;
-      } else {
-        span.className = 'glow-char';
-        span.textContent = ch;
-        const duration = 2.6 + rand() * 2.6;
-        span.style.setProperty('--glow-dur', `${duration.toFixed(2)}s`);
-        span.style.setProperty('--glow-delay', `${(-rand() * duration).toFixed(2)}s`);
-        span.style.setProperty('--glow-dir', rand() < 0.5 ? 'normal' : 'reverse');
-        span.style.setProperty('--glow-start', `${Math.round(rand() * 360)}deg`);
-        span.style.setProperty('--glow-radius', `${(28 + rand() * 22).toFixed(0)}%`);
-        span.style.setProperty('--glow-hue-delay', `${(-rand() * 12).toFixed(2)}s`);
-      }
-      label.appendChild(span);
-    });
+    label.textContent = t(en);
   }
 
   // Phone menu: language and theme live in the drawer, not the header.

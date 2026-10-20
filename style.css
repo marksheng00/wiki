@@ -7,12 +7,10 @@
   /* Claude.ai / Anthropic Signature Serif System */
   --font-serif: 'Newsreader', 'Source Serif 4', 'Copernicus', 'Tiempos Text', 'Charter', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-current: var(--font-serif);
 
   /* Light Theme (Classic Pure Modern Palette) */
   --bg-page: #ffffff;
   --bg-page-rgb: 255, 255, 255;
-  --bg-surface: #ffffff;
   --bg-subtle: #f8f9fb;
   --bg-hover: #f1f3f7;
 
@@ -21,8 +19,6 @@
   --text-muted: #8c93a0;
 
   --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: rgba(37, 99, 235, 0.08);
 
   --border-hairline: rgba(0, 0, 0, 0.06);
 }
@@ -36,33 +32,15 @@
   }
 }
 
-[data-theme="sepia"] {
-  --bg-page: #fbf7f0;
-  --bg-page-rgb: 251, 247, 240;
-  --bg-surface: #fbf7f0;
-  --bg-subtle: #f3ece0;
-  --bg-hover: #eadecb;
-  --text-primary: #2d261e;
-  --text-secondary: #5e5243;
-  --text-muted: #8e806f;
-  --accent: #a05a2c;
-  --accent-hover: #7e431d;
-  --accent-soft: rgba(160, 90, 44, 0.1);
-  --border-hairline: rgba(45, 38, 30, 0.08);
-}
-
 [data-theme="dark"] {
   --bg-page: #121316;
   --bg-page-rgb: 18, 19, 22;
-  --bg-surface: #121316;
   --bg-subtle: #1a1c23;
   --bg-hover: #242731;
   --text-primary: #e6edf3;
   --text-secondary: #9da7b7;
   --text-muted: #6e7787;
   --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --accent-soft: rgba(96, 165, 250, 0.12);
   --border-hairline: rgba(255, 255, 255, 0.06);
 }
 
@@ -295,13 +273,6 @@ svg.lucide, i[data-lucide] {
 }
 
 
-.header-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-color);
-  margin: 0 1.25rem;
-}
-
 /* ==========================================================================
    Main Dual-Pane Layout
    ========================================================================== */
@@ -470,10 +441,6 @@ svg.lucide, i[data-lucide] {
 
 [data-theme="dark"] .sidebar-graph-container.is-expanded::before {
   background: rgba(26, 28, 35, 0.94);
-}
-
-[data-theme="sepia"] .sidebar-graph-container.is-expanded::before {
-  background: rgba(243, 236, 224, 0.94);
 }
 
 /* Layer 2 (Topmost Graph Canvas): 100% Solid & Crisp Nodes, Zero Mask */
@@ -736,9 +703,6 @@ details.toc-cat-details:not([open]) > summary::after {
   text-align: center;
   transition: color 150ms ease, opacity 150ms ease;
 }
-.article-h1.is-graph-hovering {
-  color: var(--accent);
-}
 
 /* Pure Floating Infobox (100% Zero-Box, Transparent Canvas) */
 .wiki-infobox {
@@ -965,10 +929,6 @@ details.toc-cat-details:not([open]) > summary::after {
 [data-theme="dark"] .entity-mention-chip:hover {
   background: rgba(96, 165, 250, 0.15);
 }
-[data-theme="sepia"] .entity-mention-chip:hover {
-  background: rgba(160, 90, 44, 0.12);
-}
-
 
 
 /* ==========================================================================
@@ -1631,7 +1591,6 @@ details.toc-cat-details:not([open]) > summary::after {
     --mobile-continuum-peek: clamp(112px, 18dvh, 168px);
     --mobile-continuum-header-height: 52px;
     --mobile-continuum-sheet-y: calc(100dvh - var(--mobile-continuum-peek));
-    --mobile-continuum-progress: 0;
     --mobile-continuum-graph-shift: 0px;
     --mobile-continuum-graph-scale: 1;
     --mobile-continuum-graph-opacity: 1;
@@ -1754,16 +1713,9 @@ details.toc-cat-details:not([open]) > summary::after {
   .mobile-graph-continuum-article::-webkit-scrollbar {
     display: none;
   }
-  .mobile-graph-continuum.is-article-resting .mobile-graph-continuum-article {
-    /* Continuous scroll layer preserved without layout re-allocation */
-  }
   [data-theme="dark"] .mobile-graph-continuum-article {
     box-shadow: 0 -22px 52px rgba(0, 0, 0, 0.42);
-  }
-  [data-theme="sepia"] .mobile-graph-continuum-article {
-    box-shadow: 0 -22px 52px rgba(74, 55, 35, 0.16);
-  }
-  .mobile-graph-continuum.has-article .mobile-graph-continuum-article {
+  }  .mobile-graph-continuum.has-article .mobile-graph-continuum-article {
     display: block;
   }
   .mobile-graph-continuum.has-article.is-article-ready .mobile-graph-continuum-article {

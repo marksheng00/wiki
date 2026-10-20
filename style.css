@@ -21,6 +21,45 @@
   --accent: #2563eb;
 
   --border-hairline: rgba(0, 0, 0, 0.06);
+
+  /* Motion tokens, adapted from transitions.dev by Jakub Antalik (https://github.com/Jakubantalik/transitions.dev). Free for personal/commercial use; do not redistribute the library itself. */
+  --duration-stagger: 40ms;
+  --duration-micro: 80ms;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --duration-very-slow: 500ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: ease-in-out;
+  --ease-out: ease-out;
+  --ease-linear: linear;
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-bounce-strong: cubic-bezier(0.34, 3.85, 0.64, 1);
+  --distance-micro: 4px;
+  --distance-small: 6px;
+  --distance-base: 8px;
+  --distance-medium: 12px;
+  --distance-large: 30px;
+  --scale-large: 0.96;
+  --scale-medium: 0.97;
+  --scale-small: 0.98;
+  --scale-tiny: 0.99;
+  --blur-small: 2px;
+  --blur-medium: 3px;
+  --blur-large: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-stagger: 0ms;
+    --duration-micro: 0ms;
+    --duration-quick: 0ms;
+    --duration-fast: 0ms;
+    --duration-medium: 0ms;
+    --duration-slow: 0ms;
+    --duration-very-slow: 0ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

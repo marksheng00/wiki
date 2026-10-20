@@ -3243,8 +3243,9 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 .drawer-search,
 .drawer-settings { display: none; }
 @media (max-width: 768px) {
-  .wiki-header-right > :not(.nav-burger) { display: none !important; }
-  .nav-burger.icon-btn { background: transparent; }
+  /* transitions.dev mobile header: search, the app pill, menu at the far right. */
+  .wiki-header-right > #lang-menu-container,
+  .wiki-header-right > #btn-theme-toggle { display: none !important; }
   .detail-arrows { display: none !important; }
 
   #view-book .infobox-media,
@@ -3267,7 +3268,6 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 
   .mobile-sidebar-header { gap: 8px; }
   .mobile-sidebar-header .brand { margin-right: auto; }
-  .drawer-search { display: inline-flex; background: transparent; }
   .drawer-settings { display: block; margin-top: 16px; padding-bottom: 24px; }
   .drawer-setting-row {
     display: flex;
@@ -3301,6 +3301,53 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   }
 }
+
+/* Phone menu, matched to the transitions.dev mobile menu: 20px dark top
+   links, 17px grey second level, full-width segmented settings. */
 @media (max-width: 768px) {
-  .btn-sidebar-close.icon-btn { background: transparent; }
+  .wiki-sidebar .book-toc-link,
+  .wiki-sidebar .entity-toc-link,
+  .wiki-sidebar .drawer-app {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.17px;
+    color: var(--text-secondary);
+  }
+  .wiki-sidebar .book-toc-link.is-current,
+  .wiki-sidebar .entity-toc-link.active { color: var(--text-primary); }
+  .wiki-sidebar .entity-toc-link { min-height: 40px; display: flex; align-items: center; }
+  .wiki-sidebar .drawer-app { min-height: 40px; }
+  .wiki-sidebar .drawer-app .brand-glyph,
+  .wiki-sidebar .drawer-app svg { width: 18px; height: 18px; }
+
+  .drawer-settings { margin-top: 24px; padding: 0 12px 32px; }
+  .drawer-settings .docs-group-label { padding-left: 0; }
+  .drawer-setting-row { display: block; min-height: 0; padding: 0; margin-top: 12px; }
+  .drawer-setting-label { display: none; }
+  .drawer-seg {
+    display: flex;
+    width: 100%;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--bg-hover);
+  }
+  .drawer-seg button {
+    flex: 1;
+    height: 36px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .drawer-seg button[aria-pressed="true"] {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  }
+}
+@media (max-width: 768px) {
+  [data-theme="dark"] .drawer-seg button[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: none;
+  }
 }

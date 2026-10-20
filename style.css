@@ -2908,8 +2908,8 @@ img[data-reveal="pending"].is-swapping {
     position: absolute;
     right: -8px;
     bottom: -8px;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -2922,8 +2922,8 @@ img[data-reveal="pending"].is-swapping {
   }
   .graph-corner-arc svg {
     display: block;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     stroke-width: 2.4;
     transition: stroke-width var(--duration-fast) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-smooth-out);
   }

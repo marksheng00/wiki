@@ -3583,7 +3583,7 @@
     let budget = 0;
     for (let index = 0; index < count; index += 1) {
       const property = properties[index % properties.length];
-      if (property !== 'all' && property !== 'transform') continue;
+      if (property !== 'all' && property !== 'transform' && property !== 'opacity') continue;
       budget = Math.max(
         budget,
         durations[index % durations.length] + delays[index % delays.length]
@@ -3610,9 +3610,10 @@
       }
     };
     pending.onTransitionFinish = (event) => {
-      if (event.target !== sidebar || event.propertyName !== 'transform') return;
-      const rect = sidebar.getBoundingClientRect();
-      if (!sidebar.classList.contains('is-open') && rect.right <= 1) complete();
+      // The phone menu fades rather than slides; it is gone once transparent.
+      if (event.target !== sidebar || event.propertyName !== 'opacity') return;
+      if (!sidebar.classList.contains('is-open')
+        && parseFloat(getComputedStyle(sidebar).opacity) <= 0.01) complete();
     };
     sidebar.addEventListener('transitionend', pending.onTransitionFinish);
     graphState.sidebarOverlayLeaseRestore = pending;

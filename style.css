@@ -3451,3 +3451,63 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   .sidebar-graph-container.is-expanded .btn-graph-expand svg,
   .sidebar-graph-container.is-expanded .btn-graph-expand:hover svg { background: transparent; }
 }
+
+/* Phone menu opens the transitions.dev way: no slide. The panel fades in
+   place under the header, then its rows rise 12px out of a 3px blur, one
+   after another. Closing is one quiet 200ms fade that does not replay it. */
+@media (max-width: 768px) {
+  .wiki-sidebar,
+  .wiki-sidebar.is-open {
+    transform: none;
+    filter: none;
+  }
+  .wiki-sidebar {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+  }
+  .wiki-sidebar.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+  }
+  .wiki-sidebar.is-closing { visibility: visible; }
+  .wiki-sidebar .sidebar-graph-slot,
+  .wiki-sidebar .wiki-nav-hub > * {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .wiki-sidebar .wiki-nav-hub > * {
+    transform: translateY(12px);
+    filter: blur(3px);
+    /* Reset the lift only after the fade, so closing stays in place. */
+    transition: opacity 0.2s ease, transform 0s linear 0.2s, filter 0s linear 0.2s;
+  }
+  .wiki-sidebar.is-open .sidebar-graph-slot,
+  .wiki-sidebar.is-open .wiki-nav-hub > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition:
+      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms),
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms),
+      filter 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms);
+  }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(1) { --mm-delay: 40ms; }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(2) { --mm-delay: 80ms; }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(3) { --mm-delay: 120ms; }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(4) { --mm-delay: 160ms; }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(5) { --mm-delay: 200ms; }
+  .wiki-sidebar .wiki-nav-hub > :nth-child(n+6) { --mm-delay: 240ms; }
+  .wiki-sidebar.is-transition-suppressed,
+  .wiki-sidebar.is-transition-suppressed * { transition: none !important; }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .wiki-sidebar .wiki-nav-hub > * { transform: none; filter: none; }
+  .wiki-sidebar,
+  .wiki-sidebar.is-open,
+  .wiki-sidebar .sidebar-graph-slot,
+  .wiki-sidebar .wiki-nav-hub > *,
+  .wiki-sidebar.is-open .sidebar-graph-slot,
+  .wiki-sidebar.is-open .wiki-nav-hub > * { transition: none !important; }
+}

@@ -5789,6 +5789,7 @@
         ? `${singularCategory(entry.category)} in Nineteen Eighty-Four`
         : 'An entry in Nineteen Eighty-Four';
     }
+    renderEntitySiblings(entries, entry);
     const prev = getEl('btn-entity-prev');
     const next = getEl('btn-entity-next');
     if (prev) {
@@ -5799,6 +5800,38 @@
       next.disabled = index < 0 || index >= entries.length - 1;
       next.dataset.target = index >= 0 && index < entries.length - 1 ? entries[index + 1].id : '';
     }
+  }
+
+  // Phones (transitions.dev detail pattern): a sideways row of the other
+  // entries in the same category stands in for the prev/next arrows.
+  function renderEntitySiblings(entries, entry) {
+    const view = getEl('view-entity');
+    if (!view) return;
+    let row = getEl('entity-siblings');
+    if (!row) {
+      row = document.createElement('nav');
+      row.id = 'entity-siblings';
+      row.className = 'entity-siblings';
+      row.addEventListener('click', (event) => {
+        const link = event.target.closest('a[data-id]');
+        if (!link) return;
+        event.preventDefault();
+        if (link.getAttribute('aria-current') !== 'page') openEntityArticle(link.dataset.id);
+      });
+      view.insertBefore(row, view.firstElementChild);
+    }
+    row.setAttribute('aria-label', entry?.category || t('Entries'));
+    const siblings = entry ? entries.filter((e) => e.category === entry.category) : [];
+    row.hidden = siblings.length < 2;
+    row.innerHTML = siblings.map((e) => (
+      `<a href="#${e.id}" class="entity-sibling" data-id="${e.id}"${e.id === entry.id ? ' aria-current="page"' : ''}>${e.label.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</a>`
+    )).join('');
+    requestAnimationFrame(() => {
+      const current = row.querySelector('[aria-current="page"]');
+      if (current && row.clientWidth) {
+        row.scrollLeft = current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2;
+      }
+    });
   }
 
   function initEntityArrows() {

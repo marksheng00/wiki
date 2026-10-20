@@ -3351,3 +3351,35 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     box-shadow: none;
   }
 }
+
+/* Same-category entries as a sideways pill row (phones only). */
+.entity-siblings { display: none; }
+@media (max-width: 768px) {
+  .entity-siblings:not([hidden]) {
+    display: flex;
+    gap: 6px;
+    margin: 0 -12px 20px;
+    padding: 0 12px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  }
+  .entity-siblings::-webkit-scrollbar { display: none; }
+  .entity-sibling {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 12px;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    font-size: 13px;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-smooth-out);
+  }
+  .entity-sibling:active { background: var(--bg-hover-strong); }
+  .entity-sibling[aria-current="page"] { background: var(--bg-pressed); font-weight: 500; }
+}

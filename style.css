@@ -713,11 +713,16 @@ details.toc-cat-details:not([open]) > summary::after {
   --infobox-w: clamp(220px, 40cqi, 320px);
 }
 #view-book .reading-section {
-  margin-bottom: calc(var(--book-line) * 2);
+  margin-bottom: var(--book-line);
 }
+/* Headings sit directly on their text; the blank line above separates sections. */
 #view-book .reading-section h2 {
   line-height: var(--book-line);
-  margin-bottom: var(--book-line);
+  padding-top: var(--book-line);
+  margin-bottom: 0;
+}
+#view-book #sec-overview h2 {
+  padding-top: 0;
 }
 #view-book .prose p {
   margin-bottom: var(--book-line);
@@ -740,7 +745,7 @@ details.toc-cat-details:not([open]) > summary::after {
 .wiki-infobox {
   float: right;
   width: var(--infobox-w);
-  margin: 0 0 var(--book-line) var(--book-line);
+  margin: 0 0 0 var(--book-line);
   background: transparent;
   padding: 0;
   border: none;

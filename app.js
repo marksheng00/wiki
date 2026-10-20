@@ -709,16 +709,21 @@
     showArticleView('view-book', options);
   }
 
-  // The library is the site's front page; the logo leads here. It has two
-  // kinds of page: the books home (#books) and one page per category
-  // (#categories/<id>). library.js draws them; this file routes to them.
+  // The library is the site's front page; the logo leads here. Its pages are
+  // the books home (#books), the popular entries (#entries) and one page per
+  // category (#categories/<id>). library.js draws them; this file routes.
   function libraryCategoryFromHash(hash) {
     if (hash === '' || hash === 'books' || hash === 'view-library') return 'all';
+    if (hash === 'entries') return 'entries';
     const match = /^categories\/([a-z-]+)$/.exec(hash);
     return match ? match[1] : null;
   }
   const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;
-  const libraryHash = () => (state.libraryCategory && state.libraryCategory !== 'all' ? `#categories/${state.libraryCategory}` : '#books');
+  const libraryHash = () => {
+    const page = state.libraryCategory || 'all';
+    if (page === 'all') return '#books';
+    return page === 'entries' ? '#entries' : `#categories/${page}`;
+  };
 
   async function openLibrary(options = {}) {
     await prepareForPageNavigation();

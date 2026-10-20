@@ -56,8 +56,20 @@ body.is-library .btn-mobile-graph-launcher {
   margin: 0;
 }
 .lib-h2 a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: inherit;
   text-decoration: none;
+}
+.lib-h2 a .lib-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-label);
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
+}
+@media (hover: hover) {
+  .lib-h2 a:hover .lib-icon { transform: translateX(2px); }
 }
 .lib-h2 a:hover {
   text-decoration: underline;
@@ -355,3 +367,23 @@ body.is-library .btn-mobile-graph-launcher {
   .lib-book-out { transition: none; }
   .lib-sort { transition: none; }
 }
+
+/* Entry count beside a section title. */
+.lib-h2-count {
+  margin-left: 8px;
+  font-size: var(--text-ui-small);
+  font-weight: 400;
+  color: var(--text-label);
+}
+/* The entries page opens straight on its first kind. */
+/* Entries page: a book's entries grouped by kind under a small label,
+   the same label as the sidebar's group labels. */
+.lib-kind + .lib-kind { margin-top: 24px; }
+.lib-kind-label {
+  margin: 0 0 4px;
+  font-size: var(--text-ui-small);
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--text-label);
+}
+.lib-kind-label .lib-h2-count { margin-left: 6px; }

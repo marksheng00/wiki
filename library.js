@@ -24,20 +24,11 @@
   const COPY = {
     en: {
       library: 'Library',
-      allBooks: 'All books',
       categories: 'Categories',
-      sub: (books, cats) => `Character maps, world wikis and reading guides for ${books} books across ${cats} categories.`,
-      catSub: (n) => `${n} ${n === 1 ? 'book' : 'books'} with character maps, world wikis and reading guides.`,
       popular: 'Popular books',
       entries: 'Popular entries',
-      moreEntries: 'More entries',
-      viewAll: (n) => `View all ${n}`,
-      sortLabel: 'Sort books',
-      sorts: { default: 'Default', title: 'By title', author: 'By author' },
       moreOnReadify: 'More on Readify',
       type: { character: 'Character', location: 'Location', event: 'Event' },
-      prevCat: 'Previous category',
-      nextCat: 'Next category',
       openBook: (t) => `Open the ${t} wiki`,
       openReadify: (t) => `Open ${t} on Readify`,
       title: (page) => `${page} — Readipedia`,
@@ -45,20 +36,11 @@
     },
     zh: {
       library: '书库',
-      allBooks: '全部书籍',
       categories: '分类',
-      sub: (books, cats) => `人物关系图谱、世界观百科与阅读指南，共 ${books} 本书，${cats} 个分类。`,
-      catSub: (n) => `${n} 本书的人物关系图谱、世界观百科与阅读指南。`,
       popular: '热门书籍',
       entries: '热门词条',
-      moreEntries: '更多词条',
-      viewAll: (n) => `查看全部 ${n} 本`,
-      sortLabel: '书籍排序',
-      sorts: { default: '默认', title: '按书名', author: '按作者' },
       moreOnReadify: '在 Readify 查看更多',
       type: { character: '人物', location: '地点', event: '事件' },
-      prevCat: '上一个分类',
-      nextCat: '下一个分类',
       openBook: (t) => `进入《${t}》百科`,
       openReadify: (t) => `在 Readify 打开《${t}》`,
       title: (page) => `${page} — Readipedia`,
@@ -67,7 +49,6 @@
   };
 
   let page = 'all';
-  let sort = 'default';
 
   // Follows the site language. Until app.js reports a switch, read the same
   // stored choice it starts from.
@@ -117,15 +98,7 @@
     return [books[0]].concat(data().popular.map((slug) => bySlug.get(slug)).filter(Boolean));
   }
 
-  // Title and author sorts follow the reader's language (pinyin for Chinese).
-  function sorted(books, l) {
-    if (sort === 'default') return books;
-    const collator = new Intl.Collator(l === 'zh' ? 'zh-Hans-CN-u-co-pinyin' : 'en', { sensitivity: 'base' });
-    const at = sort === 'author' ? 1 : 0;
-    return books.slice().sort((a, b) => collator.compare(a[l][at], b[l][at]) || collator.compare(a[l][0], b[l][0]));
-  }
-
-  const catHash = (id) => (id === 'all' ? '#books' : `#categories/${id}`);
+  const catHash = (id) => (id === 'all' ? '#books' : id === 'entries' ? '#entries' : `#categories/${id}`);
 
   function bookHref(book, l) {
     if (book.local) return '#book';
@@ -187,45 +160,84 @@
     </div>`;
   }
 
-  // The transitions.dev library sort button and its dropdown, beside the
-  // category arrows. Categories themselves are in the sidebar.
-  function sortControl(c) {
-    return `<div class="lib-sort-anchor">
-        <button type="button" class="detail-arrow lib-sort" aria-label="${esc(c.sortLabel)}" aria-haspopup="menu" aria-expanded="false">${ICON.sort}</button>
-        <div class="wiki-dropdown-menu lib-sort-menu" role="menu" aria-label="${esc(c.sortLabel)}">
-          ${Object.keys(c.sorts).map((key) => `<button type="button" class="wiki-dropdown-item lib-sort-opt${sort === key ? ' active' : ''}" role="menuitemradio" data-sort="${key}" aria-checked="${sort === key}"><span>${esc(c.sorts[key])}</span>${ICON.check}</button>`).join('')}
-        </div>
-      </div>`;
-  }
-
   /* ---------- Pages ---------- */
 
-  // Entries of the book hosted here. These link within
-  // the site, so they lead the popular entries.
-  const LOCAL_ENTRIES = 21;
-  function localEntries(l, c) {
-    const nodes = Object.values(window.WIKI_STORE?.master?.knowledge_graph?.all_nodes || {});
+  // Entries of the book hosted here, which link within the site. Kinds go
+  // people first, then places and groups, then ideas; within a kind the best
+  // connected entry comes first.
+  const KIND_ORDER = ['Characters', 'Locations', 'Organizations', 'Events', 'Concepts', 'Objects', 'Rules', 'Expressions', 'States', 'Actions', 'Time', 'Creatures'];
+  const HOME_PER_KIND = 4;
+  function localKinds(l) {
+    const nodes = Object.values(window.WIKI_STORE?.master?.knowledge_graph?.all_nodes || {}).filter((n) => n?.id && n.label);
     const zh = window.WIKI_STORE_ZH || {};
-    const title = data().local[l].title;
-    // Three of each main kind, best connected first, so the list mixes
-    // people, places and ideas instead of filling up with one kind.
     const inbound = new Map();
-    nodes.forEach((n) => (n?.targets || []).forEach((t) => inbound.set(t, (inbound.get(t) || 0) + 1)));
+    nodes.forEach((n) => (n.targets || []).forEach((t) => inbound.set(t, (inbound.get(t) || 0) + 1)));
     const degree = (n) => (n.targets?.length || 0) + (inbound.get(n.id) || 0);
-    const picked = ['Characters', 'Locations', 'Organizations', 'Events', 'Concepts', 'Objects', 'Rules']
-      .flatMap((type) => nodes.filter((n) => n?.id && n.label && n.type === type).sort((a, b) => degree(b) - degree(a)).slice(0, 3));
-    return picked
-      .slice(0, LOCAL_ENTRIES)
-      .map((n) => {
-        const key = String(n.type || 'Concepts').toLowerCase().replace(/s$/, '');
-        const name = l === 'zh' ? (zh.graph_labels?.[n.id] || n.label) : n.label;
-        const type = l === 'zh' ? (zh.category_names?.[key] || '') : key.charAt(0).toUpperCase() + key.slice(1);
-        return `<a class="lib-entry" href="#${esc(n.id)}" data-lib-entity="${esc(n.id)}">
-        <span class="lib-entry-name">${esc(name)}</span>
-        <span class="lib-entry-meta">${esc(title)}<span class="lib-dot" aria-hidden="true">·</span>${esc(type)}</span>
-      </a>`;
-      }).join('');
+    const kinds = Array.from(new Set(nodes.map((n) => n.type || 'Concepts')))
+      .sort((a, b) => (KIND_ORDER.indexOf(a) + 1 || 99) - (KIND_ORDER.indexOf(b) + 1 || 99));
+    return kinds.map((type) => {
+      const key = String(type).toLowerCase().replace(/s$/, '');
+      return {
+        key,
+        label: l === 'zh' ? (zh.category_names?.[key] || type) : type,
+        typeLabel: l === 'zh' ? (zh.category_names?.[key] || '') : key.charAt(0).toUpperCase() + key.slice(1),
+        entries: nodes.filter((n) => (n.type || 'Concepts') === type)
+          .sort((a, b) => degree(b) - degree(a))
+          .map((n) => ({ id: n.id, name: l === 'zh' ? (zh.graph_labels?.[n.id] || n.label) : n.label }))
+      };
+    }).filter((k) => k.entries.length);
   }
+
+  // One line per entry: a hub page earns more from more links than from
+  // summaries that repeat the entry pages.
+  function entryRow(href, name, meta, internalId) {
+    const attrs = internalId ? ` data-lib-entity="${esc(internalId)}"` : ' target="_blank" rel="noopener"';
+    return `<a class="lib-entry" href="${esc(href)}"${attrs}>
+        <span class="lib-entry-name">${esc(name)}</span>
+        ${meta ? `<span class="lib-entry-meta">${meta}</span>` : ''}
+      </a>`;
+  }
+  const dotted = (...parts) => parts.filter(Boolean).map(esc).join('<span class="lib-dot" aria-hidden="true">·</span>');
+
+  function readifyEntryRows(l, c, withBook = true) {
+    const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
+    return data().entries.map((e) => {
+      const book = bySlug.get(e.book);
+      return entryRow(entryHref(e, book, l), e[l][0], withBook ? dotted(book[l][0], c.type[e.type] || e.type) : dotted(c.type[e.type] || e.type));
+    }).join('');
+  }
+
+  function entryCount() {
+    return localKinds('en').reduce((n, k) => n + k.entries.length, 0) + data().entries.length;
+  }
+
+  // The popular entries page: every entry of the hosted book by kind, then
+  // the popular entries on Readify.
+  function entriesPage(l, c) {
+    const local = data().local[l].title;
+    const kinds = localKinds(l);
+    const readifyBook = allBooks().find((b) => b.slug === data().entries[0]?.book);
+    const localTotal = kinds.reduce((n, k) => n + k.entries.length, 0);
+    // Grouped by book, then by kind; the kind label replaces a per-row field.
+    const groups = kinds.map((k) => `<div class="lib-kind">
+          <h3 class="lib-kind-label" id="lib-kind-${k.key}">${esc(k.label)}<span class="lib-h2-count">${k.entries.length}</span></h3>
+          <div class="lib-entries" aria-labelledby="lib-kind-${k.key}">${k.entries.map((e) => entryRow(`#${e.id}`, e.name, '', e.id)).join('')}</div>
+        </div>`).join('');
+    return `
+      <header class="article-masthead detail-head">
+        <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.entries)}</h1></div>
+      </header>
+      <section class="lib-section lib-section--first" aria-labelledby="lib-book-local">
+        ${sectionHead(`<a href="#book" data-lib-book>${esc(local)}</a><span class="lib-h2-count">${localTotal}</span>`, '', 'lib-book-local')}
+        ${groups}
+      </section>
+      <section class="lib-section" aria-labelledby="lib-readify-entries">
+        ${sectionHead(`${esc(readifyBook ? readifyBook[l][0] : 'Readify')}<span class="lib-h2-count">${data().entries.length}</span>`, `<a class="lib-more" href="${READIFY}/${l}/hot-entries" target="_blank" rel="noopener">${esc(c.moreOnReadify)}${ICON.out}</a>`, 'lib-readify-entries')}
+        <div class="lib-entries">${readifyEntryRows(l, c, false)}</div>
+      </section>
+    `;
+  }
+
 
   function homePage(l, c) {
     const cats = categoriesWithBooks();
@@ -233,23 +245,14 @@
     const books = allBooks();
     const bySlug = new Map(books.map((b) => [b.slug, b]));
 
-    const entries = data().entries.map((e) => {
-      const book = bySlug.get(e.book);
-      const [name] = e[l];
-      // One line per entry: a hub page earns more from more links than from
-      // summaries that repeat the entry pages.
-      return `<a class="lib-entry" href="${entryHref(e, book, l)}" target="_blank" rel="noopener">
-        <span class="lib-entry-name">${esc(name)}</span>
-        <span class="lib-entry-meta">${esc(book[l][0])}<span class="lib-dot" aria-hidden="true">·</span>${esc(c.type[e.type] || e.type)}</span>
-      </a>`;
-    }).join('');
+    const title = data().local[l].title;
+    const entries = localKinds(l)
+      .flatMap((k) => k.entries.slice(0, HOME_PER_KIND).map((e) => entryRow(`#${e.id}`, e.name, dotted(title, k.typeLabel), e.id)))
+      .join('') + readifyEntryRows(l, c);
 
     const catSections = cats.map((cat) => {
-      const more = cat.books.length > HOME_PER_CATEGORY
-        ? `<a class="lib-more" href="${catHash(cat.id)}" data-lib-cat="${cat.id}">${esc(c.viewAll(cat.books.length))}${ICON.chevron}</a>`
-        : `<a class="lib-more" href="${catHash(cat.id)}" data-lib-cat="${cat.id}">${esc(cat[l])}${ICON.chevron}</a>`;
       return `<section class="lib-section" aria-labelledby="lib-cat-${cat.id}">
-        ${sectionHead(`<a href="${catHash(cat.id)}" data-lib-cat="${cat.id}">${esc(cat[l])}</a>`, more, `lib-cat-${cat.id}`)}
+        ${sectionHead(`<a href="${catHash(cat.id)}" data-lib-cat="${cat.id}">${esc(cat[l])}${ICON.chevron}</a>`, '', `lib-cat-${cat.id}`)}
         ${cards(cat.books.slice(0, HOME_PER_CATEGORY), l, c, true)}
       </section>`;
     }).join('');
@@ -257,7 +260,6 @@
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.library)}</h1></div>
-        <p class="detail-sub">${esc(c.sub(total, cats.length))}</p>
       </header>
 
       <section class="lib-section lib-section--first" aria-labelledby="lib-popular-h">
@@ -266,8 +268,8 @@
       </section>
 
       <section class="lib-section" aria-labelledby="lib-entries-h">
-        ${sectionHead(esc(c.entries), `<a class="lib-more" href="${READIFY}/${l}/hot-entries" target="_blank" rel="noopener">${esc(c.moreEntries)}${ICON.out}</a>`, 'lib-entries-h')}
-        <div class="lib-entries">${localEntries(l, c)}${entries}</div>
+        ${sectionHead(`<a href="#entries" data-lib-cat="entries">${esc(c.entries)}${ICON.chevron}</a>`, '', 'lib-entries-h')}
+        <div class="lib-entries">${entries}</div>
       </section>
 
       ${catSections}
@@ -278,24 +280,16 @@
     const cats = categoriesWithBooks();
     const index = cats.findIndex((cat) => cat.id === id);
     const cat = cats[index];
-    const prev = cats[(index - 1 + cats.length) % cats.length];
-    const next = cats[(index + 1) % cats.length];
 
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row">
           <h1 class="article-h1 detail-title" id="library-title">${esc(cat[l])}</h1>
-          <div class="detail-arrows">
-            ${sortControl(c)}
-            <a class="detail-arrow" href="${catHash(prev.id)}" data-lib-cat="${prev.id}" aria-label="${esc(`${c.prevCat}: ${prev[l]}`)}">${ICON.left}</a>
-            <a class="detail-arrow" href="${catHash(next.id)}" data-lib-cat="${next.id}" aria-label="${esc(`${c.nextCat}: ${next[l]}`)}">${ICON.right}</a>
-          </div>
         </div>
-        <p class="detail-sub">${esc(c.catSub(cat.books.length))}</p>
       </header>
 
       <section class="lib-section lib-section--first" aria-labelledby="library-title">
-        ${cards(sorted(cat.books, l), l, c)}
+        ${cards(cat.books, l, c)}
         <div class="lib-foot">
           <a class="lib-more" href="${READIFY}/${l}/categories/${cat.id}" target="_blank" rel="noopener">${esc(c.moreOnReadify)}${ICON.out}</a>
         </div>
@@ -312,7 +306,8 @@
       <span class="docs-link-label">${esc(label)}</span><span class="docs-count">${count}</span></a>`;
     nav.innerHTML = `
       <div class="docs-group-label">${esc(c.library)}</div>
-      ${row('all', c.allBooks, allBooks().length)}
+      ${row('all', c.popular, popularBooks().length)}
+      ${row('entries', c.entries, entryCount())}
       <div class="docs-group-label lib-nav-group">${esc(c.categories)}</div>
       ${cats.map((cat) => row(cat.id, cat[l], cat.books.length)).join('')}
     `;
@@ -349,17 +344,15 @@
     if (!data() || !root) return;
     const l = lang();
     const c = COPY[l];
-    if (page !== 'all' && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all';
+    if (page !== 'all' && page !== 'entries' && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all';
     root.dataset.lang = l;
     root.dataset.page = page;
-    root.innerHTML = page === 'all' ? homePage(l, c) : categoryPage(page, l, c);
+    root.innerHTML = page === 'all' ? homePage(l, c) : page === 'entries' ? entriesPage(l, c) : categoryPage(page, l, c);
     renderNav(l, c);
     syncTitle();
     if (how.inPlace) {
       window.scrollTo(0, 0);
-      reveal(root, { withHead: page === 'all' });
-    } else if (how.sorted) {
-      reveal(root);
+      reveal(root, { withHead: page !== 'all' ? page === 'entries' : true });
     }
   }
 
@@ -368,7 +361,8 @@
     if (!view?.classList.contains('active')) return;
     const c = COPY[lang()];
     const cat = categoriesWithBooks().find((x) => x.id === page);
-    document.title = c.title(cat ? `${cat[lang()]} · ${c.library}` : c.library);
+    const name = page === 'entries' ? c.entries : cat ? cat[lang()] : null;
+    document.title = c.title(name ? `${name} · ${c.library}` : c.library);
   }
 
   /* ---------- Navigation ---------- */
@@ -401,61 +395,15 @@
     }
   }
 
-  // The site's dropdown (transitions.dev menu): opens slower than it closes.
-  function initSortMenu() {
-    const root = document.getElementById('view-library');
-    if (!root) return;
-    let closeTimer = null;
-    const menu = () => root.querySelector('.lib-sort-menu');
-    const button = () => root.querySelector('.lib-sort');
-    function close() {
-      const m = menu();
-      if (!m || !m.classList.contains('is-open')) return;
-      m.classList.remove('is-open');
-      m.classList.add('is-closing');
-      button()?.setAttribute('aria-expanded', 'false');
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => m.classList.remove('is-closing'), motionVar('--dropdown-close-dur', 150));
-    }
-    root.addEventListener('click', (e) => {
-      const btn = e.target.closest('.lib-sort');
-      if (btn) {
-        e.stopPropagation();
-        const m = menu();
-        if (m.classList.contains('is-open')) { close(); return; }
-        clearTimeout(closeTimer);
-        m.classList.remove('is-closing');
-        m.classList.add('is-open');
-        btn.setAttribute('aria-expanded', 'true');
-        m.querySelector('[aria-checked="true"]')?.focus({ preventScroll: true });
-        return;
-      }
-      const opt = e.target.closest('.lib-sort-opt');
-      if (opt) {
-        const next = opt.dataset.sort;
-        close();
-        if (next !== sort) {
-          sort = next;
-          render({ sorted: true });
-          root.querySelector('.lib-sort')?.focus({ preventScroll: true });
-        }
-      }
-    });
-    document.addEventListener('click', (e) => { if (!e.target.closest('.lib-sort-anchor')) close(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  }
-
   function init() {
     document.getElementById('view-library')?.addEventListener('click', onClick);
     document.getElementById('library-nav')?.addEventListener('click', onClick);
 
     document.addEventListener('readipedia:library', (e) => {
       const next = e.detail?.category || 'all';
-      if (next !== page) sort = 'default';
       page = next;
       render({ inPlace: e.detail?.inPlace });
     });
-    initSortMenu();
     document.addEventListener('readipedia:lang', () => {
       appLang = /^zh/i.test(document.documentElement.lang || '') ? 'zh' : 'en';
       render();

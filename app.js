@@ -286,7 +286,7 @@
   const i18nText = new WeakMap();
   const i18nAttr = new WeakMap();
   const I18N_SKIP = '#lang-dropdown, #view-library, .prose, .reading-section > h2, .entity-toc-link, #entity-toc, .filmstrip-thumb, .storyflow-editorial-row, #cmdk-list, #storyline-hero-date, #storyline-hero-title, #view-entity-title, #mobile-continuum-title, #nav-get-app-label, script, style';
-  const I18N_ATTRS = ['aria-label', 'title', 'alt', 'placeholder'];
+  const I18N_ATTRS = ['aria-label', 'title', 'alt', 'placeholder', 'data-tooltip'];
 
   function swapString(current, record) {
     const en = record && current === record.zh ? record.en : current;
@@ -360,7 +360,7 @@
     document.querySelectorAll('.filmstrip-thumb[data-idx]').forEach((thumb) => {
       const evt = storylineAt(parseInt(thumb.dataset.idx, 10));
       if (!evt) return;
-      thumb.title = evt.title;
+      thumb.dataset.tooltip = evt.title;
       const img = thumb.querySelector('img');
       if (img) img.alt = evt.title;
     });
@@ -467,6 +467,7 @@
     initEntityMentionInteractions();
     initEntityPreview();
     initImageReveals();
+    initTooltips();
     initBackToTopVisibility();
     initEntityArrows();
     initBookToc();
@@ -2003,7 +2004,7 @@
     if (!graphState.focusedNode) return;
     graphState.hoverNode = null;
     if (isMobileGraphViewport()) {
-      transitionMobileGraphFocus(state.sidebarGraph, null, graphMs(220));
+      transitionMobileGraphFocus(state.sidebarGraph, null, graphMs(motion.ms('--duration-fast')));
       return;
     }
     graphState.focusedNode = null;
@@ -3888,7 +3889,7 @@
     return lease;
   }
 
-  function expandMobileGraphSidebarOverlayLease(duration = graphMs(420)) {
+  function expandMobileGraphSidebarOverlayLease(duration = graphMs(motion.ms('--duration-slow'))) {
     const lease = graphState.sidebarOverlayLease;
     const container = getEl('sidebar-graph-container');
     const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
@@ -4647,7 +4648,7 @@
     }
     const transitionDuration = Number.isFinite(options.duration)
       ? Math.max(0, options.duration)
-      : graphMs(420);
+      : graphMs(motion.ms('--duration-slow'));
     const isStable = state.graphPhase === 'small' || state.graphPhase === 'expanded';
     if (targetState === state.isGraphExpanded && isStable) return Promise.resolve();
     if (!isStable) {
@@ -5663,6 +5664,91 @@
     img.addEventListener('error', finish, { once: true });
   }
 
+  // Library and story pages render their own markup; they reveal images
+  // through this hook.
+  window.ReadipediaMedia = {
+    reveal(root) {
+      root?.querySelectorAll?.('img[src]').forEach((img) => revealImage(img));
+    }
+  };
+
+  // Tooltip (transitions.dev 17): one bubble for every [data-tooltip]. It
+  // appears after a short delay, leaves at once, and travels between
+  // neighbouring triggers instead of blinking out and back. Mouse only.
+  function initTooltips() {
+    const tip = document.createElement('span');
+    tip.className = 't-tt';
+    tip.id = 't-tt';
+    tip.setAttribute('role', 'tooltip');
+    tip.setAttribute('aria-hidden', 'true');
+    tip.dataset.show = 'false';
+    tip.innerHTML = '<span class="t-tt-text"></span>';
+    document.body.appendChild(tip);
+    const text = tip.firstChild;
+    let current = null;
+    let hideTimer = 0;
+
+    function hide() {
+      current = null;
+      tip.dataset.show = 'false';
+      tip.setAttribute('aria-hidden', 'true');
+    }
+
+    function place(trigger) {
+      clearTimeout(hideTimer);
+      const label = trigger.getAttribute('data-tooltip');
+      if (!label) return;
+      const showing = tip.dataset.show === 'true';
+      current = trigger;
+      text.textContent = label;
+      const cs = getComputedStyle(tip);
+      const width = Math.ceil(text.scrollWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
+      const height = tip.offsetHeight;
+      const r = trigger.getBoundingClientRect();
+      const gap = 8;
+      const below = r.top - gap - height < 8;
+      const x = Math.max(8, Math.min(window.innerWidth - width - 8, r.left + r.width / 2 - width / 2));
+      const y = below ? r.bottom + gap : r.top - gap - height;
+      tip.dataset.side = below ? 'bottom' : 'top';
+      if (!showing) {
+        tip.style.transition = 'none';
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--tt-x', `${x}px`);
+        tip.style.setProperty('--tt-y', `${y}px`);
+        void tip.offsetWidth;
+        tip.style.transition = '';
+      } else {
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--tt-x', `${x}px`);
+        tip.style.setProperty('--tt-y', `${y}px`);
+      }
+      tip.dataset.show = 'true';
+      tip.setAttribute('aria-hidden', 'false');
+    }
+
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const trigger = e.target.closest?.('[data-tooltip]');
+      if (trigger && trigger !== current) place(trigger);
+    });
+    document.addEventListener('pointerout', (e) => {
+      if (!current || e.pointerType !== 'mouse') return;
+      const next = e.relatedTarget?.closest?.('[data-tooltip]');
+      if (next) return;
+      if (current.contains(e.relatedTarget)) return;
+      // A short grace lets the bubble travel to a neighbouring trigger.
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hide, 0);
+    });
+    document.addEventListener('focusin', (e) => {
+      const trigger = e.target.closest?.('[data-tooltip]');
+      if (trigger && trigger.matches(':focus-visible')) place(trigger);
+    });
+    document.addEventListener('focusout', hide);
+    document.addEventListener('pointerdown', hide);
+    window.addEventListener('scroll', () => { if (current) hide(); }, { passive: true });
+  }
+
   function initImageReveals() {
     document.querySelectorAll(
       '.infobox-media img, .storyflow-row-media img, .filmstrip-thumb img'
@@ -5744,7 +5830,10 @@
       titleEl.textContent = model.name || model.label;
       textEl.textContent = excerptFor(model);
       if (model.imagePath) {
-        if (image.getAttribute('src') !== model.imagePath) image.src = model.imagePath;
+        if (image.getAttribute('src') !== model.imagePath) {
+          image.src = model.imagePath;
+          revealImage(image, media);
+        }
         media.style.display = '';
       } else {
         image.removeAttribute('src');
@@ -6110,7 +6199,7 @@
         event.preventDefault();
         if (!getEl('view-book')?.classList.contains('active')) {
           getEl('btn-book-home')?.click();
-          setTimeout(() => toc.__scrollTo(link), 350);
+          setTimeout(() => toc.__scrollTo(link), motion.ms('--duration-medium'));
           return;
         }
         toc.__scrollTo(link);
@@ -6834,7 +6923,7 @@
         const collapsed = getEl('wiki-sidebar')?.classList.contains('collapsed');
         btnCollapseSidebar.setAttribute('aria-expanded', String(!collapsed));
         btnCollapseSidebar.setAttribute('aria-label', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
-        btnCollapseSidebar.setAttribute('title', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
+        btnCollapseSidebar.setAttribute('data-tooltip', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
       });
     }
 

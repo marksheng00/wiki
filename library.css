@@ -115,7 +115,7 @@ body.is-library .btn-mobile-graph-launcher {
   overflow: hidden;
   background: var(--stage-bg);
   text-align: center;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--motion-hover);
 }
 .lib-cover::after {
   content: "";
@@ -184,7 +184,7 @@ body.is-library .btn-mobile-graph-launcher {
   text-decoration: none;
   color: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 140ms;
+  transition: background-color var(--motion-hover);
 }
 .lib-entry:hover { background: var(--hover-bg); }
 .lib-entry:active { background: var(--active-bg); }

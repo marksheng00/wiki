@@ -376,6 +376,7 @@
     root.dataset.page = page;
     const pages = { 'all-books': allBooksPage, 'all-entries': allEntriesPage };
     root.innerHTML = (pages[page] || ((ll, cc) => categoryPage(page, ll, cc)))(l, c);
+    window.ReadipediaMedia?.reveal(root);
     renderNav(l, c);
     syncTitle();
     if (how.filtered) {

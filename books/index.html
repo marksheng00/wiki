@@ -29,11 +29,11 @@
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
   </script>
-  <link rel="stylesheet" href="./style.css?v=158" />
+  <link rel="stylesheet" href="./style.css?v=159" />
   <link rel="stylesheet" href="./pro-gradient-text.css?v=1" />
   <link rel="stylesheet" href="./story.css?v=27" />
-  <link rel="stylesheet" href="./library.css?v=17" />
-  <link rel="stylesheet" href="./promo-banner.css?v=10" />
+  <link rel="stylesheet" href="./library.css?v=18" />
+  <link rel="stylesheet" href="./promo-banner.css?v=11" />
 </head>
 <body>
 
@@ -60,7 +60,7 @@
       <span class="promo-count-label"></span>
       <span class="promo-count-time"></span>
     </div>
-    <a class="promo-cta" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><svg class="promo-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+    <a class="promo-cta t-learn" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><span class="t-learn-chevron promo-cta-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8"/><path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12"/></svg></span></a>
     <button class="promo-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </aside>
 
@@ -73,7 +73,7 @@
           <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/><path class="rp-flap" fill="#9a9aa0" d="M204,0V96H300Z"/></svg></span>
           <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
         </a>
-        <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" title="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
+        <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" data-tooltip="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
           <i data-lucide="menu" style="width:18px;height:18px;"></i>
         </button>
       </div>
@@ -748,7 +748,7 @@
               <img id="view-entity-img" src="" alt="Entity visual still" decoding="async" loading="lazy" />
             </div>
             <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
-            <a href="#" class="detail-back" id="btn-entity-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Back to Nineteen Eighty-Four</span></a>
+            <a href="#" class="detail-back t-learn" id="btn-entity-back"><span class="t-learn-chevron t-learn-chevron--back detail-back-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M10 4L6 8"/><path class="t-learn-arm t-learn-arm-bot" d="M6 8L10 12"/></svg></span><span>Back to Nineteen Eighty-Four</span></a>
           </div>
         </aside>
 
@@ -915,7 +915,7 @@
             <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
           </div>
           <span class="cta-beam entity-cta-beam mobile-continuum-cta"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
-          <a href="#" class="detail-back" id="btn-continuum-back"><i data-lucide="chevron-left" class="detail-back-icon"></i><span>Back to Nineteen Eighty-Four</span></a>
+          <a href="#" class="detail-back t-learn" id="btn-continuum-back"><span class="t-learn-chevron t-learn-chevron--back detail-back-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M10 4L6 8"/><path class="t-learn-arm t-learn-arm-bot" d="M6 8L10 12"/></svg></span><span>Back to Nineteen Eighty-Four</span></a>
         </div>
       </aside>
 
@@ -950,10 +950,10 @@
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
   <script src="./data/storyflows_complete.js?v=2" defer></script>
   <script src="./data/entity_storyflows.js?v=1" defer></script>
-  <script src="./story.js?v=26" defer></script>
+  <script src="./story.js?v=27" defer></script>
   <script src="./data/library.js?v=4" defer></script>
-  <script src="./library.js?v=25" defer></script>
-  <script src="./app.js?v=143" defer></script>
-  <script src="./promo-banner.js?v=8" defer></script>
+  <script src="./library.js?v=26" defer></script>
+  <script src="./app.js?v=144" defer></script>
+  <script src="./promo-banner.js?v=9" defer></script>
 </body>
 </html>

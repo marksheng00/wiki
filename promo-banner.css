@@ -36,7 +36,7 @@
     0 12px 42px rgba(0, 0, 0, 0.22);
   transform: translateX(-50%);
   transition: left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
-  animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) both;
+  animation: promo-enter var(--toast-open) var(--toast-ease) both;
 }
 .promo-bar[hidden] { display: none; }
 [data-theme="dark"] .promo-bar {
@@ -137,14 +137,8 @@
 .promo-cta:hover { background: rgba(255, 255, 255, 0.08); }
 .promo-cta:active { transform: scale(var(--scale-medium)); }
 .promo-cta:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 2px; }
-.promo-cta-arrow {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  color: currentColor;
-  transition: transform var(--duration-fast) var(--ease-smooth-out);
-}
-.promo-cta:hover .promo-cta-arrow { transform: translateX(3px); }
+.promo-cta-arrow { width: 16px; height: 16px; flex: none; color: currentColor; }
+.promo-cta-arrow svg { width: 100%; height: 100%; }
 
 .promo-close {
   grid-area: close;
@@ -165,17 +159,19 @@
 .promo-close:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 1px; }
 .promo-close svg { width: 18px; height: 18px; }
 
+/* In and out as the transitions.dev Toast (22): a short rise with a light
+   blur and a hair of scale, slower in than out. */
 @keyframes promo-enter {
-  from { opacity: 0; transform: translateX(-50%) translateY(24px); filter: blur(var(--blur-large)); }
-  to { opacity: 1; transform: translateX(-50%); filter: none; }
+  from { opacity: 0; transform: translateX(-50%) translateY(var(--toast-distance)) scale(var(--toast-scale)); filter: blur(var(--toast-blur)); }
+  to { opacity: 1; transform: translateX(-50%); filter: blur(0); }
 }
 .promo-bar.is-leaving {
-  animation: promo-leave var(--duration-fast) var(--ease-smooth-out) both;
+  animation: promo-leave var(--toast-close) var(--toast-ease) both;
   pointer-events: none;
 }
 @keyframes promo-leave {
-  from { opacity: 1; transform: translateX(-50%); filter: none; }
-  to { opacity: 0; transform: translateX(-50%) translateY(16px) scale(var(--scale-small)); filter: blur(var(--blur-small)); }
+  from { opacity: 1; transform: translateX(-50%); filter: blur(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(var(--toast-distance)) scale(var(--toast-scale)); filter: blur(var(--toast-blur)); }
 }
 
 

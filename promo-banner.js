@@ -138,9 +138,10 @@
     clearInterval(timer);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     bar.classList.add('is-leaving');
+    var out = parseFloat(getComputedStyle(bar).getPropertyValue('--toast-close')) || 250;
     setTimeout(function () {
       bar.remove();
-    }, reduce ? 0 : 260);
+    }, reduce ? 0 : out + 10);
   }
 
   // When to show the card: whichever comes first.

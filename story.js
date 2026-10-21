@@ -81,7 +81,7 @@
     const track = el('liblib-filmstrip-track');
     if (!track || track.querySelector('.filmstrip-thumb')) return;
     track.insertAdjacentHTML('afterbegin', scenes().map((s, i) =>
-      `<div class="filmstrip-thumb" data-idx="${i}" title="${esc(s.title)}"><img src="${esc(s.local_image || localImage(s.image_url))}" alt="${esc(s.title)}" loading="lazy" /></div>`
+      `<div class="filmstrip-thumb" data-idx="${i}" data-tooltip="${esc(s.title)}"><img src="${esc(s.local_image || localImage(s.image_url))}" alt="${esc(s.title)}" loading="lazy" /></div>`
     ).join(''));
   }
   buildStrip();
@@ -177,6 +177,7 @@
         <span class="card-stage">${n.image ? `<img src="${esc(localImage(n.image))}" alt="" loading="lazy" decoding="async">` : ''}</span>
         <span class="card-meta"><span class="card-title" lang="en">${esc(n.title)}</span>${n.chapter ? `<span class="card-subtitle" lang="en">${esc(n.chapter)}</span>` : ''}</span>
       </button>`).join(''));
+    window.ReadipediaMedia?.reveal(board);
     return true;
   }
 
@@ -245,7 +246,9 @@
     sheet.style.transition = '';
     sheet.style.transform = phone ? 'translateY(100%)' : flipFrom(sheet, card);
     sheet.addEventListener('transitionend', done, { once: true });
-    setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, 500);
+    // Safety net in case transitionend never fires: the longest motion token.
+    const fallback = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-very-slow')) || 500;
+    setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, fallback);
     card?.focus({ preventScroll: true });
   }
 
@@ -338,6 +341,7 @@
         </span>
       </a>`).join('')}</div>`;
     target.appendChild(block);
+    window.ReadipediaMedia?.reveal(block);
   }
 
   /* ---------- navigation ---------- */

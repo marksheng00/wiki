@@ -190,6 +190,7 @@
   --toast-ease: var(--ease-smooth-out);
   /* Learn more hover */
   --learn-shift: 2px;
+  --learn-spread: 8deg;
   --learn-in: var(--duration-medium);
   --learn-out: var(--duration-medium);
   --learn-ease: var(--ease-smooth-out);
@@ -603,7 +604,7 @@ svg.lucide, i[data-lucide] {
   color: var(--tt-fg);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color 100ms ease;
+  transition: background-color var(--motion-hover);
 }
 .wiki-dropdown-item:hover:not(.disabled) {
   background: var(--bg-hover);
@@ -968,7 +969,7 @@ details.toc-cat-details > summary {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 140ms, color 140ms;
+  transition: background-color var(--motion-hover), color var(--motion-hover);
 }
 .docs-link-label {
   min-width: 0;
@@ -1110,7 +1111,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
   color: var(--text-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 140ms, opacity 140ms;
+  transition: background-color var(--motion-hover), opacity var(--motion-hover);
 }
 .detail-arrow:hover:not(:disabled) {
   background: var(--bg-hover);
@@ -1623,7 +1624,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     inset 0 0 0 1px var(--card-border),
     inset 0 -1px 0 0 var(--card-border);
   cursor: pointer;
-  transition: box-shadow var(--duration-quick) ease, background-color 200ms ease;
+  transition: box-shadow var(--motion-hover), background-color var(--motion-hover);
 }
 .card:hover {
   background-color: var(--card-bg-hover);
@@ -2955,8 +2956,8 @@ img[data-reveal="pending"].is-swapping {
 }
 .detail-back:hover { color: var(--text-primary); text-decoration: none; }
 .detail-back:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
-.detail-back-icon { width: 14px; height: 14px; flex: none; transition: transform var(--duration-fast) var(--ease-smooth-out); }
-.detail-back:hover .detail-back-icon { transform: translateX(-2px); }
+.detail-back-icon { width: 14px; height: 14px; flex: none; }
+.detail-back-icon svg { width: 100%; height: 100%; }
 @media (max-width: 768px) {
   .entity-media-stack { width: min(260px, 100%); }
   .entity-media-stack .entity-media-wrap { width: 100%; }
@@ -3471,7 +3472,7 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   width: 16px;
   height: 16px;
   color: var(--text-secondary);
-  transition: color 0.15s ease;
+  transition: color var(--motion-hover);
 }
 .nav-burger:hover .nav-burger-box,
 .nav-burger[aria-expanded="true"] .nav-burger-box { color: var(--text-primary); }
@@ -3484,16 +3485,16 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   background: currentColor;
   transform-origin: center;
   transition:
-    top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+    top 0.3s var(--ease-smooth-out),
+    transform 0.3s var(--ease-smooth-out) 0.05s;
 }
 .nav-burger-line--top { top: 5px; }
 .nav-burger-line--bottom { top: 9.5px; }
 .nav-burger[aria-expanded="true"] .nav-burger-line {
   top: 7.25px;
   transition:
-    top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    top 0.3s var(--ease-smooth-out),
+    transform 0.3s var(--ease-smooth-out);
 }
 .nav-burger[aria-expanded="true"] .nav-burger-line--top { transform: rotate(45deg); }
 .nav-burger[aria-expanded="true"] .nav-burger-line--bottom { transform: rotate(-45deg); }
@@ -3524,7 +3525,7 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     border-radius: var(--radius-pill);
     background: var(--bg-hover);
     opacity: var(--mobile-graph-expansion-progress, 1);
-    transition: background-color 0.15s ease;
+    transition: background-color var(--motion-hover);
   }
   .sidebar-graph-container.is-expanded .btn-graph-expand:hover::before { background: var(--bg-hover-strong); }
   .sidebar-graph-container.is-expanded .btn-graph-expand:active::before { background: var(--bg-pressed); }
@@ -3549,7 +3550,7 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   .wiki-sidebar.is-open {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+    transition: opacity var(--duration-slow) var(--ease-smooth-out), visibility 0s;
   }
   .wiki-sidebar.is-closing { visibility: visible; }
   .wiki-sidebar .sidebar-graph-slot,
@@ -3558,8 +3559,8 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     transition: opacity 0.2s ease;
   }
   .wiki-sidebar .wiki-nav-hub > * {
-    transform: translateY(12px);
-    filter: blur(3px);
+    transform: translateY(var(--distance-medium));
+    filter: blur(var(--blur-medium));
     /* Reset the lift only after the fade, so closing stays in place. */
     transition: opacity 0.2s ease, transform 0s linear 0.2s, filter 0s linear 0.2s;
   }
@@ -3569,9 +3570,9 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     transform: none;
     filter: none;
     transition:
-      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms),
-      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms),
-      filter 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--mm-delay, 0ms);
+      opacity var(--duration-very-slow) var(--ease-smooth-out) var(--mm-delay, 0ms),
+      transform var(--duration-very-slow) var(--ease-smooth-out) var(--mm-delay, 0ms),
+      filter var(--duration-very-slow) var(--ease-smooth-out) var(--mm-delay, 0ms);
   }
   .wiki-sidebar .wiki-nav-hub > :nth-child(1) { --mm-delay: 40ms; }
   .wiki-sidebar .wiki-nav-hub > :nth-child(2) { --mm-delay: 80ms; }
@@ -3693,7 +3694,7 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 150ms var(--ease-smooth-out), color 150ms var(--ease-smooth-out);
+  transition: background var(--motion-hover), color var(--motion-hover);
 }
 /* Lets the last capsule scroll fully out of the faded edge. */
 .td-filter:last-child { margin-right: 36px; }
@@ -3733,4 +3734,83 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     transform: rotate(45deg) scaleY(-1) rotate(-45deg);
     transition-duration: var(--duration-slow, 400ms);
   }
+}
+
+/* Learn more hover (transitions.dev 24): the chevron slides toward the
+   reading direction and its arms spread apart about the apex. The back
+   variant points left, so it slides left and turns about its left apex. */
+.t-learn-chevron {
+  display: inline-flex;
+  transform: translateX(0);
+  transition: transform var(--learn-out) var(--learn-ease);
+}
+.t-learn-arm {
+  transform-box: view-box;
+  transform-origin: 10px 8px;
+  vector-effect: non-scaling-stroke;
+  transition: transform var(--learn-out) var(--learn-ease);
+}
+.t-learn-chevron--back .t-learn-arm { transform-origin: 6px 8px; }
+.t-learn:hover .t-learn-chevron { transform: translateX(var(--learn-shift)); transition-duration: var(--learn-in); }
+.t-learn:hover .t-learn-chevron--back { transform: translateX(calc(var(--learn-shift) * -1)); }
+.t-learn:hover .t-learn-arm { transition-duration: var(--learn-in); }
+.t-learn:hover .t-learn-arm-top { transform: rotate(var(--learn-spread)); }
+.t-learn:hover .t-learn-arm-bot { transform: rotate(calc(var(--learn-spread) * -1)); }
+.t-learn:hover .t-learn-chevron--back .t-learn-arm-top { transform: rotate(calc(var(--learn-spread) * -1)); }
+.t-learn:hover .t-learn-chevron--back .t-learn-arm-bot { transform: rotate(var(--learn-spread)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-learn-chevron, .t-learn-arm { transition: none !important; }
+}
+
+/* Tooltip (transitions.dev 17): one fixed bubble for every [data-tooltip].
+   The appear delay lives on the show rule only, so leaving hides it at
+   once; translate and width keep their own clock so it travels. */
+.t-tt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1200;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0;
+  overflow: hidden;
+  translate: var(--tt-x, 0px) var(--tt-y, 0px);
+  scale: var(--tt-scale);
+  transform-origin: 50% 100%;
+  padding: 6px 10px;
+  border-radius: var(--tt-radius);
+  background: var(--tt-bg);
+  color: var(--tt-fg);
+  font-size: var(--text-ui-small);
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: var(--tt-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--tt-out-dur) var(--tt-out-ease),
+    scale var(--tt-out-dur) var(--tt-out-ease),
+    translate var(--tt-move-dur) var(--tt-move-ease),
+    width var(--tt-move-dur) var(--tt-move-ease);
+}
+.t-tt[data-side="bottom"] { transform-origin: 50% 0; }
+.t-tt[data-show="true"] {
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    scale var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    translate var(--tt-move-dur) var(--tt-move-ease),
+    width var(--tt-move-dur) var(--tt-move-ease);
+}
+.t-tt-text { white-space: nowrap; }
+@media (hover: none) {
+  .t-tt { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-tt { transition: none !important; }
 }

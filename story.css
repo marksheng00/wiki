@@ -5,7 +5,9 @@
    The theater components live in style.css (.liblib-fused-*, .filmstrip-*).
    Here only: the picture never pushes the thumbnails off the first screen,
    and touch swipes sideways go to story.js. */
-.sl-viewport .liblib-narrative-scrollbox { overscroll-behavior: contain; }
+/* No scrollbar on the scene text either; it still scrolls. */
+.sl-viewport .liblib-narrative-scrollbox { overscroll-behavior: contain; scrollbar-width: none; }
+.sl-viewport .liblib-narrative-scrollbox::-webkit-scrollbar { display: none; }
 .sl-viewport {
   max-height: calc(100dvh - var(--header-h) - 140px);
   min-height: 320px;
@@ -80,8 +82,7 @@
 }
 
 /* The sheet a card opens into. The sheet stays put inside the window and
-   only its content scrolls, with a thin scrollbar inset from the rounded
-   edge; the close button sits outside the sheet, closing the whole window. */
+   only its content scrolls, with no scrollbar shown; the close button sits outside the sheet, closing the whole window. */
 .sf-sheet-overlay {
   position: fixed;
   inset: 0;
@@ -125,23 +126,6 @@
   scrollbar-width: none;
 }
 .sf-sheet-scroll::-webkit-scrollbar { display: none; }
-/* Overlay scrollbar drawn by story.js: 4px, inset 6px from the edge and
-   20px from the round corners, faint on hover, clear while scrolling. */
-.sf-scroll-thumb {
-  position: absolute;
-  top: 0;
-  right: 6px;
-  width: 4px;
-  border-radius: 2px;
-  background: var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-medium, 240ms) var(--ease-out, ease-out);
-}
-.sf-scroll-thumb[hidden] { display: none; }
-.sf-sheet:hover .sf-scroll-thumb { opacity: 0.16; }
-.sf-scroll-thumb.is-active,
-.sf-sheet:hover .sf-scroll-thumb.is-active { opacity: 0.32; transition-duration: var(--duration-quick, 120ms); }
 .sf-sheet-close {
   box-shadow: var(--modal-shadow);
   background: var(--card-bg);

@@ -353,30 +353,51 @@
     `;
   }
 
-  // Texts reveal (transitions.dev): the books on screen rise 12px out of a
-  // blur, 40ms apart. Off-screen ones are left alone.
+  // Texts reveal (transitions.dev): books and entries rise 12px out of a
+  // blur, 40ms apart, as they scroll into view. Each batch that enters the
+  // viewport plays in page order; an item plays once per render.
   const motionVar = (name, fallback) => {
     const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
     return Number.isFinite(v) ? v : fallback;
   };
-  function reveal(root, { withHead = false } = {}) {
-    if (!root.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let revealObserver = null;
+  function reveal(root, { withHead = false, skipFirst = false } = {}) {
+    revealObserver?.disconnect();
+    revealObserver = null;
+    if (!root.animate || !window.IntersectionObserver || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const duration = motionVar('--stagger-dur', 500);
     const stagger = motionVar('--stagger-stagger', 40);
     const distance = motionVar('--stagger-distance', 12);
     const blur = motionVar('--stagger-blur', 3);
     const easing = getComputedStyle(document.documentElement).getPropertyValue('--stagger-ease').trim() || 'cubic-bezier(0.22, 1, 0.36, 1)';
-    const fold = window.innerHeight;
-    const items = Array.from(root.querySelectorAll(withHead ? '.detail-head > *, .lib-book, .lib-entry' : '.lib-book, .lib-entry'))
-      .filter((el) => {
-        const r = el.getBoundingClientRect();
-        return r.bottom > 0 && r.top < fold && r.right > 0 && r.left < window.innerWidth;
-      })
-      .slice(0, 24);
-    items.forEach((el, i) => el.animate([
+    const play = (el, i) => el.animate([
       { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
       { opacity: 1, transform: 'none', filter: 'blur(0px)' }
-    ], { duration, delay: i * stagger, easing, fill: 'backwards' }));
+    ], { duration, delay: Math.min(i, 24) * stagger, easing, fill: 'backwards' });
+    const head = withHead ? Array.from(root.querySelectorAll('.detail-head > *')) : [];
+    head.forEach(play);
+    let offset = head.length;
+    // A fresh page already has the page-enter motion: what is on screen then
+    // just shows, and only what scrolls in later plays.
+    let skip = skipFirst;
+    const items = root.querySelectorAll('.lib-book, .lib-entry');
+    const observer = new IntersectionObserver((entries) => {
+      const batch = entries.filter((e) => e.isIntersecting).map((e) => e.target)
+        .sort((x, y) => (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+      if (!batch.length) return;
+      batch.forEach((el, i) => {
+        observer.unobserve(el);
+        el.classList.remove('lib-pending');
+        if (!skip) play(el, i + offset);
+      });
+      skip = false;
+      offset = 0;
+    });
+    items.forEach((el) => {
+      el.classList.add('lib-pending');
+      observer.observe(el);
+    });
+    revealObserver = observer;
   }
 
   function render(how = {}) {
@@ -396,6 +417,8 @@
     } else if (how.inPlace) {
       window.scrollTo(0, 0);
       reveal(root, { withHead: true });
+    } else {
+      reveal(root, { skipFirst: true });
     }
   }
 

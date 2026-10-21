@@ -162,6 +162,8 @@ body.is-library .btn-mobile-graph-launcher {
 
 /* Filter strip: the shared .td-filters component lives in style.css. */
 .lib-filters { margin: -2px -2px 22px; }
+/* Waiting to scroll into view (Texts reveal, library.js). */
+.lib-pending { opacity: 0; }
 #view-library .lib-filters + .lib-books { padding-top: 0; }
 
 /* ---------- Popular entries: one-line rows like the sidebar's ---------- */

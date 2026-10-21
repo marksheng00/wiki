@@ -399,7 +399,35 @@
     return v && v.style.display !== 'none' && v.classList.contains('active');
   }
 
+  // Phones: the book's own pages as the same pill row an entry page shows
+  // (Overview · Storylines · StoryFlow), at the top of the book's front page.
+  const BOOK_PAGES = ['btn-book-home', 'btn-storylines-hub', 'btn-storyflow-hub'];
+
+  function renderBookPills() {
+    const view = el('view-book');
+    if (!view) return;
+    let row = el('book-siblings');
+    if (!row) {
+      row = document.createElement('nav');
+      row.id = 'book-siblings';
+      row.className = 'entity-siblings td-filters';
+      row.addEventListener('click', (e) => {
+        const link = e.target.closest('a[data-nav]');
+        if (!link) return;
+        e.preventDefault();
+        if (link.getAttribute('aria-current') !== 'page') el(link.dataset.nav)?.click();
+      });
+      view.insertBefore(row, view.firstElementChild);
+    }
+    row.setAttribute('aria-label', document.querySelector('.wiki-nav-hub .docs-group-label')?.textContent.trim() || 'Book');
+    row.innerHTML = BOOK_PAGES.map((id, i) => {
+      const label = el(id)?.querySelector('.docs-link-label')?.textContent.trim() || '';
+      return `<a href="#" class="entity-sibling td-filter" data-nav="${id}"${i === 0 ? ' aria-current="page"' : ''}>${label}</a>`;
+    }).join('');
+  }
+
   function bind() {
+    renderBookPills();
     bindTheater();
     bindCanvas();
     wireFlowCards();
@@ -416,6 +444,7 @@
     document.addEventListener('readipedia:entity', (e) => appendRelatedFlows(e.detail));
     document.addEventListener('readipedia:lang', () => {
       if (isShown('view-story-flow') && currentFlowId) renderFlow(currentFlowId);
+      requestAnimationFrame(renderBookPills);
     });
   }
 

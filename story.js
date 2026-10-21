@@ -104,16 +104,13 @@
     });
     stage?.addEventListener('pointercancel', () => { start = null; });
 
-    // With the pointer over the picture, the wheel scrolls the scene text;
-    // the page only scrolls once the text is at its top or bottom.
+    // With the pointer over the picture, the wheel or trackpad only ever
+    // scrolls the scene text, never the page.
     stage?.addEventListener('wheel', (e) => {
       const box = el('liblib-narrative-scrollbox');
       if (!box || e.ctrlKey) return;
-      const max = box.scrollHeight - box.clientHeight;
-      if (max <= 1) return;
-      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      if ((dy < 0 && box.scrollTop <= 0) || (dy > 0 && box.scrollTop >= max - 1)) return;
       e.preventDefault();
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
       box.scrollBy({ top: dy, behavior: 'instant' });
     }, { passive: false });
 
@@ -241,7 +238,7 @@
     img.alt = n.title;
     el('sf-sheet-media').hidden = !n.image;
     overlay.hidden = false;
-    sheet.scrollTop = 0;
+    overlay.scrollTop = 0;
     document.documentElement.classList.add('sf-sheet-open');
     if (!reduceMotion()) {
       sheet.style.transition = 'none';
@@ -325,7 +322,7 @@
     const overlay = el('sf-sheet');
     if (overlay) document.body.appendChild(overlay);
     window.addEventListener('popstate', closeNode);
-    overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeNode(); });
+    overlay?.addEventListener('click', (e) => { if (e.target === overlay || e.target.classList.contains('sf-sheet-frame')) closeNode(); });
     el('sf-sheet-close')?.addEventListener('click', closeNode);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNode(); });
     window.addEventListener('resize', () => { if (isShown('view-story-flow')) drawLinks(); });

@@ -177,40 +177,7 @@
         <span class="card-stage">${n.image ? `<img src="${esc(localImage(n.image))}" alt="" loading="lazy" decoding="async">` : ''}</span>
         <span class="card-meta"><span class="card-title" lang="en">${esc(n.title)}</span>${n.chapter ? `<span class="card-subtitle" lang="en">${esc(n.chapter)}</span>` : ''}</span>
       </button>`).join(''));
-    el('flow-canvas').scrollLeft = 0;
-    requestAnimationFrame(drawLinks);
     return true;
-  }
-
-  // Curves from each card to the next, drawn under the cards.
-  function drawLinks() {
-    const board = el('flow-board');
-    const svg = el('flow-links');
-    if (!board || !svg || !board.offsetWidth) return;
-    const cards = [...board.querySelectorAll('.sf-card')];
-    const w = board.scrollWidth;
-    const h = board.scrollHeight;
-    svg.setAttribute('width', w);
-    svg.setAttribute('height', h);
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    const vertical = cards.length > 1 && cards[1].offsetTop >= cards[0].offsetTop + cards[0].offsetHeight;
-    let d = '';
-    for (let i = 0; i < cards.length - 1; i++) {
-      const a = cards[i];
-      const b = cards[i + 1];
-      if (vertical) {
-        const x = a.offsetLeft + a.offsetWidth / 2;
-        d += `M${x} ${a.offsetTop + a.offsetHeight}V${b.offsetTop}`;
-      } else {
-        const x1 = a.offsetLeft + a.offsetWidth;
-        const y1 = a.offsetTop + a.offsetHeight / 2;
-        const x2 = b.offsetLeft;
-        const y2 = b.offsetTop + b.offsetHeight / 2;
-        const mx = (x1 + x2) / 2;
-        d += `M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
-      }
-    }
-    svg.innerHTML = d ? `<path d="${d}" />` : '';
   }
 
   /* The open card: it grows out of its place on the canvas into a sheet,
@@ -337,45 +304,9 @@
     if (!canvas) return;
     canvas.addEventListener('click', (e) => {
       const card = e.target.closest('.sf-card');
-      if (!card || canvas.dataset.dragged) return;
+      if (!card) return;
       openNode(card);
     });
-
-    // Drag the canvas with the mouse to look along it.
-    let drag = null;
-    canvas.addEventListener('pointerdown', (e) => {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return;
-      drag = { x: e.clientX, left: canvas.scrollLeft, moved: false };
-      delete canvas.dataset.dragged;
-    });
-    window.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const dx = e.clientX - drag.x;
-      if (!drag.moved && Math.abs(dx) < 5) return;
-      drag.moved = true;
-      canvas.classList.add('is-dragging');
-      canvas.scrollLeft = drag.left - dx;
-    });
-    window.addEventListener('pointerup', () => {
-      if (!drag) return;
-      if (drag.moved) {
-        canvas.dataset.dragged = '1';
-        setTimeout(() => { delete canvas.dataset.dragged; }, 0);
-      }
-      drag = null;
-      canvas.classList.remove('is-dragging');
-    });
-
-    // Over the canvas the wheel moves along it; at either end the page scrolls.
-    canvas.addEventListener('wheel', (e) => {
-      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      const max = canvas.scrollWidth - canvas.clientWidth;
-      if (max <= 1) return;
-      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      if ((dy < 0 && canvas.scrollLeft <= 0) || (dy > 0 && canvas.scrollLeft >= max - 1)) return;
-      e.preventDefault();
-      canvas.scrollBy({ left: dy, behavior: 'instant' });
-    }, { passive: false });
 
     // The sheet lives on the body so no page transform can trap it.
     const overlay = el('sf-sheet');
@@ -383,7 +314,6 @@
     window.addEventListener('popstate', closeNode);
     overlay?.addEventListener('click', (e) => { if (e.target === overlay || e.target.classList.contains('sf-sheet-frame')) closeNode(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNode(); });
-    window.addEventListener('resize', () => { if (isShown('view-story-flow')) drawLinks(); });
   }
 
 
@@ -435,7 +365,6 @@
     closeNode();
     renderFlow(id);
     bridge().showView?.('view-story-flow', { fromHistory: true });
-    requestAnimationFrame(drawLinks);
     if (!options.fromHistory) bridge().pushHistory?.(`storyflow/${id}`);
     return true;
   }

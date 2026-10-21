@@ -49,15 +49,18 @@ body.is-library .btn-mobile-graph-launcher {
 #view-library[data-page="all"] .lib-books,
 #view-library[data-page="all-books"] .lib-books { padding-top: 8px; }
 
-/* ---------- Books: cover, title, author. No frames. ---------- */
+/* ---------- Books: the transitions.dev library card without its frame ----------
+   The cover is the card's stage (14px radius, stage grey, hairline ring), and
+   under it the card's title and one-line subtitle, in td's type. */
 .lib-books {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: 32px 24px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 28px 24px;
 }
 .lib-book {
   display: flex;
   flex-direction: column;
+  gap: 6px;
   min-width: 0;
   text-decoration: none;
   color: inherit;
@@ -65,18 +68,17 @@ body.is-library .btn-mobile-graph-launcher {
 }
 .lib-book-cover {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .lib-book-title {
   min-width: 0;
-  font-size: var(--text-ui);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
   font-weight: 500;
   line-height: 18px;
   color: var(--text-primary);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
 }
 .lib-book-tail { white-space: nowrap; }
 .lib-book-out {
@@ -90,105 +92,123 @@ body.is-library .btn-mobile-graph-launcher {
 }
 .lib-book-out .lib-icon { width: 12px; height: 12px; display: inline-block; }
 .lib-book-author {
-  margin-top: 2px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--text-ui-small);
-  line-height: 16px;
-  color: var(--text-label);
+  font-size: 13px;
+  line-height: 13px;
+  padding-bottom: 3px;
+  margin-bottom: -3px;
+  color: #767676;
 }
-@media (hover: hover) {
-  .lib-book:hover .lib-cover { transform: translateY(calc(var(--distance-micro) * -1)); }
-  .lib-book:hover .lib-book-out { opacity: 1; transform: none; }
-}
-.lib-book:focus-visible {
-  outline: none;
-}
-.lib-book:focus-visible .lib-cover {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 3px;
-}
+[data-theme="dark"] .lib-book-title { color: #ededed; }
 
-/* Paper cover: the mark's folded corner and window. The outer span carries
-   the shadow and the hover lift; the inner page is clipped to the fold. */
 .lib-cover {
-  --cover-paper: hsl(var(--cover-hue, 0) 30% 94%);
-  --cover-ink: hsl(var(--cover-hue, 0) 22% 20%);
-  --cover-fold: hsl(var(--cover-hue, 0) 10% 76%);
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  container-type: inline-size;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.06)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.07));
-  transition: transform var(--duration-very-slow) var(--ease-smooth-out);
-}
-.lib-cover-page {
-  --fold: 22cqw;
   position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  height: 100%;
-  padding: 14cqw 12cqw 12cqw;
-  border-radius: 2px;
-  background: var(--cover-paper);
-  clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
+  aspect-ratio: 3 / 4;
+  padding: 16px;
+  border-radius: 14px;
   overflow: hidden;
+  background: var(--stage-bg);
+  text-align: center;
+  transition: background-color 0.2s ease;
 }
-.lib-cover-page::before {
+.lib-cover::after {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  width: var(--fold);
-  height: var(--fold);
-  background: linear-gradient(225deg, transparent 50%, var(--cover-fold) 50%);
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--stage-border);
+  pointer-events: none;
 }
 .lib-cover-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 4;
   overflow: hidden;
-  padding-right: 12cqw;
-  font-size: max(11px, 10cqw);
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--cover-ink);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--text-primary);
   overflow-wrap: break-word;
   hyphens: auto;
 }
-.lib-cover-window {
-  display: block;
-  width: 14%;
-  aspect-ratio: 3 / 4;
-  border-radius: 1px;
-  background: var(--cover-ink);
-  opacity: 0.18;
-}
-.lib-cover--image {
-  filter: none;
-}
+.lib-cover--image { padding: 0; }
 .lib-cover--image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 2px;
-  box-shadow: var(--media-shadow);
 }
-[data-theme="dark"] .lib-cover {
-  --cover-paper: hsl(var(--cover-hue, 0) 7% 20%);
-  --cover-ink: hsl(var(--cover-hue, 0) 10% 88%);
-  --cover-fold: hsl(var(--cover-hue, 0) 5% 34%);
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
+[data-theme="dark"] .lib-cover::after { box-shadow: inset 0 0 0 1px rgba(191, 192, 203, 0.08); }
+[data-theme="dark"] .lib-cover-title { color: #ededed; }
+
+/* Hover is the td card's: the panel darkens by a hair. */
+@media (hover: hover) {
+  .lib-book:hover .lib-cover { background-color: color-mix(in srgb, var(--stage-bg) 97%, #000 3%); }
+  [data-theme="dark"] .lib-book:hover .lib-cover { background-color: color-mix(in srgb, var(--stage-bg) 97%, #fff 3%); }
+  .lib-book:hover .lib-cover--image img { filter: brightness(0.97); }
+  .lib-book:hover .lib-book-out { opacity: 1; transform: none; }
 }
-[data-theme="dark"] .lib-cover--image {
-  filter: none;
+.lib-book:focus-visible { outline: none; }
+.lib-book:focus-visible .lib-cover {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
+
+/* ---------- Filter: the transitions.dev library tabs ----------
+   One 36px capsule per kind with a hairline ring; the current one fills
+   with the pressed grey. Phones get one strip that scrolls and fades out. */
+.lib-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 24px;
+}
+.lib-filter {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 48px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(196, 196, 196, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(38, 38, 38, 0.8);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 150ms var(--ease-smooth-out), color 150ms var(--ease-smooth-out);
+}
+.lib-filter:hover { background: #f7f7f7; }
+.lib-filter[data-active="true"] { background: #f1f1f1; color: #080808; }
+.lib-filter:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .lib-filter {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(251, 251, 251, 0.8);
+  box-shadow:
+    0 1px 1px 0 rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .lib-filter:hover { background: rgba(255, 255, 255, 0.08); }
+[data-theme="dark"] .lib-filter[data-active="true"] { background: rgba(255, 255, 255, 0.14); color: #fbfbfb; }
+#view-library .lib-filters + .lib-books { padding-top: 0; }
 
 /* ---------- Popular entries: one-line rows like the sidebar's ---------- */
 .lib-entries {
@@ -298,14 +318,27 @@ body.is-library .btn-mobile-graph-launcher {
 
 /* ---------- Phones ---------- */
 @media (max-width: 768px) {
+  .lib-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px var(--m-gutter);
+    margin: -2px calc(var(--m-gutter) * -1) 20px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  }
+  .lib-filters::-webkit-scrollbar { display: none; }
+  .lib-filter:last-child { margin-right: 36px; }
   .lib-books {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 12px;
   }
-  .lib-book-cover { margin-bottom: 10px; }
+  .lib-book-cover { margin-bottom: 6px; }
   .lib-book-title { font-size: 12px; line-height: 16px; }
   .lib-book-out { display: none; }
-  .lib-book-author { font-size: 11px; }
+  .lib-book-author { font-size: 12px; }
+  .lib-cover { padding: 10px; border-radius: 12px; }
+  .lib-cover-title { font-size: 13px; line-height: 18px; }
   .lib-entries {
     grid-template-columns: 1fr;
     gap: 0;
@@ -315,7 +348,6 @@ body.is-library .btn-mobile-graph-launcher {
 
 @media (prefers-reduced-motion: reduce) {
   .lib-cover { transition: none; }
-  .lib-book:hover .lib-cover { transform: none; }
   .lib-book-out { transition: none; }
-  .lib-page { transition: none; }
+  .lib-page, .lib-filter { transition: none; }
 }

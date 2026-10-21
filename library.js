@@ -28,6 +28,8 @@
       entries: 'Popular entries',
       allBooks: 'All books',
       allEntries: 'All entries',
+      all: 'All',
+      filterLabel: 'Filter',
       pages: 'Pages',
       pageN: (n) => `Page ${n}`,
       prevPage: 'Previous page',
@@ -44,6 +46,8 @@
       entries: '热门词条',
       allBooks: '全部书籍',
       allEntries: '全部词条',
+      all: '全部',
+      filterLabel: '筛选',
       pages: '分页',
       pageN: (n) => `第 ${n} 页`,
       prevPage: '上一页',
@@ -57,6 +61,7 @@
 
   let page = 'all';
   let pageNum = 1;
+  let filter = 'all';
 
   // Follows the site language. Until app.js reports a switch, read the same
   // stored choice it starts from.
@@ -120,24 +125,15 @@
     return `${READIFY}/${l}/books/${encodeURIComponent(bookName)}/wiki/${encodeURIComponent(entry[l][0])}`;
   }
 
-  // A soft tint per book, taken from its title.
-  function hue(text) {
-    let h = 0;
-    for (const ch of text) h = (h * 31 + ch.codePointAt(0)) % 360;
-    return h;
-  }
-
   /* ---------- Pieces ---------- */
 
-  // A paper cover with the folded corner and window of the Readipedia mark.
+  // A cover is a transitions.dev stage: the grey rounded panel the library
+  // cards show their demo in, with the book's title in the middle.
   function cover(book, l) {
     if (book.local) {
       return `<span class="lib-cover lib-cover--image"><img src="${book.cover}" alt="" loading="lazy" decoding="async" /></span>`;
     }
-    return `<span class="lib-cover" style="--cover-hue:${hue(book.slug)}"><span class="lib-cover-page">
-      <span class="lib-cover-title">${esc(book[l][0])}</span>
-      <span class="lib-cover-window"></span>
-    </span></span>`;
+    return `<span class="lib-cover"><span class="lib-cover-title">${esc(book[l][0])}</span></span>`;
   }
 
   // The hover arrow is glued to the title's last character, so it never
@@ -214,12 +210,12 @@
   function entryItems(l) {
     const local = data().local[l].title;
     const localItems = localKinds(l)
-      .flatMap((k) => k.entries.map((e) => ({ rank: e.rank, name: e.name, html: entryRow(`#${e.id}`, e.name, dotted(local), e.id) })))
+      .flatMap((k) => k.entries.map((e) => ({ kind: k.key, rank: e.rank, name: e.name, html: entryRow(`#${e.id}`, e.name, dotted(local), e.id) })))
       .sort((a, b) => b.rank - a.rank);
     const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
     const readifyItems = data().entries.map((e) => {
       const book = bySlug.get(e.book);
-      return { name: e[l][0], html: entryRow(entryHref(e, book, l), e[l][0], dotted(book[l][0])) };
+      return { kind: e.type, name: e[l][0], html: entryRow(entryHref(e, book, l), e[l][0], dotted(book[l][0])) };
     });
     const mixed = [];
     for (let i = 0; i < Math.max(localItems.length, readifyItems.length); i += 1) {
@@ -229,24 +225,50 @@
     return mixed;
   }
 
+  // The transitions.dev library filter: one capsule per kind, the current one
+  // filled. It filters in place; paging starts again from page 1.
+  function filterBar(options, c) {
+    if (options.length < 2) return '';
+    const pill = (key, label) => `<button type="button" class="lib-filter" data-filter="${esc(key)}" data-active="${filter === key}" aria-pressed="${filter === key}">${esc(label)}</button>`;
+    return `<div class="lib-filters" role="group" aria-label="${esc(c.filterLabel)}">${pill('all', c.all)}${options.map((o) => pill(o.key, o.label)).join('')}</div>`;
+  }
+  const applyFilter = (items, keyOf) => (filter === 'all' ? items : items.filter((x) => keyOf(x) === filter));
+
+  function entryKindOptions(items, l) {
+    const zh = window.WIKI_STORE_ZH || {};
+    const present = new Set(items.map((x) => x.kind));
+    const order = KIND_ORDER.map((t) => t.toLowerCase().replace(/s$/, ''));
+    return Array.from(present)
+      .sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99))
+      .map((key) => ({ key, label: l === 'zh' ? (zh.category_names?.[key] || key) : `${key.charAt(0).toUpperCase()}${key.slice(1)}s` }));
+  }
+
+  function bookCatOptions(books, l) {
+    const present = new Set(books.map((b) => b.cat));
+    return data().categories.filter((cat) => present.has(cat.id)).map((cat) => ({ key: cat.id, label: cat[l] }));
+  }
+
   function entriesPage(l, c) {
-    const rows = entryItems(l).slice(0, POPULAR_ENTRIES).map((x) => x.html);
+    const all = entryItems(l);
+    const rows = applyFilter(all, (x) => x.kind).slice(0, POPULAR_ENTRIES).map((x) => x.html);
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.entries)}</h1></div>
       </header>
+      ${filterBar(entryKindOptions(all, l), c)}
       <div class="lib-entries">${rows.join('')}</div>
     `;
   }
 
   function allEntriesPage(l, c) {
     const collator = new Intl.Collator(l === 'zh' ? 'zh-Hans-CN-u-co-pinyin' : 'en', { sensitivity: 'base' });
-    const items = entryItems(l).slice().sort((a, b) => collator.compare(a.name, b.name));
-    const { shown, nav } = paged(items, ENTRIES_PER_PAGE, 'all-entries', c);
+    const all = entryItems(l).slice().sort((a, b) => collator.compare(a.name, b.name));
+    const { shown, nav } = paged(applyFilter(all, (x) => x.kind), ENTRIES_PER_PAGE, 'all-entries', c);
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.allEntries)}</h1></div>
       </header>
+      ${filterBar(entryKindOptions(all, l), c)}
       <div class="lib-entries">${shown.map((x) => x.html).join('')}</div>
       ${nav}
     `;
@@ -254,9 +276,11 @@
 
   // All books: every book, flat and paged, like popular books.
   function allBooksPage(l, c) {
-    const { shown, nav } = paged(allBooks(), ALL_BOOKS_PER_PAGE, 'all-books', c);
+    const books = allBooks();
+    const { shown, nav } = paged(applyFilter(books, (b) => b.cat), ALL_BOOKS_PER_PAGE, 'all-books', c);
     return `
       <h1 class="lib-sr-only" id="library-title">${esc(c.allBooks)}</h1>
+      ${filterBar(bookCatOptions(books, l), c)}
       ${cards(shown, l, c)}
       ${nav}
     `;
@@ -268,9 +292,11 @@
   // Popular books: just the books, laid out flat. The heading is for screen
   // readers and search engines only; the sidebar already names the page.
   function homePage(l, c) {
+    const books = popularBooks();
     return `
       <h1 class="lib-sr-only" id="library-title">${esc(c.popular)}</h1>
-      ${cards(popularBooks(), l, c)}
+      ${filterBar(bookCatOptions(books, l), c)}
+      ${cards(applyFilter(books, (b) => b.cat), l, c)}
     `;
   }
 
@@ -345,7 +371,7 @@
     const blur = motionVar('--stagger-blur', 3);
     const easing = getComputedStyle(document.documentElement).getPropertyValue('--stagger-ease').trim() || 'cubic-bezier(0.22, 1, 0.36, 1)';
     const fold = window.innerHeight;
-    const items = Array.from(root.querySelectorAll(withHead ? '.detail-head > *, .lib-book, .lib-entry, .lib-section-head' : '.detail-head > *, .lib-book'))
+    const items = Array.from(root.querySelectorAll(withHead ? '.detail-head > *, .lib-book, .lib-entry' : '.lib-book, .lib-entry'))
       .filter((el) => {
         const r = el.getBoundingClientRect();
         return r.bottom > 0 && r.top < fold && r.right > 0 && r.left < window.innerWidth;
@@ -369,7 +395,9 @@
     root.innerHTML = (pages[page] || ((ll, cc) => categoryPage(page, ll, cc)))(l, c);
     renderNav(l, c);
     syncTitle();
-    if (how.inPlace) {
+    if (how.filtered) {
+      reveal(root);
+    } else if (how.inPlace) {
       window.scrollTo(0, 0);
       reveal(root, { withHead: page !== 'all' ? page === 'entries' : true });
     }
@@ -393,7 +421,23 @@
     else location.hash = catHash(category);
   }
 
+  function onFilter(e) {
+    const pill = e.target.closest('.lib-filter');
+    if (!pill) return false;
+    const next = pill.dataset.filter;
+    if (next === filter) return true;
+    filter = next;
+    if (pageNum > 1) {
+      // Page numbers belong to the old filter; go back to the tab's page 1.
+      go(page);
+    } else {
+      render({ filtered: true });
+    }
+    return true;
+  }
+
   function onClick(e) {
+    if (onFilter(e)) return;
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const catLink = e.target.closest('[data-lib-cat]');
     if (catLink) {
@@ -422,6 +466,7 @@
 
     document.addEventListener('readipedia:library', (e) => {
       const [next, n] = String(e.detail?.category || 'all').split('/');
+      if (next !== page) filter = 'all';
       page = next;
       pageNum = Number(n) || 1;
       render({ inPlace: e.detail?.inPlace });

@@ -32,11 +32,8 @@
 .sl-viewport .liblib-hero-desc { padding-bottom: 24px; }
 /* The active thumbnail is marked by being clear; no line under it. */
 #view-storyline .filmstrip-indicator { display: none; }
-/* The promo card floats over the bottom of the screen; keep the thumbnails above it. */
-html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 @media (max-width: 768px) {
   .sl-viewport { height: clamp(380px, calc(100dvh - var(--header-h) - 150px), 640px); }
-  html.has-promo .sl-viewport { height: clamp(360px, calc(100dvh - var(--header-h) - 236px), 640px); }
   .sl-viewport .liblib-narrative-scrollbox { max-height: 56%; }
 }
 

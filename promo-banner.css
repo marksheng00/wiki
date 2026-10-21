@@ -1,8 +1,10 @@
 /* Promo card: a painted card floating at the bottom of the screen, after
    the OpenDesign campaign bar. The background is a crop of our Golden
    Country illustration. Title and line on the left, a countdown in the
-   middle, the call to action and close on the right. Shown only while
-   html.has-promo is set (added in <head> unless the reader closed it). */
+   middle, the call to action and close on the right.
+   Fully decoupled from the page: a fixed overlay that takes no layout
+   space, sets no class or variable the page reads, and changes nothing
+   else on screen when it appears, closes or is removed. */
 
 .promo-bar {
   --promo-radius: 16px;
@@ -16,7 +18,7 @@
   z-index: 700;
   width: min(880px, calc(100vw - 24px));
   box-sizing: border-box;
-  display: none;
+  display: grid;
   grid-template-columns: minmax(0, auto) 1px auto 1fr auto auto;
   grid-template-areas: "text rule count . cta close";
   align-items: center;
@@ -35,7 +37,6 @@
   transform: translateX(-50%);
   animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) 600ms both;
 }
-html.has-promo .promo-bar { display: grid; }
 [data-theme="dark"] .promo-bar {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.12),
@@ -155,9 +156,6 @@ html.has-promo .promo-bar { display: grid; }
   to { opacity: 0; transform: translateX(-50%) translateY(16px) scale(var(--scale-small)); filter: blur(var(--blur-small)); }
 }
 
-/* Keep the floating buttons and the footer's last line clear of the card. */
-html.has-promo .site-footer { padding-bottom: 104px; }
-html.has-promo .btn-top { bottom: calc(2.5rem + 88px); }
 
 @media (max-width: 768px) {
   .promo-bar {
@@ -175,7 +173,6 @@ html.has-promo .btn-top { bottom: calc(2.5rem + 88px); }
   .promo-count-time { font-size: 13px; line-height: 18px; }
   .promo-cta { padding: 0 10px; font-size: 14px; }
   .promo-close { width: 32px; height: 32px; }
-  html.has-promo .btn-mobile-graph-launcher { bottom: calc(1.25rem + 80px + env(safe-area-inset-bottom, 0px)); }
   /* While the graph sheet or the menu is up, the card steps aside. */
   body.mobile-continuum-header-active .promo-bar,
   body.menu-open .promo-bar,

@@ -1,6 +1,6 @@
 // Promo card: bilingual A/B copy, the countdown and close.
-// The markup lives in index.html; a tiny inline script in <head> adds
-// html.has-promo on every load; closing only hides it until the next refresh.
+// The markup lives in index.html. The card is an overlay only: it never
+// touches page classes or layout. Closing hides it until the next refresh.
 (function () {
   var bar = document.getElementById('promo-bar');
   if (!bar) return;
@@ -134,7 +134,6 @@
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     bar.classList.add('is-leaving');
     setTimeout(function () {
-      document.documentElement.classList.remove('has-promo');
       bar.remove();
     }, reduce ? 0 : 260);
   }
@@ -144,5 +143,5 @@
   document.addEventListener('readipedia:lang', render);
   bar.querySelector('.promo-close').addEventListener('click', close);
   cta.addEventListener('click', function () { track('click'); });
-  if (document.documentElement.classList.contains('has-promo')) track('view');
+  track('view');
 })();

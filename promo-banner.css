@@ -1,4 +1,4 @@
-/* Promo card: a painted card floating at the bottom of the screen, after
+/* Promo card: a painted card floating at the bottom of the reading column, after
    the OpenDesign campaign bar. Each copy variant has its own painted
    background cropped from the book's illustrations. Title and line on the left, a countdown in the
    middle, the call to action and close on the right.
@@ -35,6 +35,7 @@
     0 2px 6px rgba(0, 0, 0, 0.12),
     0 12px 42px rgba(0, 0, 0, 0.22);
   transform: translateX(-50%);
+  transition: left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
   animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) 600ms both;
 }
 [data-theme="dark"] .promo-bar {
@@ -164,8 +165,35 @@
 }
 
 
+/* Centred on the reading column, not the whole window: the same left edge
+   and width the page gives .wiki-main-article, so it follows the sidebar
+   when it is hidden or shown. */
+@media (min-width: 769px) {
+  .promo-bar {
+    --promo-area: calc(100% - var(--main-left) - var(--page-inset));
+    left: calc(var(--main-left) + var(--promo-area) / 2);
+    width: min(880px, var(--promo-area));
+  }
+}
+
+/* A narrow reading column gets the compact two-row card. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .promo-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "text cta close" "count cta close";
+    column-gap: 8px;
+    row-gap: 2px;
+    padding: 12px 8px 12px 20px;
+  }
+  .promo-rule { display: none; }
+  .promo-sub { display: none; }
+  .promo-count { flex-direction: row; align-items: baseline; gap: 6px; }
+  .promo-count-time { font-size: 13px; line-height: 18px; }
+}
+
 @media (max-width: 768px) {
   .promo-bar {
+    width: calc(100% - 2 * var(--m-gutter));
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas: "text cta close" "count cta close";

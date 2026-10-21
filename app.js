@@ -219,6 +219,7 @@
     'Free Text to Speech': '免费文字转语音',
     '© 2026 Readify. All rights reserved.': '© 2026 Readify. 保留所有权利。',
     'Read the book as a living encyclopedia.': '把一本书读成一部活的百科。',
+    'Made by Readify': '由 Readify 出品',
     'Apps': '应用',
     'Read the original': '阅读原著',
     'Back to top': '回到顶部',

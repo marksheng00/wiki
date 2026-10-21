@@ -2588,6 +2588,15 @@ img[data-reveal="pending"].is-swapping {
   line-height: 18.2px;
   color: var(--text-secondary);
 }
+.footer-made-by {
+  align-self: flex-start;
+  font-size: var(--text-ui);
+  line-height: 18.2px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--motion-hover);
+}
+.footer-made-by:hover { color: var(--text-primary); }
 .footer-cols {
   display: flex;
   gap: 60px;

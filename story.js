@@ -175,7 +175,7 @@
     board.insertAdjacentHTML('beforeend', (flow.nodes || []).map((n, i) => `
       <button type="button" class="card sf-card" data-i="${i}" aria-haspopup="dialog">
         <span class="card-stage">${n.image ? `<img src="${esc(localImage(n.image))}" alt="" loading="lazy" decoding="async">` : ''}</span>
-        <span class="card-meta"><span class="card-title" lang="en">${esc(n.title)}</span></span>
+        <span class="card-meta"><span class="card-title" lang="en">${esc(n.title)}</span>${n.chapter ? `<span class="card-subtitle" lang="en">${esc(n.chapter)}</span>` : ''}</span>
       </button>`).join(''));
     el('flow-canvas').scrollLeft = 0;
     requestAnimationFrame(drawLinks);
@@ -224,6 +224,10 @@
     return `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`;
   }
 
+  // Phones get a bottom sheet: it slides up from the bottom edge, has a
+  // grab handle, and a downward drag (or a tap on the dimmed page) closes it.
+  const isPhone = () => window.matchMedia('(max-width: 768px)').matches;
+
   function openNode(card) {
     const flow = flowById(currentFlowId);
     const n = flow?.nodes?.[Number(card.dataset.i)];
@@ -240,10 +244,11 @@
     overlay.hidden = false;
     el('sf-sheet-scroll').scrollTop = 0;
     document.documentElement.classList.add('sf-sheet-open');
+    overlay.style.removeProperty('--dim');
     if (!reduceMotion()) {
       sheet.style.transition = 'none';
       sheet.style.transformOrigin = 'top left';
-      sheet.style.transform = flipFrom(sheet, card);
+      sheet.style.transform = isPhone() ? 'translateY(100%)' : flipFrom(sheet, card);
       void sheet.offsetWidth;
       sheet.style.transition = '';
       sheet.style.transform = '';
@@ -260,17 +265,71 @@
     const card = openCard;
     openCard = null;
     overlay.classList.remove('is-open');
+    overlay.style.removeProperty('--dim');
     document.documentElement.classList.remove('sf-sheet-open');
     const done = () => {
       overlay.hidden = true;
       sheet.style.transform = '';
+      sheet.style.transition = '';
       card?.classList.remove('is-open');
     };
-    if (reduceMotion() || !card || !card.isConnected) { done(); card?.focus({ preventScroll: true }); return; }
-    sheet.style.transform = flipFrom(sheet, card);
+    const phone = isPhone();
+    if (reduceMotion() || ((!card || !card.isConnected) && !phone)) { done(); card?.focus({ preventScroll: true }); return; }
+    sheet.style.transition = '';
+    sheet.style.transform = phone ? 'translateY(100%)' : flipFrom(sheet, card);
     sheet.addEventListener('transitionend', done, { once: true });
-    setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, 400);
-    card.focus({ preventScroll: true });
+    setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, 500);
+    card?.focus({ preventScroll: true });
+  }
+
+  // Drag the phone sheet down to close it: from the handle at any time, from
+  // the text once it is scrolled to the top. A short flick also closes it.
+  function bindSheetDrag(overlay) {
+    const sheet = overlay.querySelector('.sf-sheet');
+    const scroller = el('sf-sheet-scroll');
+    let g = null;
+    sheet.addEventListener('touchstart', (e) => {
+      if (!isPhone() || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      g = { y: t.clientY, x: t.clientX, dy: 0, on: false, fromGrab: !scroller.contains(e.target), samples: [[t.clientY, e.timeStamp]] };
+    }, { passive: true });
+    sheet.addEventListener('touchmove', (e) => {
+      if (!g) return;
+      const t = e.touches[0];
+      const dy = t.clientY - g.y;
+      if (!g.on) {
+        if (Math.abs(t.clientX - g.x) > Math.abs(dy)) { g = null; return; }
+        if (dy <= 4 || (!g.fromGrab && scroller.scrollTop > 0)) return;
+        g.on = true;
+        g.y = t.clientY;
+        sheet.style.transition = 'none';
+        overlay.classList.add('is-dragging');
+      }
+      e.preventDefault();
+      g.dy = Math.max(0, t.clientY - g.y);
+      g.samples.push([t.clientY, e.timeStamp]);
+      if (g.samples.length > 5) g.samples.shift();
+      sheet.style.transform = `translateY(${g.dy}px)`;
+      overlay.style.setProperty('--dim', String(Math.max(0, 1 - g.dy / sheet.offsetHeight)));
+    }, { passive: false });
+    const end = () => {
+      if (!g) return;
+      const drag = g;
+      g = null;
+      if (!drag.on) return;
+      overlay.classList.remove('is-dragging');
+      const [a, b] = [drag.samples[0], drag.samples[drag.samples.length - 1]];
+      const v = (b[0] - a[0]) / Math.max(1, b[1] - a[1]);
+      sheet.style.transition = '';
+      if (drag.dy > sheet.offsetHeight * 0.25 || v > 0.5) {
+        closeNode();
+      } else {
+        sheet.style.transform = '';
+        overlay.style.removeProperty('--dim');
+      }
+    };
+    sheet.addEventListener('touchend', end);
+    sheet.addEventListener('touchcancel', end);
   }
 
   function bindCanvas() {
@@ -320,7 +379,7 @@
 
     // The sheet lives on the body so no page transform can trap it.
     const overlay = el('sf-sheet');
-    if (overlay) document.body.appendChild(overlay);
+    if (overlay) { document.body.appendChild(overlay); bindSheetDrag(overlay); }
     window.addEventListener('popstate', closeNode);
     overlay?.addEventListener('click', (e) => { if (e.target === overlay || e.target.classList.contains('sf-sheet-frame')) closeNode(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNode(); });

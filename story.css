@@ -97,11 +97,78 @@ html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 .sf-card.is-open { visibility: hidden; }
 .sf-card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--brand-blue), var(--card-shadow); }
 
+.sf-card .card-subtitle { display: none; }
+
+/* Phones: the five parts of a StoryFlow run in one fixed order, so the
+   canvas adds nothing here. No stage, no dot grid, no card frames: the
+   pictures sit straight on the page, numbered along a thin line. */
 @media (max-width: 768px) {
-  .sf-canvas { overflow: visible; cursor: auto; }
-  .sf-board { flex-direction: column; align-items: stretch; gap: 40px; width: auto; padding: 20px; }
-  .sf-card { width: 100%; }
+  .sf-canvas {
+    overflow: visible;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    cursor: auto;
+  }
+  .sf-links { display: none; }
+  .sf-board {
+    display: block;
+    width: auto;
+    padding: 0 0 8px 36px;
+    counter-reset: sf;
+  }
+  .sf-board::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 24px;
+    bottom: 40px;
+    width: 1px;
+    background: var(--text-muted);
+    opacity: 0.3;
+  }
+  .sf-card,
+  .sf-card:hover {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 32px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    counter-increment: sf;
+  }
   .sf-card:nth-child(odd) { margin-top: 0; }
+  .sf-card::before {
+    content: counter(sf);
+    position: absolute;
+    left: -36px;
+    top: 0;
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    background: var(--bg-page);
+    box-shadow: inset 0 0 0 1px var(--text-muted);
+    font-size: 12px;
+    line-height: 23px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+  .sf-card .card-stage {
+    position: relative;
+    inset: auto;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+  .sf-card .card-meta {
+    position: static;
+    width: auto;
+    padding-top: 12px;
+  }
+  .sf-card .card-title { white-space: normal; }
+  .sf-card .card-subtitle { display: block; white-space: normal; }
+  .sf-card:focus-visible { box-shadow: none; outline: 2px solid var(--brand-blue); outline-offset: 4px; border-radius: 14px; }
 }
 
 /* The sheet a card opens into. The sheet stays put inside the window and
@@ -171,10 +238,59 @@ html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 .sf-sheet .markdown-prose { max-width: none; }
 .sf-missing { color: var(--text-muted) !important; }
 html.sf-sheet-open { overflow: hidden; }
+.sf-sheet-grab { display: none; }
 @media (max-width: 768px) {
-  .sf-sheet-overlay { padding: 12px; align-items: flex-end; }
-  .sf-sheet-frame { width: 100%; }
-  .sf-sheet { width: 100%; max-height: calc(100dvh - 96px); border-radius: 20px; }
+  .sf-sheet-overlay,
+  .sf-sheet-overlay.is-open {
+    padding: 0;
+    align-items: flex-end;
+    opacity: 1;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .sf-sheet-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-bg);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity var(--panel-close-dur) var(--modal-ease);
+  }
+  .sf-sheet-overlay.is-open::before { opacity: var(--dim, 1); transition-duration: var(--duration-slow); }
+  .sf-sheet-overlay.is-dragging::before { transition: none; }
+  .sf-sheet-frame { position: relative; width: 100%; }
+  .sf-sheet {
+    flex-direction: column;
+    width: 100%;
+    max-height: 84dvh;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transition-duration: var(--panel-close-dur);
+  }
+  .sf-sheet-overlay.is-open .sf-sheet { transition-duration: var(--duration-slow); }
+  .sf-sheet-grab {
+    display: block;
+    flex: none;
+    height: 20px;
+    position: relative;
+    touch-action: none;
+  }
+  .sf-sheet-grab::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 999px;
+    background: var(--text-muted);
+    opacity: 0.5;
+  }
+  .sf-sheet-media { margin-top: 0; }
   .sf-sheet-body { padding: 20px 20px 28px; }
   .sf-sheet-title { font-size: 20px; line-height: 28px; }
 }

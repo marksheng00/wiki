@@ -2735,12 +2735,29 @@ img[data-reveal="pending"].is-swapping {
   align-items: center;
   height: 20px;
   padding: 0 6px;
+  border: 0;
   border-radius: 6px;
   background: var(--kbd-bg);
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cmdk-esc-touch { display: none; }
+/* Touch screens have no Esc key: the same spot is a Cancel button. */
+@media (hover: none) and (pointer: coarse) {
+  .cmdk-esc { height: 32px; margin-right: -8px; padding: 0 8px; background: transparent; font-size: 15px; color: var(--text-secondary); }
+  .cmdk-esc-key { display: none; }
+  .cmdk-esc-touch { display: inline; }
+}
+/* Phones: the panel opens near the top and stays above the keyboard;
+   16px text keeps iOS from zooming the page when the field takes focus. */
+@media (max-width: 768px) {
+  .cmdk-overlay { padding: calc(12px + env(safe-area-inset-top)) 12px 12px; }
+  .cmdk-panel { max-height: calc(var(--cmdk-viewport, 100dvh) - 24px - env(safe-area-inset-top)); }
+  .cmdk-input { font-size: 16px; }
 }
 .cmdk-list {
   overflow-y: auto;

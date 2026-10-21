@@ -226,6 +226,8 @@
     'Search books and entries...': '搜索书籍和词条…',
     'Books': '书籍',
     'Story': '故事',
+    'Cancel': '取消',
+    'Close': '关闭',
     'No results': '没有结果',
     'Pages': '页面',
     'Entries': '词条',
@@ -6262,6 +6264,7 @@
       overlay.hidden = false;
       input.value = '';
       input.placeholder = placeholder();
+      fitToViewport();
       activeIndex = 0;
       render();
       overlay.getBoundingClientRect();
@@ -6299,6 +6302,13 @@
     };
 
     trigger?.addEventListener('click', open);
+    getEl('cmdk-close')?.addEventListener('click', close);
+    // Phones: keep the panel above the on-screen keyboard.
+    const fitToViewport = () => {
+      const vv = window.visualViewport;
+      if (vv) overlay.style.setProperty('--cmdk-viewport', `${Math.round(vv.height)}px`);
+    };
+    window.visualViewport?.addEventListener('resize', () => { if (!overlay.hidden) fitToViewport(); });
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) close();
     });

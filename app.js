@@ -225,6 +225,7 @@
     'Search entries and pages...': '搜索词条和页面…',
     'Search books and entries...': '搜索书籍和词条…',
     'Books': '书籍',
+    'Story': '故事',
     'No results': '没有结果',
     'Pages': '页面',
     'Entries': '词条',
@@ -6171,13 +6172,30 @@
       ? items.slice().sort((a, b) => (a.label.toLowerCase().startsWith(query) ? 0 : 1) - (b.label.toLowerCase().startsWith(query) ? 0 : 1))
       : items);
 
+    // Storylines and StoryFlow: the two hub pages, then every scene, every
+    // StoryFlow and every StoryFlow card. The hint names the kind.
+    const storyPages = () => pages.slice(1)
+      .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }));
+    const storyHits = (query, match) => {
+      const story = query && window.StoryPages?.searchItems?.();
+      if (!story) return [];
+      const flowName = t('StoryFlow');
+      const items = [
+        ...story.flows.map((f) => ({ ...f, hint: flowName, icon: 'route' })),
+        ...story.cards.map((c) => ({ ...c, hint: `${flowName} · ${c.flow}`, icon: 'route' })),
+        ...story.scenes.map((s) => ({ ...s, hint: `${t('Storylines')} · ${s.date}`, icon: 'film' }))
+      ];
+      return rank(items.filter(match), query).slice(0, 30);
+    };
+
     const groupsFor = (query, match) => {
       if (inLibrary()) {
         const lib = window.ReadipediaLibrary.searchItems();
         const pageHits = lib.pages.map((p) => ({ ...p, icon: 'grid' })).filter(match);
         const bookHits = rank(lib.books.map((b) => ({ ...b, icon: 'book-open' })).filter(match), query).slice(0, query ? 40 : 8);
         const entryHits = rank(lib.entries.map((e) => ({ ...e, icon: 'shapes' })).filter(match), query).slice(0, query ? 60 : 8);
-        return [[t('Pages'), query ? pageHits : []], [t('Books'), bookHits], [t('Entries'), entryHits]];
+        const bookPages = query ? storyPages().filter(match) : [];
+        return [[t('Pages'), query ? pageHits.concat(bookPages) : []], [t('Books'), bookHits], [t('Entries'), entryHits], [t('Story'), storyHits(query, match)]];
       }
       if (!entities) {
         entities = getEntityTocEntries().map((e) => ({
@@ -6193,7 +6211,7 @@
         .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
         .filter(match);
       const entityHits = rank(entities.filter(match), query).slice(0, query ? 60 : 12);
-      return [[t('Pages'), pageHits], [t('Entries'), entityHits]];
+      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)]];
     };
 
     const render = () => {
@@ -6266,6 +6284,12 @@
         openLibrary({ category: item.cat });
       } else if (item.kind === 'book') {
         getEl('btn-book-home')?.click();
+      } else if (item.kind === 'scene') {
+        window.StoryPages?.openScene(item.index);
+      } else if (item.kind === 'flow') {
+        window.StoryPages?.openFlow(item.id);
+      } else if (item.kind === 'flow-card') {
+        window.StoryPages?.openFlowCard(item.id, item.i);
       } else if (item.kind === 'link') {
         window.open(item.href, '_blank', 'noopener');
       } else {

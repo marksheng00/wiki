@@ -513,6 +513,43 @@
     render();
   }
 
+  // What the search palette (app.js) lists while the library is open: the
+  // library's own pages, every book and every entry, in the page language.
+  function searchItems() {
+    if (!data()) return null;
+    const l = lang();
+    const other = l === 'zh' ? 'en' : 'zh';
+    const c = COPY[l];
+    const pages = [['all-books', c.allBooks], ['all', c.popular], ['all-entries', c.allEntries], ['entries', c.entries]]
+      .map(([id, label]) => ({ kind: 'library', cat: id, label, hint: c.library }))
+      .concat(categoriesWithBooks().map((cat) => ({ kind: 'library', cat: cat.id, label: cat[l], hint: c.categories })));
+    const books = allBooks().map((b) => ({
+      kind: b.local ? 'book' : 'link',
+      href: bookHref(b, l),
+      label: b[l][0],
+      alt: [b[other][0], b[l][1], b[other][1]].join(' '),
+      hint: b[l][1]
+    }));
+    const zh = window.WIKI_STORE_ZH || {};
+    const localTitle = data().local[l].title;
+    const local = localKinds(l).flatMap((k) => k.entries).sort((a, b) => b.rank - a.rank).map((e) => {
+      const en = window.WIKI_STORE?.master?.knowledge_graph?.all_nodes?.[e.id]?.label || '';
+      return { kind: 'entity', id: e.id, label: e.name, alt: l === 'zh' ? en : (zh.graph_labels?.[e.id] || ''), hint: localTitle };
+    });
+    const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
+    const readify = data().entries.map((e) => {
+      const book = bySlug.get(e.book);
+      return { kind: 'link', href: entryHref(e, book, l), label: e[l][0], alt: e[other]?.[0] || '', hint: book[l][0] };
+    });
+    const entries = [];
+    for (let i = 0; i < Math.max(local.length, readify.length); i += 1) {
+      if (local[i]) entries.push(local[i]);
+      if (readify[i]) entries.push(readify[i]);
+    }
+    return { pages, books, entries, go };
+  }
+  window.ReadipediaLibrary = { searchItems };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

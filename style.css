@@ -3571,31 +3571,25 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   .wiki-sidebar .book-toc { display: none !important; }
 }
 
-/* Phone menu's graph preview: the morphing L was clipped by the preview's
-   rounded corner into a stray tick. Use the desktop corner arc, bent to the
-   same 14px radius, until the graph expands and the morph takes over. */
+/* Phone menu's graph preview: no card. The graph sits straight on the
+   menu, and its corner control is the plain mobile L (the same mark that
+   morphs into the close X once the graph opens), with nothing to clip it. */
 @media (max-width: 768px) {
-  /* The menu can also borrow the open graph (is-sidebar-overlay-preview);
-     it must look exactly like the plain preview. */
+  .wiki-sidebar .sidebar-graph-slot { margin-bottom: 24px; }
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded),
   .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview {
-    border-radius: 14px;
-    overflow: hidden;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .topology-pure-canvas,
+  .wiki-sidebar .sidebar-graph-container.is-expanded.is-sidebar-overlay-preview .topology-pure-canvas {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
   }
   .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand::before { display: none; }
-  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand > svg:not(.graph-expand-icon),
-  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand > svg:not(.graph-expand-icon) { display: none; }
-  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand .graph-expand-icon,
   .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand .graph-expand-icon,
-  .wiki-sidebar .sidebar-graph-container:not(.is-expanded) .btn-graph-expand:hover .graph-expand-icon {
-    display: block;
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 16px;
-    height: 16px;
-    background: transparent;
-    transform: none;
-  }
+  .wiki-sidebar .sidebar-graph-container.is-sidebar-overlay-preview .btn-graph-expand .graph-expand-icon { display: none; }
 }
 
 /* Phone menu surface, as on transitions.dev: the page shows through a 90%

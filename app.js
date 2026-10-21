@@ -721,19 +721,18 @@
   // The library is the site's front page; the logo leads here. Its pages
   // live at real paths so search engines can crawl them one by one:
   //   books/                 all books        books/page/<n>/
-  //   books/popular/         popular books
   //   entries/               all entries      entries/page/<n>/
-  //   entries/popular/       popular entries
   //   categories/<id>/       a category       categories/<id>/page/<n>/
   // Paths are relative to the site root; the prerendered copies of
   // index.html under those folders set <base> to the root, so relative
   // links and pushState resolve the same everywhere. The old hashes
   // (#all-books, #books, #entries, #all-entries, #categories/<id>) still open
-  // their pages. library.js draws them; this file routes.
+  // their pages (#books and #entries, the old popular tabs, open
+  // all books and all entries, which now lead with the popular ones). library.js draws them; this file routes.
   function libraryCategoryFromHash(hash) {
     if (hash === '' || hash === 'view-library') return 'all-books';
-    if (hash === 'books') return 'all';
-    if (hash === 'entries') return 'entries';
+    if (hash === 'books') return 'all-books';
+    if (hash === 'entries') return 'all-entries';
     const all = /^(all-books|all-entries)(?:\/(\d+))?$/.exec(hash);
     if (all) return all[2] ? `${all[1]}/${all[2]}` : all[1];
     const match = /^categories\/([a-z-]+(?:\/\d+)?)$/.exec(hash);
@@ -744,8 +743,6 @@
   function libraryPath(category = 'all-books') {
     const [page, n] = String(category).split('/');
     const tail = Number(n) > 1 ? `page/${n}/` : '';
-    if (page === 'all') return 'books/popular/';
-    if (page === 'entries') return 'entries/popular/';
     if (page === 'all-books') return `books/${tail}`;
     if (page === 'all-entries') return `entries/${tail}`;
     return `categories/${page}/${tail}`;
@@ -757,11 +754,10 @@
     return path.startsWith(root) ? path.slice(root.length) : '';
   }
   function libraryCategoryFromPath(path) {
-    const m = /^(books|entries|categories\/([a-z-]+))\/(?:(popular)\/|page\/(\d+)\/)?$/.exec(path);
+    const m = /^(books|entries|categories\/([a-z-]+))\/(?:page\/(\d+)\/)?$/.exec(path);
     if (!m) return null;
-    const n = Number(m[4]) > 1 ? `/${m[4]}` : '';
-    if (m[2]) return m[3] ? null : `${m[2]}${n}`;
-    if (m[3]) return n ? null : (m[1] === 'books' ? 'all' : 'entries');
+    const n = Number(m[3]) > 1 ? `/${m[3]}` : '';
+    if (m[2]) return `${m[2]}${n}`;
     return `${m[1] === 'books' ? 'all-books' : 'all-entries'}${n}`;
   }
   const libraryHash = () => libraryPath(state.libraryCategory || 'all-books');

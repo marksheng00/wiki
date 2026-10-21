@@ -29,11 +29,11 @@
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
   </script>
-  <link rel="stylesheet" href="./style.css?v=157" />
+  <link rel="stylesheet" href="./style.css?v=158" />
   <link rel="stylesheet" href="./pro-gradient-text.css?v=1" />
   <link rel="stylesheet" href="./story.css?v=27" />
   <link rel="stylesheet" href="./library.css?v=17" />
-  <link rel="stylesheet" href="./promo-banner.css?v=9" />
+  <link rel="stylesheet" href="./promo-banner.css?v=10" />
 </head>
 <body>
 
@@ -70,7 +70,7 @@
       <!-- One slot for the logo and the sidebar toggle: hovering the mark turns it into the toggle. -->
       <div class="brand-combo">
         <a href="books/" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
-          <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
+          <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/><path class="rp-flap" fill="#9a9aa0" d="M204,0V96H300Z"/></svg></span>
           <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
         </a>
         <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" title="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
@@ -183,12 +183,8 @@
           <div class="library-nav" id="library-nav"><div class="docs-group-label">Library</div>
       <a href="books/" class="nav-hub-item docs-link" data-lib-cat="all-books">
       <span class="docs-link-label">All books</span><span class="docs-count">68</span></a>
-      <a href="books/popular/" class="nav-hub-item docs-link" data-lib-cat="all">
-      <span class="docs-link-label">Popular books</span><span class="docs-count">15</span></a>
       <a href="entries/" class="nav-hub-item docs-link active" data-lib-cat="all-entries" aria-current="page">
       <span class="docs-link-label">All entries</span><span class="docs-count">158</span></a>
-      <a href="entries/popular/" class="nav-hub-item docs-link" data-lib-cat="entries">
-      <span class="docs-link-label">Popular entries</span><span class="docs-count">60</span></a>
       <div class="docs-group-label lib-nav-group">Categories</div>
       <a href="categories/fiction/" class="nav-hub-item docs-link" data-lib-cat="fiction">
       <span class="docs-link-label">Fiction</span><span class="docs-count">13</span></a><a href="categories/literature/" class="nav-hub-item docs-link" data-lib-cat="literature">
@@ -479,266 +475,341 @@
       <!-- 0. LIBRARY: the books home, rendered by library.js from data/library.js -->
       <article id="view-library" class="wiki-article-view library-view active" aria-labelledby="library-title" data-lang="en"><h1 class="lib-sr-only" id="library-title">All entries</h1>
       <div class="td-filters lib-filters" role="group" aria-label="Filter"><button type="button" class="td-filter" data-filter="all" data-active="true" aria-pressed="true">All</button><button type="button" class="td-filter" data-filter="character" data-active="false" aria-pressed="false">Characters</button><button type="button" class="td-filter" data-filter="location" data-active="false" aria-pressed="false">Locations</button><button type="button" class="td-filter" data-filter="organization" data-active="false" aria-pressed="false">Organizations</button><button type="button" class="td-filter" data-filter="event" data-active="false" aria-pressed="false">Events</button><button type="button" class="td-filter" data-filter="concept" data-active="false" aria-pressed="false">Concepts</button><button type="button" class="td-filter" data-filter="object" data-active="false" aria-pressed="false">Objects</button><button type="button" class="td-filter" data-filter="rule" data-active="false" aria-pressed="false">Rules</button><button type="button" class="td-filter" data-filter="expression" data-active="false" aria-pressed="false">Expressions</button><button type="button" class="td-filter" data-filter="state" data-active="false" aria-pressed="false">States</button><button type="button" class="td-filter" data-filter="action" data-active="false" aria-pressed="false">Actions</button><button type="button" class="td-filter" data-filter="time" data-active="false" aria-pressed="false">Times</button><button type="button" class="td-filter" data-filter="creature" data-active="false" aria-pressed="false">Creatures</button></div>
-      <div class="lib-entries"><a class="lib-entry" href="#time-recall-time-1984-db6e36e8c14e" data-lib-entity="time-recall-time-1984-db6e36e8c14e">
-        <span class="lib-entry-name">1984</span>
+      <div class="lib-entries"><a class="lib-entry" href="#character-recall-character-winston-smith-1910e4339629" data-lib-entity="character-recall-character-winston-smith-1910e4339629">
+        <span class="lib-entry-name">Winston Smith</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-2-2-5-baf1cae1cb6e" data-lib-entity="expression-recall-expression-2-2-5-baf1cae1cb6e">
-        <span class="lib-entry-name">2+2=5</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#time-recall-time-2050-3863f2627d00" data-lib-entity="time-recall-time-2050-3863f2627d00">
-        <span class="lib-entry-name">2050</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-aaronson-79a475e992f7" data-lib-entity="character-recall-character-aaronson-79a475e992f7">
-        <span class="lib-entry-name">Aaronson</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Adam%20Trask" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Adam Trask</span>
-        <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#location-recall-location-airstrip-one-912e1b11d71d" data-lib-entity="location-recall-location-airstrip-one-912e1b11d71d">
-        <span class="lib-entry-name">Airstrip One</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Alice%20Trask" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Alice Trask</span>
-        <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-all-marriages-between-pa-d6b8a87be328" data-lib-entity="rule-recall-rule-all-marriages-between-pa-d6b8a87be328">
-        <span class="lib-entry-name">All marriages between Party members had to be approved by a committee</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-ampleforth-a67df3ec6b21" data-lib-entity="character-recall-character-ampleforth-a67df3ec6b21">
-        <span class="lib-entry-name">Ampleforth</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-7bf6354302f1" data-lib-entity="event-recall-event-7bf6354302f1">
-        <span class="lib-entry-name">Arrest of Winston and Julia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-bellyfeel-ff22830307d5" data-lib-entity="concept-recall-concept-bellyfeel-ff22830307d5">
-        <span class="lib-entry-name">Bellyfeel</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-101-ef1503d20653" data-lib-entity="event-recall-event-101-ef1503d20653">
-        <span class="lib-entry-name">Betrayal in Room 101</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-big-brother-d634b662a3fc" data-lib-entity="character-recall-character-big-brother-d634b662a3fc">
-        <span class="lib-entry-name">Big Brother</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-big-brother-is-wat-9f63b2a5916e" data-lib-entity="expression-recall-expression-big-brother-is-wat-9f63b2a5916e">
-        <span class="lib-entry-name">Big Brother is watching you</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-c6816b7887b9" data-lib-entity="object-recall-object-c6816b7887b9">
-        <span class="lib-entry-name">Big Brother Poster</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-blackwhite-3862fc7ba9d1" data-lib-entity="rule-recall-rule-blackwhite-3862fc7ba9d1">
-        <span class="lib-entry-name">Blackwhite</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Cathy%20Ames" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Cathy Ames</span>
-        <span class="lib-entry-meta">East of Eden</span>
       </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Charles%20Trask" target="_blank" rel="noopener">
         <span class="lib-entry-name">Charles Trask</span>
         <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#location-recall-location-chestnut-tree-caf-f86ba95a289a" data-lib-entity="location-recall-location-chestnut-tree-caf-f86ba95a289a">
-        <span class="lib-entry-name">Chestnut Tree Café</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-bdb0674f7790" data-lib-entity="object-recall-object-bdb0674f7790">
-        <span class="lib-entry-name">Chocolate Ration</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-community-centre-822f7b350e84" data-lib-entity="organization-recall-organization-community-centre-822f7b350e84">
-        <span class="lib-entry-name">Community Centre</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-comrade-ogilvy-2f6809370799" data-lib-entity="character-recall-character-comrade-ogilvy-2f6809370799">
-        <span class="lib-entry-name">Comrade Ogilvy</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-crimestop-3a561a93b900" data-lib-entity="rule-recall-rule-crimestop-3a561a93b900">
-        <span class="lib-entry-name">Crimestop</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-death-worship-814332379295" data-lib-entity="concept-recall-concept-death-worship-814332379295">
-        <span class="lib-entry-name">Death-Worship</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-03b8460a8170" data-lib-entity="object-recall-object-03b8460a8170">
-        <span class="lib-entry-name">Diary</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-5b78f02317e9" data-lib-entity="event-recall-event-5b78f02317e9">
-        <span class="lib-entry-name">Discovery of the photograph evidence</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-do-it-to-julia-c234ebbf6693" data-lib-entity="expression-recall-expression-do-it-to-julia-c234ebbf6693">
-        <span class="lib-entry-name">Do it to Julia!</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-doublethink-bc170022e80a" data-lib-entity="rule-recall-rule-doublethink-bc170022e80a">
-        <span class="lib-entry-name">Doublethink</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-duckspeak-f755d00be5fe" data-lib-entity="concept-recall-concept-duckspeak-f755d00be5fe">
-        <span class="lib-entry-name">Duckspeak</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-eastasia-a2356e498a45" data-lib-entity="location-recall-location-eastasia-a2356e498a45">
-        <span class="lib-entry-name">Eastasia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-emmanuel-goldstein-f4210e83c600" data-lib-entity="character-recall-character-emmanuel-goldstein-f4210e83c600">
-        <span class="lib-entry-name">Emmanuel Goldstein</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-c81928d3451f" data-lib-entity="event-recall-event-c81928d3451f">
-        <span class="lib-entry-name">Encounter with a prostitute</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-eurasia-458cc736a4be" data-lib-entity="location-recall-location-eurasia-458cc736a4be">
-        <span class="lib-entry-name">Eurasia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-d7a8b2bc6039" data-lib-entity="event-recall-event-d7a8b2bc6039">
-        <span class="lib-entry-name">Eye Contact Between Winston and O'Brien</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-facecrime-be4317332bd9" data-lib-entity="rule-recall-rule-facecrime-be4317332bd9">
-        <span class="lib-entry-name">Facecrime</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Faye's%20Death" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Faye's Death</span>
-        <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-fiction-departme-934b003c4bde" data-lib-entity="organization-recall-organization-fiction-departme-934b003c4bde">
-        <span class="lib-entry-name">Fiction Department</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#action-recall-action-final-conversion-de154bfcfe5a" data-lib-entity="action-recall-action-final-conversion-de154bfcfe5a">
-        <span class="lib-entry-name">Final conversion</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-59b1cd39c432" data-lib-entity="event-recall-event-59b1cd39c432">
-        <span class="lib-entry-name">Final meeting with Julia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-64d040314298" data-lib-entity="event-recall-event-64d040314298">
-        <span class="lib-entry-name">Finger torture</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#action-recall-action-first-love-making-in-t-80c85a56dcbb" data-lib-entity="action-recall-action-first-love-making-in-t-80c85a56dcbb">
-        <span class="lib-entry-name">First love-making in the wood</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-9a40472f05b1" data-lib-entity="event-recall-event-9a40472f05b1">
-        <span class="lib-entry-name">First love-making in the woods</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-floating-fortress-656d0fd8836a" data-lib-entity="concept-recall-concept-floating-fortress-656d0fd8836a">
-        <span class="lib-entry-name">Floating Fortress</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-f2f727990a57" data-lib-entity="object-recall-object-f2f727990a57">
-        <span class="lib-entry-name">floating sea fortress</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-freedom-is-slavery-81a94401abac" data-lib-entity="rule-recall-rule-freedom-is-slavery-81a94401abac">
-        <span class="lib-entry-name">Freedom is Slavery</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-freedom-is-the-fre-e38557a8e351" data-lib-entity="expression-recall-expression-freedom-is-the-fre-e38557a8e351">
-        <span class="lib-entry-name">Freedom is the freedom to say that two plus two make four</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-09359ad9ee30" data-lib-entity="object-recall-object-09359ad9ee30">
-        <span class="lib-entry-name">Glass Paperweight</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-goodsex-3abc7fdf3884" data-lib-entity="rule-recall-rule-goodsex-3abc7fdf3884">
-        <span class="lib-entry-name">Goodsex</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-goodthink-36da570716ad" data-lib-entity="rule-recall-rule-goodthink-36da570716ad">
-        <span class="lib-entry-name">Goodthink</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-he-loved-big-broth-c26cf8274fbb" data-lib-entity="expression-recall-expression-he-loved-big-broth-c26cf8274fbb">
-        <span class="lib-entry-name">He loved Big Brother</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-if-there-is-hope-i-0186c6832dd0" data-lib-entity="expression-recall-expression-if-there-is-hope-i-0186c6832dd0">
-        <span class="lib-entry-name">If there is hope, it lies in the proles</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-ignorance-is-strength-9abdf0dff229" data-lib-entity="rule-recall-rule-ignorance-is-strength-9abdf0dff229">
-        <span class="lib-entry-name">Ignorance is Strength</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-imagine-a-boot-sta-76fb8e61c598" data-lib-entity="expression-recall-expression-imagine-a-boot-sta-76fb8e61c598">
-        <span class="lib-entry-name">Imagine a boot stamping on a human face - for ever</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-ingsoc-bc301edf36cc" data-lib-entity="expression-recall-expression-ingsoc-bc301edf36cc">
-        <span class="lib-entry-name">Ingsoc</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-inner-party-ca526a51b799" data-lib-entity="concept-recall-concept-inner-party-ca526a51b799">
-        <span class="lib-entry-name">Inner Party</span>
+      </a><a class="lib-entry" href="#character-recall-character-big-brother-d634b662a3fc" data-lib-entity="character-recall-character-big-brother-d634b662a3fc">
+        <span class="lib-entry-name">Big Brother</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/James%20Grew" target="_blank" rel="noopener">
         <span class="lib-entry-name">James Grew</span>
         <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#character-recall-character-jones-ee532256d0d7" data-lib-entity="character-recall-character-jones-ee532256d0d7">
-        <span class="lib-entry-name">Jones</span>
+      </a><a class="lib-entry" href="#character-recall-character-o-brien-abeb498acd48" data-lib-entity="character-recall-character-o-brien-abeb498acd48">
+        <span class="lib-entry-name">O'Brien</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-joycamp-eb0549da9ec6" data-lib-entity="concept-recall-concept-joycamp-eb0549da9ec6">
-        <span class="lib-entry-name">Joycamp</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Salinas%20Ice%20Plant" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Salinas Ice Plant</span>
+        <span class="lib-entry-meta">East of Eden</span>
       </a><a class="lib-entry" href="#character-recall-character-julia-dd9a6077f139" data-lib-entity="character-recall-character-julia-dd9a6077f139">
         <span class="lib-entry-name">Julia</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-e28132a9a7de" data-lib-entity="event-recall-event-e28132a9a7de">
-        <span class="lib-entry-name">Julia passes Winston a love note</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-junior-anti-sex-d68352dfece3" data-lib-entity="organization-recall-organization-junior-anti-sex-d68352dfece3">
-        <span class="lib-entry-name">Junior Anti-Sex League</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-katharine-252d3095acf3" data-lib-entity="character-recall-character-katharine-252d3095acf3">
-        <span class="lib-entry-name">Katharine</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Lee" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Lee</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Alice%20Trask" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Alice Trask</span>
         <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#location-recall-location-london-420923d4a60a" data-lib-entity="location-recall-location-london-420923d4a60a">
-        <span class="lib-entry-name">London</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-lottery-dbc8b0a94f92" data-lib-entity="organization-recall-organization-lottery-dbc8b0a94f92">
-        <span class="lib-entry-name">Lottery</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-martin-f5cb6653498c" data-lib-entity="character-recall-character-martin-f5cb6653498c">
-        <span class="lib-entry-name">Martin</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-147e95a26508" data-lib-entity="event-recall-event-147e95a26508">
-        <span class="lib-entry-name">Meeting in the canteen</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#action-recall-action-meeting-with-o-brien-561c93b8f7ee" data-lib-entity="action-recall-action-meeting-with-o-brien-561c93b8f7ee">
-        <span class="lib-entry-name">Meeting with O'Brien</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-302702295f72" data-lib-entity="object-recall-object-302702295f72">
-        <span class="lib-entry-name">memory hole chute</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-ministry-of-love-2036b8f1ea56" data-lib-entity="location-recall-location-ministry-of-love-2036b8f1ea56">
-        <span class="lib-entry-name">Ministry of Love</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-ministry-of-peace-d2f4e3b138d7" data-lib-entity="location-recall-location-ministry-of-peace-d2f4e3b138d7">
-        <span class="lib-entry-name">Ministry of Peace</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-ministry-of-plenty-3a7a712bc41c" data-lib-entity="location-recall-location-ministry-of-plenty-3a7a712bc41c">
-        <span class="lib-entry-name">Ministry of Plenty</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#location-recall-location-ministry-of-truth-ef6e5f31d68c" data-lib-entity="location-recall-location-ministry-of-truth-ef6e5f31d68c">
         <span class="lib-entry-name">Ministry of Truth</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-mr-charrington-fedfab22da60" data-lib-entity="character-recall-character-mr-charrington-fedfab22da60">
-        <span class="lib-entry-name">Mr Charrington</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-mr-charrington-s-sho-80f01040c06e" data-lib-entity="location-recall-location-mr-charrington-s-sho-80f01040c06e">
-        <span class="lib-entry-name">Mr Charrington's shop</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Cathy%20Ames" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Cathy Ames</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-ingsoc-bc301edf36cc" data-lib-entity="expression-recall-expression-ingsoc-bc301edf36cc">
+        <span class="lib-entry-name">Ingsoc</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Mr.%20Bacon" target="_blank" rel="noopener">
         <span class="lib-entry-name">Mr. Bacon</span>
         <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#character-recall-character-mrs-parsons-0e1126915b2d" data-lib-entity="character-recall-character-mrs-parsons-0e1126915b2d">
-        <span class="lib-entry-name">Mrs Parsons</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-love-2036b8f1ea56" data-lib-entity="location-recall-location-ministry-of-love-2036b8f1ea56">
+        <span class="lib-entry-name">Ministry of Love</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-music-department-0239850c78f0" data-lib-entity="organization-recall-organization-music-department-0239850c78f0">
-        <span class="lib-entry-name">Music Department</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Adam%20Trask" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Adam Trask</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#character-recall-character-emmanuel-goldstein-f4210e83c600" data-lib-entity="character-recall-character-emmanuel-goldstein-f4210e83c600">
+        <span class="lib-entry-name">Emmanuel Goldstein</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-neo-bolshevism-3b2c8883803c" data-lib-entity="concept-recall-concept-neo-bolshevism-3b2c8883803c">
-        <span class="lib-entry-name">Neo-Bolshevism</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Faye's%20Death" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Faye's Death</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-doublethink-bc170022e80a" data-lib-entity="rule-recall-rule-doublethink-bc170022e80a">
+        <span class="lib-entry-name">Doublethink</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Lee" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Lee</span>
+        <span class="lib-entry-meta">East of Eden</span>
       </a><a class="lib-entry" href="#expression-recall-expression-newspeak-2a062a72146b" data-lib-entity="expression-recall-expression-newspeak-2a062a72146b">
         <span class="lib-entry-name">Newspeak</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-0e62433dbcf6" data-lib-entity="object-recall-object-0e62433dbcf6">
-        <span class="lib-entry-name">Newspeak Dictionary</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-telescreen-8f1d3f00e7bf" data-lib-entity="expression-recall-expression-the-telescreen-8f1d3f00e7bf">
+        <span class="lib-entry-name">the telescreen</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#time-recall-time-ninth-three-year-plan-80ffb37b9938" data-lib-entity="time-recall-time-ninth-three-year-plan-80ffb37b9938">
-        <span class="lib-entry-name">Ninth Three-Year Plan</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-o-brien-abeb498acd48" data-lib-entity="character-recall-character-o-brien-abeb498acd48">
-        <span class="lib-entry-name">O'Brien</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-plenty-3a7a712bc41c" data-lib-entity="location-recall-location-ministry-of-plenty-3a7a712bc41c">
+        <span class="lib-entry-name">Ministry of Plenty</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#location-recall-location-oceania-215c56fb5182" data-lib-entity="location-recall-location-oceania-215c56fb5182">
         <span class="lib-entry-name">Oceania</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-oldthink-1eb3844b3e56" data-lib-entity="concept-recall-concept-oldthink-1eb3844b3e56">
-        <span class="lib-entry-name">Oldthink</span>
+      </a><a class="lib-entry" href="#character-recall-character-mr-charrington-fedfab22da60" data-lib-entity="character-recall-character-mr-charrington-fedfab22da60">
+        <span class="lib-entry-name">Mr Charrington</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-peace-d2f4e3b138d7" data-lib-entity="location-recall-location-ministry-of-peace-d2f4e3b138d7">
+        <span class="lib-entry-name">Ministry of Peace</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-two-minutes-ha-e04f1b223bd4" data-lib-entity="expression-recall-expression-the-two-minutes-ha-e04f1b223bd4">
+        <span class="lib-entry-name">the Two Minutes Hate</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-room-101-ca8f1852ffa9" data-lib-entity="location-recall-location-room-101-ca8f1852ffa9">
+        <span class="lib-entry-name">Room 101</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-victory-mansions-398f0df569f9" data-lib-entity="location-recall-location-victory-mansions-398f0df569f9">
+        <span class="lib-entry-name">Victory Mansions</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-records-departme-73f08ca85c0e" data-lib-entity="organization-recall-organization-records-departme-73f08ca85c0e">
+        <span class="lib-entry-name">Records Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-rutherford-8a36207da47f" data-lib-entity="character-recall-character-rutherford-8a36207da47f">
+        <span class="lib-entry-name">Rutherford</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-aaronson-79a475e992f7" data-lib-entity="character-recall-character-aaronson-79a475e992f7">
+        <span class="lib-entry-name">Aaronson</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-jones-ee532256d0d7" data-lib-entity="character-recall-character-jones-ee532256d0d7">
+        <span class="lib-entry-name">Jones</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-parsons-ff784c804840" data-lib-entity="character-recall-character-parsons-ff784c804840">
+        <span class="lib-entry-name">Parsons</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-room-above-mr-ch-d996dc963c72" data-lib-entity="location-recall-location-the-room-above-mr-ch-d996dc963c72">
+        <span class="lib-entry-name">The room above Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-junior-anti-sex-d68352dfece3" data-lib-entity="organization-recall-organization-junior-anti-sex-d68352dfece3">
+        <span class="lib-entry-name">Junior Anti-Sex League</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-the-book-722f8de768cb" data-lib-entity="concept-recall-concept-the-book-722f8de768cb">
+        <span class="lib-entry-name">The book</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-09359ad9ee30" data-lib-entity="object-recall-object-09359ad9ee30">
+        <span class="lib-entry-name">Glass Paperweight</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-19b2503b779e" data-lib-entity="object-recall-object-19b2503b779e">
+        <span class="lib-entry-name">Photograph of Jones, Aaronson and Rutherford</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-chestnut-tree-caf-f86ba95a289a" data-lib-entity="location-recall-location-chestnut-tree-caf-f86ba95a289a">
+        <span class="lib-entry-name">Chestnut Tree Café</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-airstrip-one-912e1b11d71d" data-lib-entity="location-recall-location-airstrip-one-912e1b11d71d">
+        <span class="lib-entry-name">Airstrip One</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-london-420923d4a60a" data-lib-entity="location-recall-location-london-420923d4a60a">
+        <span class="lib-entry-name">London</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-inner-party-ca526a51b799" data-lib-entity="concept-recall-concept-inner-party-ca526a51b799">
+        <span class="lib-entry-name">Inner Party</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-03b8460a8170" data-lib-entity="object-recall-object-03b8460a8170">
+        <span class="lib-entry-name">Diary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-katharine-252d3095acf3" data-lib-entity="character-recall-character-katharine-252d3095acf3">
+        <span class="lib-entry-name">Katharine</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-times-50540997508d" data-lib-entity="organization-recall-organization-times-50540997508d">
+        <span class="lib-entry-name">Times</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-7bf6354302f1" data-lib-entity="event-recall-event-7bf6354302f1">
+        <span class="lib-entry-name">Arrest of Winston and Julia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-syme-b786520f0b1e" data-lib-entity="character-recall-character-syme-b786520f0b1e">
+        <span class="lib-entry-name">Syme</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-eurasia-458cc736a4be" data-lib-entity="location-recall-location-eurasia-458cc736a4be">
+        <span class="lib-entry-name">Eurasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-spies-a16a82283445" data-lib-entity="organization-recall-organization-spies-a16a82283445">
+        <span class="lib-entry-name">Spies</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-reality-control-728d5aa740a3" data-lib-entity="concept-recall-concept-reality-control-728d5aa740a3">
+        <span class="lib-entry-name">Reality control</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-crimestop-3a561a93b900" data-lib-entity="rule-recall-rule-crimestop-3a561a93b900">
+        <span class="lib-entry-name">Crimestop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-sexcrime-b4879d48e593" data-lib-entity="rule-recall-rule-sexcrime-b4879d48e593">
+        <span class="lib-entry-name">Sexcrime</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-blackwhite-3862fc7ba9d1" data-lib-entity="rule-recall-rule-blackwhite-3862fc7ba9d1">
+        <span class="lib-entry-name">Blackwhite</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c" data-lib-entity="rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c">
+        <span class="lib-entry-name">The Party seeks power entirely for its own sake</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-thoughtcrime-da4c4792e6d9" data-lib-entity="rule-recall-rule-thoughtcrime-da4c4792e6d9">
+        <span class="lib-entry-name">Thoughtcrime</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-mrs-parsons-0e1126915b2d" data-lib-entity="character-recall-character-mrs-parsons-0e1126915b2d">
+        <span class="lib-entry-name">Mrs Parsons</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-eastasia-a2356e498a45" data-lib-entity="location-recall-location-eastasia-a2356e498a45">
+        <span class="lib-entry-name">Eastasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-mr-charrington-s-sho-80f01040c06e" data-lib-entity="location-recall-location-mr-charrington-s-sho-80f01040c06e">
+        <span class="lib-entry-name">Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-bellyfeel-ff22830307d5" data-lib-entity="concept-recall-concept-bellyfeel-ff22830307d5">
+        <span class="lib-entry-name">Bellyfeel</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-bdb0674f7790" data-lib-entity="object-recall-object-bdb0674f7790">
+        <span class="lib-entry-name">Chocolate Ration</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-freedom-is-slavery-81a94401abac" data-lib-entity="rule-recall-rule-freedom-is-slavery-81a94401abac">
+        <span class="lib-entry-name">Freedom is Slavery</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-who-controls-the-past-co-859dd13f2001" data-lib-entity="rule-recall-rule-who-controls-the-past-co-859dd13f2001">
+        <span class="lib-entry-name">Who controls the past controls the future: who controls the present controls the past</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-ignorance-is-strength-9abdf0dff229" data-lib-entity="rule-recall-rule-ignorance-is-strength-9abdf0dff229">
+        <span class="lib-entry-name">Ignorance is Strength</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-past-is-alterable-968e8fbd7210" data-lib-entity="rule-recall-rule-the-past-is-alterable-968e8fbd7210">
+        <span class="lib-entry-name">The past is alterable</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-creates-human-19c00cbb0372" data-lib-entity="rule-recall-rule-the-party-creates-human-19c00cbb0372">
+        <span class="lib-entry-name">The Party creates human nature</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-only-recognised-purp-96d216234eb5" data-lib-entity="rule-recall-rule-the-only-recognised-purp-96d216234eb5">
+        <span class="lib-entry-name">The only recognised purpose of marriage was to beget children for the service of the Party</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-goodsex-3abc7fdf3884" data-lib-entity="rule-recall-rule-goodsex-3abc7fdf3884">
+        <span class="lib-entry-name">Goodsex</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-the-arrest-5843f1f12e2f" data-lib-entity="action-recall-action-the-arrest-5843f1f12e2f">
+        <span class="lib-entry-name">The arrest</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#creature-recall-creature-rat-d16ef86cfb69" data-lib-entity="creature-recall-creature-rat-d16ef86cfb69">
+        <span class="lib-entry-name">Rat</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-d7a8b2bc6039" data-lib-entity="event-recall-event-d7a8b2bc6039">
+        <span class="lib-entry-name">Eye Contact Between Winston and O'Brien</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-7a0e7a15e62e" data-lib-entity="event-recall-event-7a0e7a15e62e">
+        <span class="lib-entry-name">Reading Goldstein's book</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-death-worship-814332379295" data-lib-entity="concept-recall-concept-death-worship-814332379295">
+        <span class="lib-entry-name">Death-Worship</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-prolefeed-79e6ed1ab861" data-lib-entity="concept-recall-concept-prolefeed-79e6ed1ab861">
+        <span class="lib-entry-name">Prolefeed</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-neo-bolshevism-3b2c8883803c" data-lib-entity="concept-recall-concept-neo-bolshevism-3b2c8883803c">
+        <span class="lib-entry-name">Neo-Bolshevism</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-0e62433dbcf6" data-lib-entity="object-recall-object-0e62433dbcf6">
+        <span class="lib-entry-name">Newspeak Dictionary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-c3eb4300acdb" data-lib-entity="object-recall-object-c3eb4300acdb">
+        <span class="lib-entry-name">Rat Cage</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-302702295f72" data-lib-entity="object-recall-object-302702295f72">
+        <span class="lib-entry-name">memory hole chute</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-8b8ff17a25ba" data-lib-entity="object-recall-object-8b8ff17a25ba">
+        <span class="lib-entry-name">Victory Cigarettes</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-all-marriages-between-pa-d6b8a87be328" data-lib-entity="rule-recall-rule-all-marriages-between-pa-d6b8a87be328">
+        <span class="lib-entry-name">All marriages between Party members had to be approved by a committee</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-war-is-peace-b1bf67ef5931" data-lib-entity="rule-recall-rule-war-is-peace-b1bf67ef5931">
+        <span class="lib-entry-name">War is Peace</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc" data-lib-entity="rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc">
+        <span class="lib-entry-name">The object of power is power</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-infallible-d93b516ccb7b" data-lib-entity="rule-recall-rule-the-party-is-infallible-d93b516ccb7b">
+        <span class="lib-entry-name">The Party is infallible</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-goodthink-36da570716ad" data-lib-entity="rule-recall-rule-goodthink-36da570716ad">
+        <span class="lib-entry-name">Goodthink</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-was-trying-to-7d237877197f" data-lib-entity="rule-recall-rule-the-party-was-trying-to-7d237877197f">
+        <span class="lib-entry-name">The Party was trying to kill the sex instinct</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-immortal-9a52a5d72bdc" data-lib-entity="rule-recall-rule-the-party-is-immortal-9a52a5d72bdc">
+        <span class="lib-entry-name">The Party is immortal</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-freedom-is-the-fre-e38557a8e351" data-lib-entity="expression-recall-expression-freedom-is-the-fre-e38557a8e351">
+        <span class="lib-entry-name">Freedom is the freedom to say that two plus two make four</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-2-2-5-baf1cae1cb6e" data-lib-entity="expression-recall-expression-2-2-5-baf1cae1cb6e">
+        <span class="lib-entry-name">2+2=5</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-meeting-with-o-brien-561c93b8f7ee" data-lib-entity="action-recall-action-meeting-with-o-brien-561c93b8f7ee">
+        <span class="lib-entry-name">Meeting with O'Brien</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-6ae313e3df9f" data-lib-entity="event-recall-event-6ae313e3df9f">
+        <span class="lib-entry-name">Two Minutes Hate Rally</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#concept-recall-concept-oligarchical-collecti-44323d3a01a2" data-lib-entity="concept-recall-concept-oligarchical-collecti-44323d3a01a2">
         <span class="lib-entry-name">Oligarchical Collectivism</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-oranges-and-lemons-43ac705ba9ef" data-lib-entity="expression-recall-expression-oranges-and-lemons-43ac705ba9ef">
-        <span class="lib-entry-name">Oranges and lemons</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-floating-fortress-656d0fd8836a" data-lib-entity="concept-recall-concept-floating-fortress-656d0fd8836a">
+        <span class="lib-entry-name">Floating Fortress</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-c6816b7887b9" data-lib-entity="object-recall-object-c6816b7887b9">
+        <span class="lib-entry-name">Big Brother Poster</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-050301a147b1" data-lib-entity="object-recall-object-050301a147b1">
+        <span class="lib-entry-name">Speakwrite</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4" data-lib-entity="rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4">
+        <span class="lib-entry-name">The Party taught that the proles were natural inferiors</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-imagine-a-boot-sta-76fb8e61c598" data-lib-entity="expression-recall-expression-imagine-a-boot-sta-76fb8e61c598">
+        <span class="lib-entry-name">Imagine a boot stamping on a human face - for ever</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-sanity-is-not-stat-522a2b35c8bf" data-lib-entity="expression-recall-expression-sanity-is-not-stat-522a2b35c8bf">
+        <span class="lib-entry-name">Sanity is not statistical</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-do-it-to-julia-c234ebbf6693" data-lib-entity="expression-recall-expression-do-it-to-julia-c234ebbf6693">
+        <span class="lib-entry-name">Do it to Julia!</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-who-controls-the-p-e47d9985e9ad" data-lib-entity="expression-recall-expression-who-controls-the-p-e47d9985e9ad">
+        <span class="lib-entry-name">Who controls the past controls the future</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-final-conversion-de154bfcfe5a" data-lib-entity="action-recall-action-final-conversion-de154bfcfe5a">
+        <span class="lib-entry-name">Final conversion</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#time-recall-time-ninth-three-year-plan-80ffb37b9938" data-lib-entity="time-recall-time-ninth-three-year-plan-80ffb37b9938">
+        <span class="lib-entry-name">Ninth Three-Year Plan</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-comrade-ogilvy-2f6809370799" data-lib-entity="character-recall-character-comrade-ogilvy-2f6809370799">
+        <span class="lib-entry-name">Comrade Ogilvy</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-victory-square-b9d348acaf31" data-lib-entity="location-recall-location-victory-square-b9d348acaf31">
+        <span class="lib-entry-name">Victory Square</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-fiction-departme-934b003c4bde" data-lib-entity="organization-recall-organization-fiction-departme-934b003c4bde">
+        <span class="lib-entry-name">Fiction Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-youth-league-519605e1140b" data-lib-entity="organization-recall-organization-youth-league-519605e1140b">
+        <span class="lib-entry-name">Youth League</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-59b1cd39c432" data-lib-entity="event-recall-event-59b1cd39c432">
+        <span class="lib-entry-name">Final meeting with Julia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-e28132a9a7de" data-lib-entity="event-recall-event-e28132a9a7de">
+        <span class="lib-entry-name">Julia passes Winston a love note</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-fac8249e5894" data-lib-entity="event-recall-event-fac8249e5894">
+        <span class="lib-entry-name">Winston buys a diary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-64d040314298" data-lib-entity="event-recall-event-64d040314298">
+        <span class="lib-entry-name">Finger torture</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-392f470009de" data-lib-entity="event-recall-event-392f470009de">
+        <span class="lib-entry-name">Renting the room above Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-101-ef1503d20653" data-lib-entity="event-recall-event-101-ef1503d20653">
+        <span class="lib-entry-name">Betrayal in Room 101</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-sanity-is-statistical-97514c1e2da3" data-lib-entity="concept-recall-concept-sanity-is-statistical-97514c1e2da3">
+        <span class="lib-entry-name">Sanity is statistical</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-joycamp-eb0549da9ec6" data-lib-entity="concept-recall-concept-joycamp-eb0549da9ec6">
+        <span class="lib-entry-name">Joycamp</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-oldthink-1eb3844b3e56" data-lib-entity="concept-recall-concept-oldthink-1eb3844b3e56">
+        <span class="lib-entry-name">Oldthink</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#concept-recall-concept-outer-party-06cffe1e3f30" data-lib-entity="concept-recall-concept-outer-party-06cffe1e3f30">
         <span class="lib-entry-name">Outer Party</span>
@@ -746,101 +817,14 @@
       </a><a class="lib-entry" href="#rule-recall-rule-ownlife-11feeb074065" data-lib-entity="rule-recall-rule-ownlife-11feeb074065">
         <span class="lib-entry-name">Ownlife</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-parsons-ff784c804840" data-lib-entity="character-recall-character-parsons-ff784c804840">
-        <span class="lib-entry-name">Parsons</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-19b2503b779e" data-lib-entity="object-recall-object-19b2503b779e">
-        <span class="lib-entry-name">Photograph of Jones, Aaronson and Rutherford</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-pornosec-5da49df5f175" data-lib-entity="organization-recall-organization-pornosec-5da49df5f175">
-        <span class="lib-entry-name">Pornosec</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-prolefeed-79e6ed1ab861" data-lib-entity="concept-recall-concept-prolefeed-79e6ed1ab861">
-        <span class="lib-entry-name">Prolefeed</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-facecrime-be4317332bd9" data-lib-entity="rule-recall-rule-facecrime-be4317332bd9">
+        <span class="lib-entry-name">Facecrime</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#rule-recall-rule-proles-and-animals-are-f-e54a25895e6d" data-lib-entity="rule-recall-rule-proles-and-animals-are-f-e54a25895e6d">
         <span class="lib-entry-name">Proles and animals are free</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#creature-recall-creature-rat-d16ef86cfb69" data-lib-entity="creature-recall-creature-rat-d16ef86cfb69">
-        <span class="lib-entry-name">Rat</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-c3eb4300acdb" data-lib-entity="object-recall-object-c3eb4300acdb">
-        <span class="lib-entry-name">Rat Cage</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-7a0e7a15e62e" data-lib-entity="event-recall-event-7a0e7a15e62e">
-        <span class="lib-entry-name">Reading Goldstein's book</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-reality-control-728d5aa740a3" data-lib-entity="concept-recall-concept-reality-control-728d5aa740a3">
-        <span class="lib-entry-name">Reality control</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-records-departme-73f08ca85c0e" data-lib-entity="organization-recall-organization-records-departme-73f08ca85c0e">
-        <span class="lib-entry-name">Records Department</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-e7d123b60501" data-lib-entity="object-recall-object-e7d123b60501">
-        <span class="lib-entry-name">Red Sash</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-392f470009de" data-lib-entity="event-recall-event-392f470009de">
-        <span class="lib-entry-name">Renting the room above Mr Charrington's shop</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-room-101-ca8f1852ffa9" data-lib-entity="location-recall-location-room-101-ca8f1852ffa9">
-        <span class="lib-entry-name">Room 101</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-rutherford-8a36207da47f" data-lib-entity="character-recall-character-rutherford-8a36207da47f">
-        <span class="lib-entry-name">Rutherford</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Salinas%20Ice%20Plant" target="_blank" rel="noopener">
-        <span class="lib-entry-name">Salinas Ice Plant</span>
-        <span class="lib-entry-meta">East of Eden</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-sanity-is-not-stat-522a2b35c8bf" data-lib-entity="expression-recall-expression-sanity-is-not-stat-522a2b35c8bf">
-        <span class="lib-entry-name">Sanity is not statistical</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-sanity-is-statistical-97514c1e2da3" data-lib-entity="concept-recall-concept-sanity-is-statistical-97514c1e2da3">
-        <span class="lib-entry-name">Sanity is statistical</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-sexcrime-b4879d48e593" data-lib-entity="rule-recall-rule-sexcrime-b4879d48e593">
-        <span class="lib-entry-name">Sexcrime</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-050301a147b1" data-lib-entity="object-recall-object-050301a147b1">
-        <span class="lib-entry-name">Speakwrite</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-spies-a16a82283445" data-lib-entity="organization-recall-organization-spies-a16a82283445">
-        <span class="lib-entry-name">Spies</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#state-recall-state-ad61843aaf99" data-lib-entity="state-recall-state-ad61843aaf99">
-        <span class="lib-entry-name">Superstate of Eastasia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#state-recall-state-7a89c814c991" data-lib-entity="state-recall-state-7a89c814c991">
-        <span class="lib-entry-name">Superstate of Eurasia</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#state-recall-state-49e18261d1ad" data-lib-entity="state-recall-state-49e18261d1ad">
-        <span class="lib-entry-name">Superstate of Oceania</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-syme-b786520f0b1e" data-lib-entity="character-recall-character-syme-b786520f0b1e">
-        <span class="lib-entry-name">Syme</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#action-recall-action-the-arrest-5843f1f12e2f" data-lib-entity="action-recall-action-the-arrest-5843f1f12e2f">
-        <span class="lib-entry-name">The arrest</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-the-book-722f8de768cb" data-lib-entity="concept-recall-concept-the-book-722f8de768cb">
-        <span class="lib-entry-name">The book</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-the-church-belfry-f3200ead5baa" data-lib-entity="location-recall-location-the-church-belfry-f3200ead5baa">
-        <span class="lib-entry-name">The church belfry</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-the-golden-country-16c8d8c98cd8" data-lib-entity="location-recall-location-the-golden-country-16c8d8c98cd8">
-        <span class="lib-entry-name">The Golden Country</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-individual-is-only-a-a93b61f512d5" data-lib-entity="rule-recall-rule-the-individual-is-only-a-a93b61f512d5">
-        <span class="lib-entry-name">The individual is only a cell</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-the-memory-hole-8b1cd4e23e4a" data-lib-entity="expression-recall-expression-the-memory-hole-8b1cd4e23e4a">
-        <span class="lib-entry-name">the memory hole</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc" data-lib-entity="rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc">
-        <span class="lib-entry-name">The object of power is power</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-only-recognised-purp-96d216234eb5" data-lib-entity="rule-recall-rule-the-only-recognised-purp-96d216234eb5">
-        <span class="lib-entry-name">The only recognised purpose of marriage was to beget children for the service of the Party</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-does-not-permi-c9db362afdc2" data-lib-entity="rule-recall-rule-the-party-does-not-permi-c9db362afdc2">
+        <span class="lib-entry-name">The Party does not permit divorce</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#rule-recall-rule-the-party-claimed-to-hav-130880c93f6e" data-lib-entity="rule-recall-rule-the-party-claimed-to-hav-130880c93f6e">
         <span class="lib-entry-name">The Party claimed to have liberated the proles from bondage</span>
@@ -848,110 +832,122 @@
       </a><a class="lib-entry" href="#rule-recall-rule-the-party-controls-all-r-d277086906d7" data-lib-entity="rule-recall-rule-the-party-controls-all-r-d277086906d7">
         <span class="lib-entry-name">The Party controls all records and memories</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-creates-human-19c00cbb0372" data-lib-entity="rule-recall-rule-the-party-creates-human-19c00cbb0372">
-        <span class="lib-entry-name">The Party creates human nature</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-he-loved-big-broth-c26cf8274fbb" data-lib-entity="expression-recall-expression-he-loved-big-broth-c26cf8274fbb">
+        <span class="lib-entry-name">He loved Big Brother</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-does-not-permi-c9db362afdc2" data-lib-entity="rule-recall-rule-the-party-does-not-permi-c9db362afdc2">
-        <span class="lib-entry-name">The Party does not permit divorce</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-if-there-is-hope-i-0186c6832dd0" data-lib-entity="expression-recall-expression-if-there-is-hope-i-0186c6832dd0">
+        <span class="lib-entry-name">If there is hope, it lies in the proles</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-immortal-9a52a5d72bdc" data-lib-entity="rule-recall-rule-the-party-is-immortal-9a52a5d72bdc">
-        <span class="lib-entry-name">The Party is immortal</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-memory-hole-8b1cd4e23e4a" data-lib-entity="expression-recall-expression-the-memory-hole-8b1cd4e23e4a">
+        <span class="lib-entry-name">the memory hole</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-infallible-d93b516ccb7b" data-lib-entity="rule-recall-rule-the-party-is-infallible-d93b516ccb7b">
-        <span class="lib-entry-name">The Party is infallible</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-oranges-and-lemons-43ac705ba9ef" data-lib-entity="expression-recall-expression-oranges-and-lemons-43ac705ba9ef">
+        <span class="lib-entry-name">Oranges and lemons</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c" data-lib-entity="rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c">
-        <span class="lib-entry-name">The Party seeks power entirely for its own sake</span>
+      </a><a class="lib-entry" href="#state-recall-state-49e18261d1ad" data-lib-entity="state-recall-state-49e18261d1ad">
+        <span class="lib-entry-name">Superstate of Oceania</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4" data-lib-entity="rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4">
-        <span class="lib-entry-name">The Party taught that the proles were natural inferiors</span>
+      </a><a class="lib-entry" href="#time-recall-time-2050-3863f2627d00" data-lib-entity="time-recall-time-2050-3863f2627d00">
+        <span class="lib-entry-name">2050</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-party-was-trying-to-7d237877197f" data-lib-entity="rule-recall-rule-the-party-was-trying-to-7d237877197f">
-        <span class="lib-entry-name">The Party was trying to kill the sex instinct</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-the-past-is-alterable-968e8fbd7210" data-lib-entity="rule-recall-rule-the-past-is-alterable-968e8fbd7210">
-        <span class="lib-entry-name">The past is alterable</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-the-place-where-there-bd0ac89a163a" data-lib-entity="concept-recall-concept-the-place-where-there-bd0ac89a163a">
-        <span class="lib-entry-name">The place where there is no darkness</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-the-room-above-mr-ch-d996dc963c72" data-lib-entity="location-recall-location-the-room-above-mr-ch-d996dc963c72">
-        <span class="lib-entry-name">The room above Mr Charrington's shop</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-the-telescreen-8f1d3f00e7bf" data-lib-entity="expression-recall-expression-the-telescreen-8f1d3f00e7bf">
-        <span class="lib-entry-name">the telescreen</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-1fc4ef50a491" data-lib-entity="object-recall-object-1fc4ef50a491">
-        <span class="lib-entry-name">The Theory and Practice of Oligarchical Collectivism</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-the-two-minutes-ha-e04f1b223bd4" data-lib-entity="expression-recall-expression-the-two-minutes-ha-e04f1b223bd4">
-        <span class="lib-entry-name">the Two Minutes Hate</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-thoughtcrime-da4c4792e6d9" data-lib-entity="rule-recall-rule-thoughtcrime-da4c4792e6d9">
-        <span class="lib-entry-name">Thoughtcrime</span>
+      </a><a class="lib-entry" href="#character-recall-character-ampleforth-a67df3ec6b21" data-lib-entity="character-recall-character-ampleforth-a67df3ec6b21">
+        <span class="lib-entry-name">Ampleforth</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#character-recall-character-tillotson-a505016ae14f" data-lib-entity="character-recall-character-tillotson-a505016ae14f">
         <span class="lib-entry-name">Tillotson</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-times-50540997508d" data-lib-entity="organization-recall-organization-times-50540997508d">
-        <span class="lib-entry-name">Times</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-6ae313e3df9f" data-lib-entity="event-recall-event-6ae313e3df9f">
-        <span class="lib-entry-name">Two Minutes Hate Rally</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-54f77004acff" data-lib-entity="object-recall-object-54f77004acff">
-        <span class="lib-entry-name">two-way television</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-under-the-spreadin-f6998db97286" data-lib-entity="expression-recall-expression-under-the-spreadin-f6998db97286">
-        <span class="lib-entry-name">Under the spreading chestnut tree</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-unperson-e1d96434d280" data-lib-entity="concept-recall-concept-unperson-e1d96434d280">
-        <span class="lib-entry-name">Unperson</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#concept-recall-concept-vaporized-c01766255365" data-lib-entity="concept-recall-concept-vaporized-c01766255365">
-        <span class="lib-entry-name">Vaporized</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-8b8ff17a25ba" data-lib-entity="object-recall-object-8b8ff17a25ba">
-        <span class="lib-entry-name">Victory Cigarettes</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#object-recall-object-ad581e034f70" data-lib-entity="object-recall-object-ad581e034f70">
-        <span class="lib-entry-name">Victory Gin</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-victory-mansions-398f0df569f9" data-lib-entity="location-recall-location-victory-mansions-398f0df569f9">
-        <span class="lib-entry-name">Victory Mansions</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#location-recall-location-victory-square-b9d348acaf31" data-lib-entity="location-recall-location-victory-square-b9d348acaf31">
-        <span class="lib-entry-name">Victory Square</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-war-is-peace-b1bf67ef5931" data-lib-entity="rule-recall-rule-war-is-peace-b1bf67ef5931">
-        <span class="lib-entry-name">War is Peace</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-we-are-the-dead-52620919e40a" data-lib-entity="expression-recall-expression-we-are-the-dead-52620919e40a">
-        <span class="lib-entry-name">We are the dead</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#expression-recall-expression-who-controls-the-p-e47d9985e9ad" data-lib-entity="expression-recall-expression-who-controls-the-p-e47d9985e9ad">
-        <span class="lib-entry-name">Who controls the past controls the future</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#rule-recall-rule-who-controls-the-past-co-859dd13f2001" data-lib-entity="rule-recall-rule-who-controls-the-past-co-859dd13f2001">
-        <span class="lib-entry-name">Who controls the past controls the future: who controls the present controls the past</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-wilsher-0f73619360fb" data-lib-entity="character-recall-character-wilsher-0f73619360fb">
-        <span class="lib-entry-name">Wilsher</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#event-recall-event-fac8249e5894" data-lib-entity="event-recall-event-fac8249e5894">
-        <span class="lib-entry-name">Winston buys a diary</span>
+      </a><a class="lib-entry" href="#character-recall-character-martin-f5cb6653498c" data-lib-entity="character-recall-character-martin-f5cb6653498c">
+        <span class="lib-entry-name">Martin</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#event-recall-event-c49ee49b5a01" data-lib-entity="event-recall-event-c49ee49b5a01">
         <span class="lib-entry-name">Winston loves Big Brother</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#character-recall-character-winston-smith-1910e4339629" data-lib-entity="character-recall-character-winston-smith-1910e4339629">
-        <span class="lib-entry-name">Winston Smith</span>
-        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a><a class="lib-entry" href="#event-recall-event-winston-smith-begins-wr-d27434d35a20" data-lib-entity="event-recall-event-winston-smith-begins-wr-d27434d35a20">
         <span class="lib-entry-name">Winston Smith begins writing a diary</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
-      </a><a class="lib-entry" href="#organization-recall-organization-youth-league-519605e1140b" data-lib-entity="organization-recall-organization-youth-league-519605e1140b">
-        <span class="lib-entry-name">Youth League</span>
+      </a><a class="lib-entry" href="#event-recall-event-c81928d3451f" data-lib-entity="event-recall-event-c81928d3451f">
+        <span class="lib-entry-name">Encounter with a prostitute</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-147e95a26508" data-lib-entity="event-recall-event-147e95a26508">
+        <span class="lib-entry-name">Meeting in the canteen</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-ad581e034f70" data-lib-entity="object-recall-object-ad581e034f70">
+        <span class="lib-entry-name">Victory Gin</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-individual-is-only-a-a93b61f512d5" data-lib-entity="rule-recall-rule-the-individual-is-only-a-a93b61f512d5">
+        <span class="lib-entry-name">The individual is only a cell</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#state-recall-state-ad61843aaf99" data-lib-entity="state-recall-state-ad61843aaf99">
+        <span class="lib-entry-name">Superstate of Eastasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#time-recall-time-1984-db6e36e8c14e" data-lib-entity="time-recall-time-1984-db6e36e8c14e">
+        <span class="lib-entry-name">1984</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-golden-country-16c8d8c98cd8" data-lib-entity="location-recall-location-the-golden-country-16c8d8c98cd8">
+        <span class="lib-entry-name">The Golden Country</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-church-belfry-f3200ead5baa" data-lib-entity="location-recall-location-the-church-belfry-f3200ead5baa">
+        <span class="lib-entry-name">The church belfry</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-pornosec-5da49df5f175" data-lib-entity="organization-recall-organization-pornosec-5da49df5f175">
+        <span class="lib-entry-name">Pornosec</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-unperson-e1d96434d280" data-lib-entity="concept-recall-concept-unperson-e1d96434d280">
+        <span class="lib-entry-name">Unperson</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-duckspeak-f755d00be5fe" data-lib-entity="concept-recall-concept-duckspeak-f755d00be5fe">
+        <span class="lib-entry-name">Duckspeak</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-vaporized-c01766255365" data-lib-entity="concept-recall-concept-vaporized-c01766255365">
+        <span class="lib-entry-name">Vaporized</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-the-place-where-there-bd0ac89a163a" data-lib-entity="concept-recall-concept-the-place-where-there-bd0ac89a163a">
+        <span class="lib-entry-name">The place where there is no darkness</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-1fc4ef50a491" data-lib-entity="object-recall-object-1fc4ef50a491">
+        <span class="lib-entry-name">The Theory and Practice of Oligarchical Collectivism</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-54f77004acff" data-lib-entity="object-recall-object-54f77004acff">
+        <span class="lib-entry-name">two-way television</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-e7d123b60501" data-lib-entity="object-recall-object-e7d123b60501">
+        <span class="lib-entry-name">Red Sash</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-under-the-spreadin-f6998db97286" data-lib-entity="expression-recall-expression-under-the-spreadin-f6998db97286">
+        <span class="lib-entry-name">Under the spreading chestnut tree</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-big-brother-is-wat-9f63b2a5916e" data-lib-entity="expression-recall-expression-big-brother-is-wat-9f63b2a5916e">
+        <span class="lib-entry-name">Big Brother is watching you</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-we-are-the-dead-52620919e40a" data-lib-entity="expression-recall-expression-we-are-the-dead-52620919e40a">
+        <span class="lib-entry-name">We are the dead</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#state-recall-state-7a89c814c991" data-lib-entity="state-recall-state-7a89c814c991">
+        <span class="lib-entry-name">Superstate of Eurasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-wilsher-0f73619360fb" data-lib-entity="character-recall-character-wilsher-0f73619360fb">
+        <span class="lib-entry-name">Wilsher</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-lottery-dbc8b0a94f92" data-lib-entity="organization-recall-organization-lottery-dbc8b0a94f92">
+        <span class="lib-entry-name">Lottery</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-community-centre-822f7b350e84" data-lib-entity="organization-recall-organization-community-centre-822f7b350e84">
+        <span class="lib-entry-name">Community Centre</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-5b78f02317e9" data-lib-entity="event-recall-event-5b78f02317e9">
+        <span class="lib-entry-name">Discovery of the photograph evidence</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-9a40472f05b1" data-lib-entity="event-recall-event-9a40472f05b1">
+        <span class="lib-entry-name">First love-making in the woods</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-first-love-making-in-t-80c85a56dcbb" data-lib-entity="action-recall-action-first-love-making-in-t-80c85a56dcbb">
+        <span class="lib-entry-name">First love-making in the wood</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-music-department-0239850c78f0" data-lib-entity="organization-recall-organization-music-department-0239850c78f0">
+        <span class="lib-entry-name">Music Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-f2f727990a57" data-lib-entity="object-recall-object-f2f727990a57">
+        <span class="lib-entry-name">floating sea fortress</span>
         <span class="lib-entry-meta">Nineteen Eighty-Four</span>
       </a></div></article>
 
@@ -1133,6 +1129,7 @@
             <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
           </a>
           <p class="footer-tagline">Read the book as a living encyclopedia.</p>
+          <a class="footer-made-by" href="https://readifyai.com" target="_blank" rel="noopener">Made by Readify</a>
         </div>
         <nav class="footer-cols" aria-label="Footer">
           <div class="footer-col">
@@ -1146,7 +1143,7 @@
             <a href="https://file-tk.readifyai.com/install/android/readify.apk" target="_blank" rel="noopener">Download Android APK</a>
           </div>
           <div class="footer-col">
-            <p class="footer-col-title">Company</p>
+            <p class="footer-col-title">Readify</p>
             <a href="https://readifyai.com" target="_blank" rel="noopener">About</a>
             <a href="https://app.readifyai.com/contactus" target="_blank" rel="noopener">Contact</a>
             <a href="https://readifyai.com/blog" target="_blank" rel="noopener">Blog</a>
@@ -1236,8 +1233,8 @@
   <script src="./data/entity_storyflows.js?v=1" defer></script>
   <script src="./story.js?v=26" defer></script>
   <script src="./data/library.js?v=4" defer></script>
-  <script src="./library.js?v=24" defer></script>
-  <script src="./app.js?v=141" defer></script>
-  <script src="./promo-banner.js?v=7" defer></script>
+  <script src="./library.js?v=25" defer></script>
+  <script src="./app.js?v=143" defer></script>
+  <script src="./promo-banner.js?v=8" defer></script>
 </body>
 </html>

@@ -3,8 +3,8 @@
  * Prerender the library pages to real paths, so search engines get every
  * book and entry link in the HTML they download (no JavaScript needed).
  *
- *   books/  books/page/<n>/  books/popular/
- *   entries/  entries/page/<n>/  entries/popular/
+ *   books/  books/page/<n>/
+ *   entries/  entries/page/<n>/
  *   categories/<id>/  categories/<id>/page/<n>/
  *
  * Each page is a copy of index.html with <base> pointing back to the site

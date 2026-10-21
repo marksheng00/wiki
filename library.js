@@ -1,7 +1,7 @@
 /**
- * Library: the books home (#all-books), popular books (#books) and one page per category
- * (#categories/<id>). Both are hub pages: every book, every category and the
- * popular entries link from here, and each category page links to the rest.
+ * Library: all books (the home), all entries and one page per category
+ * (categories/<id>/), each most popular first. They are hub pages: every
+ * book, entry and category links from them.
  * Data comes from window.READIPEDIA_LIBRARY (data/library.js); app.js owns
  * routing and history and announces each library page with 'readipedia:library'.
  * The one book this site hosts opens its wiki here; every other book opens on
@@ -24,8 +24,6 @@
     en: {
       library: 'Library',
       categories: 'Categories',
-      popular: 'Popular books',
-      entries: 'Popular entries',
       allBooks: 'All books',
       allEntries: 'All entries',
       all: 'All',
@@ -42,8 +40,6 @@
     zh: {
       library: '书库',
       categories: '分类',
-      popular: '热门书籍',
-      entries: '热门词条',
       allBooks: '全部书籍',
       allEntries: '全部词条',
       all: '全部',
@@ -82,8 +78,8 @@
 
   /* ---------- Model ---------- */
 
-  // Every book as one shape; the hosted book leads its category and the
-  // popular list.
+  // Every book as one shape, most popular first: the hosted book, then the
+  // popular list, then the rest in catalogue order.
   function allBooks() {
     const d = data();
     const local = d.local;
@@ -95,7 +91,9 @@
       cover: local.cover,
       local: true
     };
-    return [hosted].concat(d.books);
+    const rank = new Map(d.popular.map((slug, i) => [slug, i]));
+    const books = d.books.map((b, i) => ({ b, i })).sort((x, y) => (rank.get(x.b.slug) ?? 1e6 + x.i) - (rank.get(y.b.slug) ?? 1e6 + y.i)).map((x) => x.b);
+    return [hosted].concat(books);
   }
 
   function categoriesWithBooks() {
@@ -105,15 +103,11 @@
       .filter((cat) => cat.books.length);
   }
 
-  function popularBooks() {
-    const books = allBooks();
-    const bySlug = new Map(books.map((b) => [b.slug, b]));
-    return [books[0]].concat(data().popular.map((slug) => bySlug.get(slug)).filter(Boolean));
-  }
-
   // Library tabs live at their own hashes; categories under #categories/.
   // Real paths below the site root (app.js routes them; see libraryPath there).
-  const TABS = { all: 'books/popular/', entries: 'entries/popular/', 'all-books': 'books/', 'all-entries': 'entries/' };
+  const TABS = { 'all-books': 'books/', 'all-entries': 'entries/' };
+  // The old popular tabs are now the top of all books and all entries.
+  const ALIAS = { all: 'all-books', entries: 'all-entries' };
   const catHash = (id) => window.ReadipediaNav?.libraryPath?.(id) || TABS[id] || `categories/${id}/`;
 
   function bookHref(book, l) {
@@ -203,11 +197,8 @@
     return localKinds('en').reduce((n, k) => n + k.entries.length, 0) + data().entries.length;
   }
 
-  // The popular entries page: every entry of the hosted book by kind, then
-  // the popular entries on Readify.
-  // Entries across books, one flat list: each row is the entry and its book.
-  // Popular entries take turns between books, best first, so no book fills a
-  // run; all entries go in name order.
+  // Entries across books, one flat list, most popular first: each row is the
+  // entry and its book. Books take turns, best first, so no book fills a run.
   function entryItems(l) {
     const local = data().local[l].title;
     const localItems = localKinds(l)
@@ -249,19 +240,8 @@
     return data().categories.filter((cat) => present.has(cat.id)).map((cat) => ({ key: cat.id, label: cat[l] }));
   }
 
-  function entriesPage(l, c) {
-    const all = entryItems(l);
-    const rows = applyFilter(all, (x) => x.kind).slice(0, POPULAR_ENTRIES).map((x) => x.html);
-    return `
-      <h1 class="lib-sr-only" id="library-title">${esc(c.entries)}</h1>
-      ${filterBar(entryKindOptions(all, l), c)}
-      <div class="lib-entries">${rows.join('')}</div>
-    `;
-  }
-
   function allEntriesPage(l, c) {
-    const collator = new Intl.Collator(l === 'zh' ? 'zh-Hans-CN-u-co-pinyin' : 'en', { sensitivity: 'base' });
-    const all = entryItems(l).slice().sort((a, b) => collator.compare(a.name, b.name));
+    const all = entryItems(l);
     const { shown, nav } = paged(applyFilter(all, (x) => x.kind), ENTRIES_PER_PAGE, 'all-entries', c);
     return `
       <h1 class="lib-sr-only" id="library-title">${esc(c.allEntries)}</h1>
@@ -271,7 +251,8 @@
     `;
   }
 
-  // All books: every book, flat and paged, like popular books.
+  // All books: every book, flat and paged, most popular first. The heading is
+  // for screen readers and search engines only; the sidebar names the page.
   function allBooksPage(l, c) {
     const books = allBooks();
     const { shown, nav } = paged(applyFilter(books, (b) => b.cat), ALL_BOOKS_PER_PAGE, 'all-books', c);
@@ -284,25 +265,11 @@
   }
 
 
-
-
-  // Popular books: just the books, laid out flat. The heading is for screen
-  // readers and search engines only; the sidebar already names the page.
-  function homePage(l, c) {
-    const books = popularBooks();
-    return `
-      <h1 class="lib-sr-only" id="library-title">${esc(c.popular)}</h1>
-      ${filterBar(bookCatOptions(books, l), c)}
-      ${cards(applyFilter(books, (b) => b.cat), l, c)}
-    `;
-  }
-
   // A category is paged; page 1 lives at #categories/<id>, the rest at
   // #categories/<id>/<n>, so every page is its own link.
   const PER_PAGE = 48;
   const ALL_BOOKS_PER_PAGE = 48;
   const ENTRIES_PER_PAGE = 180;
-  const POPULAR_ENTRIES = 60;
   const pageHash = (id, n) => catHash(n > 1 ? `${id}/${n}` : id);
 
   function pager(id, current, total, c) {
@@ -346,9 +313,7 @@
     nav.innerHTML = `
       <div class="docs-group-label">${esc(c.library)}</div>
       ${row('all-books', c.allBooks, allBooks().length)}
-      ${row('all', c.popular, popularBooks().length)}
       ${row('all-entries', c.allEntries, entryCount())}
-      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
       <div class="docs-group-label lib-nav-group">${esc(c.categories)}</div>
       ${cats.map((cat) => row(cat.id, cat[l], cat.books.length)).join('')}
     `;
@@ -409,7 +374,7 @@
     if (!(page in TABS) && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all-books';
     root.dataset.lang = l;
     root.dataset.page = page;
-    const pages = { all: homePage, entries: entriesPage, 'all-books': allBooksPage, 'all-entries': allEntriesPage };
+    const pages = { 'all-books': allBooksPage, 'all-entries': allEntriesPage };
     root.innerHTML = (pages[page] || ((ll, cc) => categoryPage(page, ll, cc)))(l, c);
     renderNav(l, c);
     syncTitle();
@@ -428,8 +393,8 @@
     if (!view?.classList.contains('active')) return;
     const c = COPY[lang()];
     const cat = categoriesWithBooks().find((x) => x.id === page);
-    const tab = { all: c.popular, entries: c.entries, 'all-books': c.allBooks, 'all-entries': c.allEntries }[page];
-    const base = tab || (cat ? cat[lang()] : c.popular);
+    const tab = { 'all-books': c.allBooks, 'all-entries': c.allEntries }[page];
+    const base = tab || (cat ? cat[lang()] : c.allBooks);
     const name = pageNum > 1 ? `${base} · ${c.pageN(pageNum)}` : base;
     document.title = c.title(name ? `${name} · ${c.library}` : c.library);
   }
@@ -485,7 +450,8 @@
     document.getElementById('library-nav')?.addEventListener('click', onClick);
 
     document.addEventListener('readipedia:library', (e) => {
-      const [next, n] = String(e.detail?.category || 'all-books').split('/');
+      const [raw, n] = String(e.detail?.category || 'all-books').split('/');
+      const next = ALIAS[raw] || raw;
       if (next !== page) filter = 'all';
       page = next;
       pageNum = Number(n) || 1;
@@ -521,7 +487,7 @@
     const l = lang();
     const other = l === 'zh' ? 'en' : 'zh';
     const c = COPY[l];
-    const pages = [['all-books', c.allBooks], ['all', c.popular], ['all-entries', c.allEntries], ['entries', c.entries]]
+    const pages = [['all-books', c.allBooks], ['all-entries', c.allEntries]]
       .map(([id, label]) => ({ kind: 'library', cat: id, label, hint: c.library }))
       .concat(categoriesWithBooks().map((cat) => ({ kind: 'library', cat: cat.id, label: cat[l], hint: c.categories })));
     const books = allBooks().map((b) => ({

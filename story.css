@@ -8,11 +8,9 @@
 /* No scrollbar on the scene text either; it still scrolls. */
 .sl-viewport .liblib-narrative-scrollbox { overscroll-behavior: contain; scrollbar-width: none; }
 .sl-viewport .liblib-narrative-scrollbox::-webkit-scrollbar { display: none; }
-.sl-viewport .liblib-narrative-scrollbox.at-end { -webkit-mask-image: none; mask-image: none; }
-.sl-viewport .liblib-narrative-scrollbox.at-end.scrolled {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 14px);
-  mask-image: linear-gradient(to bottom, transparent 0, black 14px);
-}
+/* The td fade over the last 24px always stays; the text ends 24px above
+   the bottom so its last line is never under the fade. */
+.sl-viewport .liblib-hero-desc { padding-bottom: 24px; }
 .sl-viewport {
   max-height: calc(100dvh - var(--header-h) - 140px);
   min-height: 320px;

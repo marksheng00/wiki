@@ -6,12 +6,12 @@
    Here only: the picture never pushes the thumbnails off the first screen,
    and touch swipes sideways go to story.js. */
 .sl-viewport {
-  max-height: calc(100dvh - var(--header-h) - 210px);
+  max-height: calc(100dvh - var(--header-h) - 140px);
   min-height: 320px;
   touch-action: pan-y;
 }
 @media (max-width: 768px) {
-  .sl-viewport { max-height: calc(100dvh - var(--header-h) - 190px); }
+  .sl-viewport { max-height: calc(100dvh - var(--header-h) - 130px); }
 }
 
 /* Desktop: StoryFlow sections use the entity page layout, picture floated

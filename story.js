@@ -104,6 +104,19 @@
     });
     stage?.addEventListener('pointercancel', () => { start = null; });
 
+    // With the pointer over the picture, the wheel scrolls the scene text;
+    // the page only scrolls once the text is at its top or bottom.
+    stage?.addEventListener('wheel', (e) => {
+      const box = el('liblib-narrative-scrollbox');
+      if (!box || e.ctrlKey) return;
+      const max = box.scrollHeight - box.clientHeight;
+      if (max <= 1) return;
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      if ((dy < 0 && box.scrollTop <= 0) || (dy > 0 && box.scrollTop >= max - 1)) return;
+      e.preventDefault();
+      box.scrollBy({ top: dy, behavior: 'instant' });
+    }, { passive: false });
+
     // Changing scene rewrites the address in place, so Back leaves the page
     // instead of stepping back through every scene.
     document.addEventListener('readipedia:scene', (e) => {

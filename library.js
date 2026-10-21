@@ -26,6 +26,8 @@
       categories: 'Categories',
       popular: 'Popular books',
       entries: 'Popular entries',
+      allBooks: 'All books',
+      allEntries: 'All entries',
       pages: 'Pages',
       pageN: (n) => `Page ${n}`,
       prevPage: 'Previous page',
@@ -40,6 +42,8 @@
       categories: '分类',
       popular: '热门书籍',
       entries: '热门词条',
+      allBooks: '全部书籍',
+      allEntries: '全部词条',
       pages: '分页',
       pageN: (n) => `第 ${n} 页`,
       prevPage: '上一页',
@@ -102,7 +106,9 @@
     return [books[0]].concat(data().popular.map((slug) => bySlug.get(slug)).filter(Boolean));
   }
 
-  const catHash = (id) => (id === 'all' ? '#books' : id === 'entries' ? '#entries' : `#categories/${id}`);
+  // Library tabs live at their own hashes; categories under #categories/.
+  const TABS = { all: '#books', entries: '#entries', 'all-books': '#all-books', 'all-entries': '#all-entries' };
+  const catHash = (id) => TABS[id] || `#categories/${id}`;
 
   function bookHref(book, l) {
     if (book.local) return '#book';
@@ -202,24 +208,29 @@
 
   // The popular entries page: every entry of the hosted book by kind, then
   // the popular entries on Readify.
-  // Popular entries across books, one flat list: each row is the entry and
-  // its book. Books take turns, best entries first, so no book fills a run.
-  function entriesPage(l, c) {
+  // Entries across books, one flat list: each row is the entry and its book.
+  // Popular entries take turns between books, best first, so no book fills a
+  // run; all entries go in name order.
+  function entryItems(l) {
     const local = data().local[l].title;
-    const localRows = localKinds(l)
-      .flatMap((k) => k.entries.map((e) => ({ rank: e.rank, html: entryRow(`#${e.id}`, e.name, dotted(local), e.id) })))
-      .sort((a, b) => b.rank - a.rank)
-      .map((r) => r.html);
+    const localItems = localKinds(l)
+      .flatMap((k) => k.entries.map((e) => ({ rank: e.rank, name: e.name, html: entryRow(`#${e.id}`, e.name, dotted(local), e.id) })))
+      .sort((a, b) => b.rank - a.rank);
     const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
-    const readifyRows = data().entries.map((e) => {
+    const readifyItems = data().entries.map((e) => {
       const book = bySlug.get(e.book);
-      return entryRow(entryHref(e, book, l), e[l][0], dotted(book[l][0]));
+      return { name: e[l][0], html: entryRow(entryHref(e, book, l), e[l][0], dotted(book[l][0])) };
     });
-    const rows = [];
-    for (let i = 0; i < Math.max(localRows.length, readifyRows.length); i += 1) {
-      if (localRows[i]) rows.push(localRows[i]);
-      if (readifyRows[i]) rows.push(readifyRows[i]);
+    const mixed = [];
+    for (let i = 0; i < Math.max(localItems.length, readifyItems.length); i += 1) {
+      if (localItems[i]) mixed.push(localItems[i]);
+      if (readifyItems[i]) mixed.push(readifyItems[i]);
     }
+    return mixed;
+  }
+
+  function entriesPage(l, c) {
+    const rows = entryItems(l).slice(0, POPULAR_ENTRIES).map((x) => x.html);
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.entries)}</h1></div>
@@ -227,6 +238,30 @@
       <div class="lib-entries">${rows.join('')}</div>
     `;
   }
+
+  function allEntriesPage(l, c) {
+    const collator = new Intl.Collator(l === 'zh' ? 'zh-Hans-CN-u-co-pinyin' : 'en', { sensitivity: 'base' });
+    const items = entryItems(l).slice().sort((a, b) => collator.compare(a.name, b.name));
+    const { shown, nav } = paged(items, ENTRIES_PER_PAGE, 'all-entries', c);
+    return `
+      <header class="article-masthead detail-head">
+        <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.allEntries)}</h1></div>
+      </header>
+      <div class="lib-entries">${shown.map((x) => x.html).join('')}</div>
+      ${nav}
+    `;
+  }
+
+  // All books: every book, flat and paged, like popular books.
+  function allBooksPage(l, c) {
+    const { shown, nav } = paged(allBooks(), ALL_BOOKS_PER_PAGE, 'all-books', c);
+    return `
+      <h1 class="lib-sr-only" id="library-title">${esc(c.allBooks)}</h1>
+      ${cards(shown, l, c)}
+      ${nav}
+    `;
+  }
+
 
 
 
@@ -242,6 +277,9 @@
   // A category is paged; page 1 lives at #categories/<id>, the rest at
   // #categories/<id>/<n>, so every page is its own link.
   const PER_PAGE = 12;
+  const ALL_BOOKS_PER_PAGE = 24;
+  const ENTRIES_PER_PAGE = 60;
+  const POPULAR_ENTRIES = 30;
   const pageHash = (id, n) => (n > 1 ? `${catHash(id)}/${n}` : catHash(id));
 
   function pager(id, current, total, c) {
@@ -255,11 +293,15 @@
     return `<nav class="lib-pager" aria-label="${esc(c.pages)}">${prev}<div class="lib-pages">${pages}</div>${next}</nav>`;
   }
 
+  function paged(items, per, id, c) {
+    const total = Math.max(1, Math.ceil(items.length / per));
+    const current = Math.min(Math.max(1, pageNum), total);
+    return { shown: items.slice((current - 1) * per, current * per), nav: pager(id, current, total, c) };
+  }
+
   function categoryPage(id, l, c) {
     const cat = categoriesWithBooks().find((x) => x.id === id);
-    const total = Math.max(1, Math.ceil(cat.books.length / PER_PAGE));
-    const current = Math.min(Math.max(1, pageNum), total);
-    const shown = cat.books.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+    const { shown, nav } = paged(cat.books, PER_PAGE, id, c);
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row">
@@ -267,7 +309,7 @@
         </div>
       </header>
       ${cards(shown, l, c)}
-      ${pager(id, current, total, c)}
+      ${nav}
     `;
   }
 
@@ -281,7 +323,9 @@
     nav.innerHTML = `
       <div class="docs-group-label">${esc(c.library)}</div>
       ${row('all', c.popular, popularBooks().length)}
-      ${row('entries', c.entries, entryCount())}
+      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
+      ${row('all-books', c.allBooks, allBooks().length)}
+      ${row('all-entries', c.allEntries, entryCount())}
       <div class="docs-group-label lib-nav-group">${esc(c.categories)}</div>
       ${cats.map((cat) => row(cat.id, cat[l], cat.books.length)).join('')}
     `;
@@ -318,10 +362,11 @@
     if (!data() || !root) return;
     const l = lang();
     const c = COPY[l];
-    if (page !== 'all' && page !== 'entries' && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all';
+    if (!(page in TABS) && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all';
     root.dataset.lang = l;
     root.dataset.page = page;
-    root.innerHTML = page === 'all' ? homePage(l, c) : page === 'entries' ? entriesPage(l, c) : categoryPage(page, l, c);
+    const pages = { all: homePage, entries: entriesPage, 'all-books': allBooksPage, 'all-entries': allEntriesPage };
+    root.innerHTML = (pages[page] || ((ll, cc) => categoryPage(page, ll, cc)))(l, c);
     renderNav(l, c);
     syncTitle();
     if (how.inPlace) {
@@ -335,7 +380,9 @@
     if (!view?.classList.contains('active')) return;
     const c = COPY[lang()];
     const cat = categoriesWithBooks().find((x) => x.id === page);
-    const name = page === 'entries' ? c.entries : cat ? (pageNum > 1 ? `${cat[lang()]} · ${c.pageN(pageNum)}` : cat[lang()]) : c.popular;
+    const tab = { all: c.popular, entries: c.entries, 'all-books': c.allBooks, 'all-entries': c.allEntries }[page];
+    const base = tab || (cat ? cat[lang()] : c.popular);
+    const name = pageNum > 1 ? `${base} · ${c.pageN(pageNum)}` : base;
     document.title = c.title(name ? `${name} · ${c.library}` : c.library);
   }
 

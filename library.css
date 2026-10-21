@@ -46,7 +46,8 @@ body.is-library .btn-mobile-graph-launcher {
   white-space: nowrap;
   border: 0;
 }
-#view-library[data-page="all"] .lib-books { padding-top: 8px; }
+#view-library[data-page="all"] .lib-books,
+#view-library[data-page="all-books"] .lib-books { padding-top: 8px; }
 
 /* ---------- Books: cover, title, author. No frames. ---------- */
 .lib-books {

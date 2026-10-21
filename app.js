@@ -717,6 +717,8 @@
   function libraryCategoryFromHash(hash) {
     if (hash === '' || hash === 'books' || hash === 'view-library') return 'all';
     if (hash === 'entries') return 'entries';
+    const all = /^(all-books|all-entries)(?:\/(\d+))?$/.exec(hash);
+    if (all) return all[2] ? `${all[1]}/${all[2]}` : all[1];
     const match = /^categories\/([a-z-]+(?:\/\d+)?)$/.exec(hash);
     return match ? match[1] : null;
   }
@@ -724,7 +726,8 @@
   const libraryHash = () => {
     const page = state.libraryCategory || 'all';
     if (page === 'all') return '#books';
-    return page === 'entries' ? '#entries' : `#categories/${page}`;
+    if (page === 'entries' || /^all-(books|entries)(\/|$)/.test(page)) return `#${page}`;
+    return `#categories/${page}`;
   };
 
   async function openLibrary(options = {}) {

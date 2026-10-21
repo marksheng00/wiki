@@ -114,6 +114,21 @@
       box.scrollBy({ top: dy, behavior: 'instant' });
     }, { passive: false });
 
+    // The text box fades at the bottom only while there is more text below.
+    const box = el('liblib-narrative-scrollbox');
+    const syncFade = () => {
+      if (box) box.classList.toggle('at-end', box.scrollTop + box.clientHeight >= box.scrollHeight - 1);
+    };
+    box?.addEventListener('scroll', syncFade, { passive: true });
+    window.addEventListener('resize', syncFade);
+    // The text reveal moves lines while it plays, so check again once it ends.
+    box?.addEventListener('animationend', syncFade);
+    box?.addEventListener('transitionend', syncFade);
+    document.addEventListener('readipedia:scene', () => {
+      requestAnimationFrame(syncFade);
+      setTimeout(syncFade, 900);
+    });
+
     // Changing scene rewrites the address in place, so Back leaves the page
     // instead of stepping back through every scene.
     document.addEventListener('readipedia:scene', (e) => {

@@ -20721,7 +20721,7 @@
                    "storylines":  [
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-1-2025169e6643-timeline.jpg",
-                                          "description":  "It was a bright cold day in April, and the clocks were striking thirteen. Winston Smith, his chin nuzzled into his breast in an effort to escape the vile wind, slipped quickly through the glass doors of Victory Mansions, though not quickly enough to prevent a swirl of gritty dust from entering along with him.\n\nThe hallway smelt of boiled cabbage and old rag mats. At one end of it a coloured poster, too large for indoor display, had been tacked to the wall. It depicted simply an enormous face, more than a metre wide: the face of a man of about forty-five, with a heavy black moustache and ruggedly handsome features. Winston made for the stairs. It was no use trying the lift. Even at the best of times it was seldom working, and at present the electric current was cut off during daylight hours. It was part of the economy drive in preparation for Hate Week. The flat was seven flights up, and Winston, who was thirty-nine and had a varicose ulcer above his right ankle, went slowly, resting several times on the way. On each landing, opposite the lift-shaft, the poster with the enormous face gazed from the wall. It was one of those pictures which are so contrived that the eyes follow you about when you move. BIG BROTHER IS WATCHING YOU, the caption beneath it ran.",
+                                          "description":  "Winston Smith slips through the glass doors of Victory Mansions on a bright cold April day, trying to escape the gritty wind. The hallway smells of boiled cabbage and old rag mats, and an enormous poster of Big Brother stares down at him with the caption 'Big Brother is watching you.' He takes the stairs because the lift is not working and the electric current is cut off during daylight hours as part of the economy drive for Hate Week. On each landing the poster follows him with its eyes.\nThe flat itself contains a telescreen that cannot be switched off completely. A fruity voice reads out pig-iron production figures. Winston looks out at the Ministry of Truth, the vast white pyramid carrying the Party slogans 'War is Peace', 'Freedom is Slavery' and 'Ignorance is Strength'. This opening scene establishes the surveillance, deprivation and ideological pressure that dominate his life.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-1-2025169e6643-timeline.jpg",
                                           "date":  "early morning, April 4, 1984",
                                           "title":  "Arrival at Victory Mansions",
@@ -20729,7 +20729,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-2-9bf848cb2386-timeline.jpg",
-                                          "description":  "Winston pours nearly a teacupful of Victory Gin fr",
+                                          "description":  "Winston pours nearly a teacupful of Victory Gin from a bottle with a plain white label. The oily, sickly liquid burns like nitric acid and makes the world look more cheerful for a moment. He takes a Victory Cigarette from a crumpled packet, but the tobacco falls out when he holds it upright. The second cigarette is more successful, and he sits down at the table to the left of the telescreen.\nFrom the table drawer he takes out a penholder, a bottle of ink, and a thick quarto-sized blank book with a red back and a marbled cover. The book is beautiful, with creamy paper yellowed by age, and Winston knows it is a compromising possession simply because he owns it.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-2-9bf848cb2386-timeline.jpg",
                                           "date":  "early morning, April 4, 1984, in Winston\u0027s flat",
                                           "title":  "Winston drinks Victory Gin",
@@ -20737,7 +20737,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-3-ad73e8f16307-timeline.jpg",
-                                          "description":  "Winston dips an old-fashioned pen into the ink and",
+                                          "description":  "Winston dips an old-fashioned pen into the ink and writes 'April 4th, 1984' in small clumsy letters. He feels helpless and wonders for whom he is writing this diary, for the future or for the unborn. The word doublethink comes into his mind, and he realizes the magnitude of what he is doing. He begins writing in panic, describing a war film he saw the night before, a film of refugees bombed in the Mediterranean, and the crowd's laughter at a fat man being shot by a helicopter.\nHe also recalls a woman in the lifeboat trying to shelter a small boy from bullets, and the audience's reaction. This memory leads him to remember the Two Minutes Hate that happened that morning, which is the real reason he decided to come home and begin the diary today.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-3-ad73e8f16307-timeline.jpg",
                                           "date":  "early morning, April 4, 1984",
                                           "title":  "Winston opens the diary",
@@ -20745,7 +20745,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-4-7a9ff683a126-timeline.jpg",
-                                          "description":  "Winston remembers seeing the blank book in the win",
+                                          "description":  "Winston remembers seeing the blank book in the window of a frowzy little junk-shop in a slummy quarter of London. He was immediately seized by an overwhelming desire to possess it. Party members were not supposed to go into ordinary shops, but the rule was not strictly kept because things like shoelaces and razor blades were hard to obtain anywhere else.\nHe slipped inside and bought the book for two dollars fifty, carrying it guiltily home in his briefcase. Even with nothing written in it, it was a compromising possession. The memory explains why the diary means so much to him and why he is willing to risk death to write in it.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-4-7a9ff683a126-timeline.jpg",
                                           "date":  "early morning, April 4, 1984, while writing",
                                           "title":  "Winston recalls buying the diary",
@@ -20753,7 +20753,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-5-7a1f66e8d525-timeline.jpg",
-                                          "description":  "While writing in the diary, Winston pours out a st",
+                                          "description":  "While writing in the diary, Winston pours out a stream of memories about a film he saw the previous night. The film shows a ship full of refugees being bombed, a fat man trying to swim away, a helicopter killing him, and then a lifeboat full of children. A middle-aged woman, possibly a Jewess, tries to protect a three-year-old boy, but a twenty-kilo bomb blows the boat to matchwood. The audience applauds, though a prole woman protests and is turned out.\nWinston stops writing because of cramp, but the memory of the film has clarified a different memory: the Two Minutes Hate that morning. The film's cruelty and the crowd's reaction show how the Party has deformed human feeling, and Winston's revulsion is part of what drives him to begin the diary.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-5-7a1f66e8d525-timeline.jpg",
                                           "date":  "early morning, April 4, 1984",
                                           "title":  "Winston writes about the war film",
@@ -20761,7 +20761,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-6-a2e8f9e16a46-timeline.jpg",
-                                          "description":  "In the Records Department of the Ministry of Truth",
+                                          "description":  "In the Records Department of the Ministry of Truth, Winston takes his place among the chairs grouped in front of the big telescreen. He sees two people he knows by sight: a dark-haired girl from the Fiction Department, whom he dislikes and suspects of being an agent of the Thought Police, and O'Brien, a member of the Inner Party. O'Brien sits in the same row, a couple of places away from Winston.\nA hideous grinding screech bursts from the telescreen, and the face of Emmanuel Goldstein, the Enemy of the People, flashes onto the screen. Goldstein is a renegade who once been a leading figure of the Party and is now the object of universal hatred. The Two Minutes Hate is a daily ritual in which the crowd works itself into fury against Goldstein and the armies of Eurasia.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-6-a2e8f9e16a46-timeline.jpg",
                                           "date":  "morning of April 4, 1984, at the Ministry of Truth",
                                           "title":  "The Two Minutes Hate begins",
@@ -20769,7 +20769,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-7-aacc9be0d19d-timeline.jpg",
-                                          "description":  "As the Hate reaches its climax, Winston catches O\u0027",
+                                          "description":  "As the Hate reaches its climax, Winston catches O'Brien's eye. O'Brien has taken off his spectacles and is resettling them on his nose in his characteristic gesture. For a fraction of a second, Winston feels certain that O'Brien is thinking the same thing as himself, and that an unmistakable message has passed between them. It seems to Winston that O'Brien is saying, 'I am on your side.'\nThen the flash of intelligence is gone, and O'Brien's face is as inscrutable as everyone else's. The incident lasts only a second or two, but it becomes a pivotal memory for Winston, keeping alive his hope that others besides himself are enemies of the Party.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-7-aacc9be0d19d-timeline.jpg",
                                           "date":  "during the Two Minutes Hate, April 4, 1984",
                                           "title":  "Eye contact between Winston and O\u0027Brien",
@@ -20777,7 +20777,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-8-68fe9e4c4641-timeline.jpg",
-                                          "description":  "Back in his flat, Winston discovers that while he ",
+                                          "description":  "Back in his flat, Winston discovers that while he sat helplessly musing he has been writing 'DOWN WITH BIG BROTHER' over and over again, filling half a page. He feels a twinge of panic, but he knows it makes no difference whether he writes it or not. The Thought Police will get him just the same, because he has committed the essential crime of thoughtcrime.\nHe writes desperately that they will shoot him and he does not care. Then he sits back, slightly ashamed, and lays down the pen. The next moment there is a knocking at the door, and his heart leaps with terror.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-8-68fe9e4c4641-timeline.jpg",
                                           "date":  "after returning home, April 4, 1984",
                                           "title":  "Winston writes Down with Big Brother",
@@ -20785,7 +20785,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-9-b9fc223e7685-timeline.jpg",
-                                          "description":  "Winston opens the door and finds Mrs Parsons, a co",
+                                          "description":  "Winston opens the door and finds Mrs Parsons, a colourless, crushed-looking woman, asking him to look at her blocked kitchen sink. He follows her into the Parsons' flat, which is dingy and full of children's games impedimenta. The kitchen sink is full of filthy greenish water that smells worse than ever of cabbage. Winston kneels down and examines the angle-joint of the pipe, hating the manual work.\nHe removes a clot of human hair that has blocked the pipe, cleaning his fingers as best he can in cold water. The incident shows the decay of Victory Mansions and the petty irritations of daily life under the Party.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-9-b9fc223e7685-timeline.jpg",
                                           "date":  "early afternoon of April 4, 1984",
                                           "title":  "Mrs Parsons asks Winston to fix the sink",
@@ -20793,7 +20793,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-10-bf24c746a25b-timeline.jpg",
-                                          "description":  "While Winston is in the Parsons\u0027 flat, the two chi",
+                                          "description":  "While Winston is in the Parsons' flat, the two children, a nine-year-old boy and a younger girl, leap out and point toy pistols at him, shouting 'Traitor!' and 'Thought-criminal!' They are dressed in the uniform of the Spies. The boy seems to have a calculating ferocity, and Winston feels that it is not altogether a game. As Winston leaves, the boy hits him on the back of the neck with a catapult.\nMrs Parsons drags her son back, but Winston is struck by the look of helpless fright on her face. The children's behavior illustrates how the Party has turned young people into ungovernable little savages who nevertheless worship the Party and are ready to denounce their own parents.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-10-bf24c746a25b-timeline.jpg",
                                           "date":  "afternoon of April 4, 1984",
                                           "title":  "Parsons\u0027 children menace Winston",
@@ -20801,7 +20801,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-11-2cb68f2f91e7-timeline.jpg",
-                                          "description":  "After returning to his flat, Winston thinks of O\u0027B",
+                                          "description":  "After returning to his flat, Winston thinks of O'Brien and remembers a dream he had seven years earlier. In the dream he was walking through a pitch-dark room, and someone said, 'We shall meet in the place where there is no darkness.' He later identified the voice as O'Brien's, though he cannot remember when or how. The words have taken on increasing significance over the years.\nWinston cannot be sure whether O'Brien is a friend or an enemy, but he feels a link of understanding between them. The phrase 'the place where there is no darkness' becomes a kind of code for their hidden connection.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-11-2cb68f2f91e7-timeline.jpg",
                                           "date":  "afternoon of April 4, 1984",
                                           "title":  "Winston recalls O\u0027Brien\u0027s dream message",
@@ -20809,7 +20809,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-12-16cb15c06713-timeline.jpg",
-                                          "description":  "The telescreen announces a glorious victory on the",
+                                          "description":  "The telescreen announces a glorious victory on the Malabar front, followed by the news that the chocolate ration is to be reduced from thirty grammes to twenty. Winston belches again, the gin wearing off and leaving a deflated feeling. The telescreen plays 'Oceania, 'tis for thee', and Winston stands to attention, though he is invisible in his alcove.\nHe reflects on the mutability of the past and the Party's power to change facts. The chocolate ration reduction is a small but telling example of the constant shortages and lies that define life in Oceania.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-12-16cb15c06713-timeline.jpg",
                                           "date":  "afternoon of April 4, 1984",
                                           "title":  "Chocolate ration reduced",
@@ -20817,7 +20817,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-13-b0e14a7641be-timeline.jpg",
-                                          "description":  "Winston writes in his diary: \u0027To the future or to ",
+                                          "description":  "Winston writes in his diary: 'To the future or to the past, to a time when thought is free, when men are different from one another and do not live alone - to a time when truth exists and what is done cannot be undone: From the age of uniformity, from the age of solitude, from the age of Big Brother, from the age of doublethink - greetings!' He reflects that he is already dead, and that thoughtcrime does not entail death: thoughtcrime is death.\nHe carefully scrubs the ink off his fingers with the gritty dark-brown soap, then hides the diary in the drawer, placing a grain of whitish dust on the cover so he can tell if it has been moved.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-13-b0e14a7641be-timeline.jpg",
                                           "date":  "late afternoon of April 4, 1984",
                                           "title":  "Winston writes a greeting to the future",
@@ -20825,7 +20825,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-14-5b767ef27112-timeline.jpg",
-                                          "description":  "Winston dreams of his mother, who disappeared when",
+                                          "description":  "Winston dreams of his mother, who disappeared when he was ten or eleven. In the dream she is sitting in a sinking ship with his baby sister in her arms, looking up at him through darkening water. He knows that they must die in order that he may remain alive, and there is no reproach in their faces. The dream makes him feel that his mother's death was tragic in a way no longer possible in his own time.\nSuddenly the dream changes, and Winston is standing on short springy turf in a place he calls the Golden Country. The dark-haired girl is coming towards him across the field, and with a single movement she tears off her clothes. He is overwhelmed not by desire but by admiration for the gesture, which seems to annihilate the whole culture of the Party. He wakes up with the word 'Shakespeare' on his lips.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-14-5b767ef27112-timeline.jpg",
                                           "date":  "night of April 4-5, 1984",
                                           "title":  "Dream of mother and the Golden Country",
@@ -20833,7 +20833,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-15-24449976db80-timeline.jpg",
-                                          "description":  "The telescreen gives an ear-splitting whistle at s",
+                                          "description":  "The telescreen gives an ear-splitting whistle at seven-fifteen, and Winston wrenches his body out of bed. He is naked, as pyjamas cost too many clothing coupons, and he puts on a dingy singlet and shorts. A piercing female voice orders the thirty-to-forty group to take their places for the Physical Jerks. Winston springs to attention in front of the telescreen and mechanically performs the exercises, wearing the required expression of grim enjoyment.\nA violent coughing fit attacks him, and the instructress singles him out by name, ordering him to bend lower. He manages to touch his toes for the first time in several years, but the experience fills him with hatred for the Party's regimentation of the body.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-15-24449976db80-timeline.jpg",
                                           "date":  "morning of April 5, 1984",
                                           "title":  "Physical Jerks",
@@ -20841,7 +20841,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-16-339653606b10-timeline.jpg",
-                                          "description":  "While exercising, Winston tries to remember his ch",
+                                          "description":  "While exercising, Winston tries to remember his childhood. He recalls an air raid that took everyone by surprise, perhaps when the atomic bomb fell on Colchester. He remembers his father's hand clutching his own as they hurried down a spiral staircase into a Tube station, his mother following far behind with his baby sister. In the crowded station an old man repeats over and over, 'We didn't ought to 'ave trusted 'em.'\nWinston cannot remember which 'buggers' the old man meant. He reflects that since about that time, war has been literally continuous, though the enemy has changed. The Party controls all records, so the past is whatever the Party decides it was.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-16-339653606b10-timeline.jpg",
                                           "date":  "during Physical Jerks, morning of April 5, 1984",
                                           "title":  "Childhood memory of the Tube station",
@@ -20849,7 +20849,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-17-ab8fc503867c-timeline.jpg",
-                                          "description":  "Winston pulls the speakwrite towards him, blows th",
+                                          "description":  "Winston pulls the speakwrite towards him, blows the dust from its mouthpiece, and puts on his spectacles. Four small cylinders of paper have flopped out of the pneumatic tube, each containing a message that requires him to alter or 'rectify' some document. He examines the messages, which refer to a speech by Big Brother, production forecasts, and a chocolate ration promise.\nThe work of the Records Department is to rewrite the past so that all records agree with the Party's current needs. Winston disposes of routine messages and sets aside the fourth, which is a more intricate and responsible job.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-17-ab8fc503867c-timeline.jpg",
                                           "date":  "morning of April 5, 1984",
                                           "title":  "Winston starts work at the Ministry of Truth",
@@ -20857,7 +20857,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-18-f7bf81ffd300-timeline.jpg",
-                                          "description":  "One of Winston\u0027s routine tasks is to correct a pro",
+                                          "description":  "One of Winston's routine tasks is to correct a promise made by the Ministry of Plenty in February that there would be no reduction of the chocolate ration during 1984. Since the ration is actually to be reduced from thirty grammes to twenty at the end of the week, Winston substitutes a warning that it may be necessary to reduce the ration in April. He drops the original message and his notes into the memory hole.\nHe reflects that such falsification is applied not only to newspapers but to books, films, photographs and every kind of record. History is a palimpsest, scraped clean and re-inscribed as often as necessary.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-18-f7bf81ffd300-timeline.jpg",
                                           "date":  "morning of April 5, 1984",
                                           "title":  "Winston rectifies the chocolate pledge",
@@ -20865,7 +20865,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-19-f57d87d0ca63-timeline.jpg",
-                                          "description":  "Winston undertakes the main job of the morning: re",
+                                          "description":  "Winston undertakes the main job of the morning: rewriting Big Brother's Order for the Day, which had praised a now-disgraced Inner Party member named Withers. Since Withers has become an unperson, Winston decides to replace him with a fictitious hero named Comrade Ogilvy. He dictates a biography in Big Brother's familiar style, describing Ogilvy's childhood in the Spies, his denunciation of his uncle to the Thought Police, and his heroic death in action.\nOgilvy never existed, but after a few lines of print and a couple of faked photographs he will exist in the past as authentically as Julius Caesar. Winston feels a profound conviction that his version will be the one chosen by the Party.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-19-f57d87d0ca63-timeline.jpg",
                                           "date":  "morning of April 5, 1984",
                                           "title":  "Winston fabricates Comrade Ogilvy",
@@ -20873,7 +20873,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-20-0b140febda97-timeline.jpg",
-                                          "description":  "In the low-ceilinged canteen, Winston meets his fr",
+                                          "description":  "In the low-ceilinged canteen, Winston meets his friend Syme, a philologist working on the Eleventh Edition of the Newspeak Dictionary. Syme asks for razor blades, and Winston lies that he has none. They get their regulation lunch of pinkish-grey stew, bread, cheese and Victory Coffee, and Sit at a table under a telescreen.\nSyme talks about the hangings and about Newspeak, and Winston is both fascinated and repelled by him. He thinks that Syme is too intelligent and will be vaporized sooner or later.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-20-0b140febda97-timeline.jpg",
                                           "date":  "midday, April 5, 1984, in the Ministry canteen",
                                           "title":  "Lunch with Syme",
@@ -20881,7 +20881,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-21-c1ce5e84000d-timeline.jpg",
-                                          "description":  "Syme explains that the Eleventh Edition of the New",
+                                          "description":  "Syme explains that the Eleventh Edition of the Newspeak Dictionary is the definitive edition, and that the aim of Newspeak is to narrow the range of thought. Words are being destroyed every day, and the language is being cut down to the bone. He gives examples such as 'ungood' instead of 'bad' and 'doubleplusgood' for something even better. The intention is to make thoughtcrime literally impossible, because there will be no words in which to express it.\nSyme says that by 2050 no one will be able to understand a conversation like the one they are having. Winston nearly says 'Except the proles,' but checks himself. He is convinced that Syme will be vaporized because he sees too clearly and speaks too plainly.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-21-c1ce5e84000d-timeline.jpg",
                                           "date":  "midday, April 5, 1984",
                                           "title":  "Syme explains Newspeak",
@@ -20889,7 +20889,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-22-3fccd2e03178-timeline.jpg",
-                                          "description":  "Parsons, Winston\u0027s fellow tenant at Victory Mansio",
+                                          "description":  "Parsons, Winston's fellow tenant at Victory Mansions, joins the table and gives off an intense smell of sweat. He asks Winston for the two dollars he promised for the Hate Week house-by-house fund. Winston hands over the money, and Parsons enters it in a small notebook in the neat handwriting of the illiterate. Parsons boasts about the preparations for Hate Week and about his daughter's troop of Spies.\nHe tells the story of how his seven-year-old daughter followed a strange man for two hours and handed him over to the patrols, believing he was an enemy agent because of his unusual shoes. Winston is taken aback, but dutifully agrees that they cannot afford to take chances.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-22-3fccd2e03178-timeline.jpg",
                                           "date":  "midday, April 5, 1984, in the canteen",
                                           "title":  "Parsons collects Hate Week subscription",
@@ -20897,7 +20897,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-23-cf24d27b1f76-timeline.jpg",
-                                          "description":  "A trumpet call from the telescreen announces a glo",
+                                          "description":  "A trumpet call from the telescreen announces a glorious production victory: the standard of living has risen by no less than twenty per cent over the past year. The announcement claims that there have been spontaneous demonstrations thanking Big Brother for raising the chocolate ration to twenty grammes a week, although only yesterday it was announced that the ration was to be reduced to twenty grammes.\nParsons swallows this easily, and the eyeless creature at the next table swallows it fanatically. Winston wonders whether he is alone in the possession of a memory.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-23-cf24d27b1f76-timeline.jpg",
                                           "date":  "midday, April 5, 1984, in the canteen",
                                           "title":  "Ministry of Plenty announces rising living standards",
@@ -20905,7 +20905,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-24-0edeb89cdd5a-timeline.jpg",
-                                          "description":  "As Winston is lost in thought, he is dragged back ",
+                                          "description":  "As Winston is lost in thought, he is dragged back by a violent jerk. The girl with dark hair at the next table has turned partly round and is looking at him with curious intensity. The instant she catches his eye she looks away. Sweat starts out on Winston's backbone, and he feels a horrible pang of terror.\nHe thinks she may be an amateur spy, and recalls that during the Two Minutes Hate she sat immediately behind him. He imagines her denouncing him to the Thought Police, but he cannot prove anything.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-24-0edeb89cdd5a-timeline.jpg",
                                           "date":  "midday, April 5, 1984",
                                           "title":  "Julia watches Winston in the canteen",
@@ -20913,7 +20913,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-25-9dd7fd7e4ffa-timeline.jpg",
-                                          "description":  "Winston writes in his diary about a dark evening t",
+                                          "description":  "Winston writes in his diary about a dark evening three years ago when he went with a prostitute in a narrow side-street near a railway station. He remembers the thick paint on her face, the mask-like whiteness and the bright red lips. He had an almost overwhelming temptation to shout filthy words, and he reflects that your worst enemy is your own nervous system.\nHe writes that she threw herself down on the bed and pulled up her skirt, but when he turned up the lamp he saw that she was an old woman of fifty with no teeth. He went ahead and did it just the same. Writing it down does not ease his torment.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-25-9dd7fd7e4ffa-timeline.jpg",
                                           "date":  "evening of April 5, 1984, in his flat",
                                           "title":  "Winston writes about the prostitute",
@@ -20921,7 +20921,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-26-15ab2b0c3307-timeline.jpg",
-                                          "description":  "Winston thinks of Katharine, his wife, from whom h",
+                                          "description":  "Winston thinks of Katharine, his wife, from whom he has been separated for eleven years. She was a tall, fair-haired, stupid and thoroughly orthodox Party member. Their marriage was approved by a committee, and the only recognized purpose of marriage is to beget children for the service of the Party. Winston remembers her hatred of sex, her stiff body, and her calling intercourse 'our duty to the Party.'\nHe reflects that the Party is trying to kill the sex instinct, and that chastity is deeply ingrained in Party women. Winston sees the sexual act, successfully performed, as rebellion.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-26-15ab2b0c3307-timeline.jpg",
                                           "date":  "evening of April 5, 1984, while writing the diary",
                                           "title":  "Winston remembers Katharine",
@@ -20929,7 +20929,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-27-50fdde07e25d-timeline.jpg",
-                                          "description":  "Winston writes in his diary: \u0027If there is hope, it",
+                                          "description":  "Winston writes in his diary: 'If there is hope, it lies in the proles.' He believes that only the proles, who make up 85 per cent of the population of Oceania, have the power to destroy the Party. The Party cannot be overthrown from within, because its enemies have no way of coming together. The proles need only to become conscious of their own strength and rise up.\nHe remembers a street market incident where a mob of women fought over tin saucepans, and the tremendous cry of anger and despair that momentarily frightened him. Yet they could never shout like that about anything that mattered.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-27-50fdde07e25d-timeline.jpg",
                                           "date":  "evening of April 6, 1984",
                                           "title":  "Winston writes that hope lies in the proles",
@@ -20937,7 +20937,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-28-3c8ef8c09f3a-timeline.jpg",
-                                          "description":  "Winston remembers walking down a crowded street wh",
+                                          "description":  "Winston remembers walking down a crowded street when a tremendous shout of hundreds of women's voices burst from a side-street. His heart leapt, and he thought, 'It's started! A riot! The proles are breaking loose at last!' But when he reached the spot, he saw two or three hundred women crowding round a street market stall, fighting over tin saucepans. The supply had unexpectedly given out, and the women were accusing the stall-keeper of favouritism.\nThe incident shows Winston that the proles' discontent leads nowhere, because they can only focus it on petty grievances. Until they become conscious they will never rebel, and until after they have rebelled they cannot become conscious.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-28-3c8ef8c09f3a-timeline.jpg",
                                           "date":  "evening of April 6, 1984, while reflecting on the proles",
                                           "title":  "Winston recalls the saucepan riot",
@@ -20945,7 +20945,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-29-9d879f254e1a-timeline.jpg",
-                                          "description":  "Winston takes out a children\u0027s history textbook bo",
+                                          "description":  "Winston takes out a children's history textbook borrowed from Mrs Parsons and copies a passage into his diary. The passage describes the 'old days' before the Revolution, with capitalists in top hats, children working twelve hours a day, and wretched poverty. It claims that the capitalists owned everything and everyone else was their slave.\nWinston wonders how much of it is lies. He cannot prove whether life was better before the Revolution, because no outside records exist. The past has been erased, the erasure forgotten, and the lie has become truth.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-29-9d879f254e1a-timeline.jpg",
                                           "date":  "evening of April 6, 1984",
                                           "title":  "Winston copies the history textbook",
@@ -20953,7 +20953,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-30-7d320beead37-timeline.jpg",
-                                          "description":  "Winston remembers the one time in his life he held",
+                                          "description":  "Winston remembers the one time in his life he held concrete evidence of the falsification of history. In 1973 he found a half-page torn out of the Times, containing a photograph of Jones, Aaronson and Rutherford at a Party function in New York. All three men had confessed to being on Eurasian soil on that date, but the photograph proved they were in New York. Winston knew the confessions were lies.\nHe covered the photograph with another sheet of paper, waited ten minutes, and then dropped it into the memory hole. Now he regrets destroying it, though the past has been so often rewritten that it might not even be evidence anymore.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-30-7d320beead37-timeline.jpg",
                                           "date":  "evening of April 6, 1984",
                                           "title":  "Winston recalls the photograph of Jones, Aaronson and Rutherford",
@@ -20961,7 +20961,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-31-93f252dd5bd9-timeline.jpg",
-                                          "description":  "Reflecting on O\u0027Brien\u0027s face and his belief that O",
+                                          "description":  "Reflecting on O'Brien's face and his belief that O'Brien is on his side, Winston writes in his diary: 'Freedom is the freedom to say that two plus two make four. If that is granted, all else follows.' He feels that the solid world exists, that stones are hard and water is wet, and that the Party's denial of objective reality is the ultimate heresy.\nThe thought of O'Brien gives him courage to write this, though he knows the enormous power arrayed against him. Truisms are true, and he must hold on to that.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-31-93f252dd5bd9-timeline.jpg",
                                           "date":  "evening of April 6, 1984",
                                           "title":  "Winston writes about freedom and two plus two",
@@ -20969,7 +20969,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-32-244179266b9d-timeline.jpg",
-                                          "description":  "Winston misses an evening at the Community Centre,",
+                                          "description":  "Winston misses an evening at the Community Centre, a rash act since attendance is carefully checked. He wanders through the labyrinth of London, first south, then east, then north, losing himself among unknown streets. He walks through a slum street of two-storey houses, with puddles of filthy water and ragged children playing in them. A rocket bomb falls nearby, and Winston flings himself on his face.\nAfter the bomb explodes, he sees a severed human hand lying in the plaster dust and kicks it into the gutter. The proles' lives go on as though nothing has happened.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-32-244179266b9d-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Winston wanders through the prole streets",
@@ -20977,7 +20977,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-33-734f47a8edcb-timeline.jpg",
-                                          "description":  "A man in a concertina-like black suit yells \u0027Steam",
+                                          "description":  "A man in a concertina-like black suit yells 'Steamer!' and Winston throws himself flat on the pavement. The rocket bomb demolishes a group of houses two hundred metres up the street. Afterward, Winston sees a severed hand, whitened like a plaster cast, and kicks it into the gutter.\nThe incident is a brutal reminder of the constant violence that punctuates prole life, and of Winston's own growing callousness. He later thinks of this severed hand and compares it to a cabbage-stalk.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-33-734f47a8edcb-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Rocket bomb and severed hand",
@@ -20985,7 +20985,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-34-939b832ff05e-timeline.jpg",
-                                          "description":  "Winston enters a dingy prole pub and offers a drin",
+                                          "description":  "Winston enters a dingy prole pub and offers a drink to an old man of at least eighty. He asks the old man whether life was better before the Revolution, but the old man can only remember trivial details such as top hats, lackeys, and a shove from a drunk young gentleman. The old man prefers being old because he no longer has any truck with women.\nWinston realizes the old man's memory is a rubbish-heap of details, and that the Party's claim to have improved human life can never be tested. The question of whether life before the Revolution was better is unanswerable.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-34-939b832ff05e-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Winston questions the old man in the pub",
@@ -20993,7 +20993,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-35-024eb41ec29d-timeline.jpg",
-                                          "description":  "Winston finds himself outside the junk-shop where ",
+                                          "description":  "Winston finds himself outside the junk-shop where he bought the diary. Despite his fear, he steps inside and begins talking to the proprietor, Mr Charrington. Winston's eye is caught by a heavy lump of glass, a hemisphere with a strange pink coral object embedded in it. Mr Charrington says it is coral from the Indian Ocean, embedded in glass more than a hundred years ago, and asks four dollars for it.\nWinston immediately pays and slips the paperweight into his pocket. He is attracted by its air of belonging to an age completely different from the present, and by its apparent uselessness. It becomes one of his most treasured possessions.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-35-024eb41ec29d-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Winston buys the glass paperweight",
@@ -21001,7 +21001,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-36-97963d23b2fd-timeline.jpg",
-                                          "description":  "Mr Charrington leads Winston up a steep stair to a",
+                                          "description":  "Mr Charrington leads Winston up a steep stair to a room that looks out on a cobbled yard. The room is furnished as though still lived in, with a strip of carpet, a deep armchair, an old-fashioned clock, and an enormous bed. There is no telescreen, and Winston murmurs, 'There's no telescreen!' with longing.\nMr Charrington shows him a steel engraving of an oval building, which he identifies as St Clement's Dane, a church that was bombed long ago. He recites part of the rhyme 'Oranges and lemons,' and Winston is deeply moved by this fragment of the lost past.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-36-97963d23b2fd-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Mr Charrington shows Winston the room",
@@ -21009,7 +21009,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-37-08092e837a83-timeline.jpg",
-                                          "description":  "As Winston steps out of the junk shop, he sees the",
+                                          "description":  "As Winston steps out of the junk shop, he sees the dark-haired girl from the Fiction Department coming down the pavement not ten metres away. She looks him straight in the face and then walks on as though she has not seen him. Winston is paralyzed with fear, convinced that she must have followed him.\nHe turns and walks heavily away, feeling pain in his belly. He considers smashing her skull with a cobblestone, but he is too exhausted. He returns home, drinks Victory Gin, and stares at the diary without opening it, thinking about the horror of the Ministry of Love.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-37-08092e837a83-timeline.jpg",
                                           "date":  "evening of April 8, 1984",
                                           "title":  "Winston sees Julia outside the junk shop",
@@ -21017,7 +21017,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-38-edc5505ac43a-timeline.jpg",
-                                          "description":  "Four days after the encounter outside the junk sho",
+                                          "description":  "Four days after the encounter outside the junk shop, Winston meets the dark-haired girl in a long corridor at the Ministry. Her right arm is in a sling, and as she passes him she stumbles and falls almost flat on her face. Winston instinctively helps her up. In the two or three seconds of helping her, she slips a small folded scrap of paper into his hand.\nWinston goes to the lavatory and feels the paper in his pocket, but he does not dare read it there because telescreens watch continuously. He returns to his cubicle and places the paper casually among others on his desk.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-38-edc5505ac43a-timeline.jpg",
                                           "date":  "mid-morning, approximately April 12, 1984, in the Ministry corridor",
                                           "title":  "Julia slips Winston the love note",
@@ -21025,7 +21025,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-39-8c472b6ba9a8-timeline.jpg",
-                                          "description":  "After eight minutes, Winston flattens out the scra",
+                                          "description":  "After eight minutes, Winston flattens out the scrap of paper and reads the words 'I love you' written in a large unformed handwriting. He is too stunned to throw it into the memory hole immediately. A fire seems to burn in his belly, and he cannot concentrate on his work.\nHe is torn between fear that it is a trap and hope that the Brotherhood exists. The note changes his whole attitude toward the girl and gives him a powerful desire to stay alive.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-39-8c472b6ba9a8-timeline.jpg",
                                           "date":  "mid-morning, approximately April 12, 1984",
                                           "title":  "Winston reads I love you",
@@ -21033,7 +21033,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-40-6b6178da5a2f-timeline.jpg",
-                                          "description":  "For a week Winston lives in a restless dream, tryi",
+                                          "description":  "For a week Winston lives in a restless dream, trying to find a way to meet the girl. He spots her in the canteen, but is blocked by Wilsher on one occasion. Finally he manages to sit at her table, and they exchange whispered words: 'What time do you leave work?' 'Eighteen-thirty.' 'Where can we meet?' 'Victory Square, near the monument.' They arrange to meet at nineteen hours.\nShe tells him not to come up to her until she is among a lot of people, and not to look at her. Winston is terrified that she will change her mind, but the plan is made.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-40-6b6178da5a2f-timeline.jpg",
                                           "date":  "late April 1984",
                                           "title":  "Winston arranges a meeting with Julia",
@@ -21041,7 +21041,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-41-2beaf5c35df5-timeline.jpg",
-                                          "description":  "Winston waits in Victory Square near the monument,",
+                                          "description":  "Winston waits in Victory Square near the monument, and Julia appears at last. A crowd gathers to watch a convoy of Eurasian prisoners passing in trucks, and Winston pushes through the press of bodies until he is next to her. Their shoulders touch, and she murmurs detailed instructions for meeting on Sunday afternoon: take the train to Paddington, turn left outside the station, follow a lane, find a gate with no top bar, and wait in the wood.\nAt the end she squeezes his hand for a fleeting moment. The prisoners' sad, incurious faces look at Winston as they pass.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-41-2beaf5c35df5-timeline.jpg",
                                           "date":  "a weekday evening in late April 1984",
                                           "title":  "Winston and Julia meet in Victory Square",
@@ -21049,7 +21049,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-42-dc4577934d7c-timeline.jpg",
-                                          "description":  "Winston travels by train into the countryside, car",
+                                          "description":  "Winston travels by train into the countryside, carrying a bunch of bluebells he has picked. A hand falls lightly on his shoulder, and it is the girl. She leads him through the trees to a tiny grassy knoll completely shut in by tall saplings. They are alone, and she tells him her name is Julia. They talk about their first impressions, and she tears off the scarlet sash of the Junior Anti-Sex League.\nWinston is overwhelmed by incredulity and pride, and Julia is matter-of-fact and bold. The clearing becomes their hideout.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-42-dc4577934d7c-timeline.jpg",
                                           "date":  "Sunday afternoon, May 2, 1984",
                                           "title":  "Winston and Julia meet in the wood",
@@ -21057,7 +21057,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-43-5f6dd1aee8ef-timeline.jpg",
-                                          "description":  "As a thrush pours out its song in the afternoon hu",
+                                          "description":  "As a thrush pours out its song in the afternoon hush, Winston and Julia cling together and then go back to the clearing. She tears off her clothes with a magnificent gesture, just as she did in his dream. They make love on the grass among the fallen bluebells. Winston asks if she has done this before, and she says, 'Hundreds of times - well, scores of times, anyway.'\nFor Winston, the act is a political act, a blow struck against the Party. They fall asleep for about half an hour, and when Winston wakes he feels a pitying, protecting tenderness toward her.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-43-5f6dd1aee8ef-timeline.jpg",
                                           "date":  "Sunday afternoon, May 2, 1984",
                                           "title":  "First lovemaking in the clearing",
@@ -21065,7 +21065,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-44-f3aa64c3b852-timeline.jpg",
-                                          "description":  "Winston learns that the girl\u0027s name is Julia, and ",
+                                          "description":  "Winston learns that the girl's name is Julia, and that she works in the Fiction Department on the novel-writing machines. She describes herself as a good Party member on the surface: a troop-leader in the Spies, a volunteer for the Junior Anti-Sex League, always cheerful and never shirking. But she has brought black-market chocolate, and she speaks with coarse hatred of the Party.\nShe tells Winston she spotted him as someone who didn't belong. Her practical, rebellious attitude amazes him, and he feels that she is a rebel from the waist downwards.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-44-f3aa64c3b852-timeline.jpg",
                                           "date":  "afternoon of May 2, 1984, in the wood",
                                           "title":  "Julia tells her name and nature",
@@ -21073,7 +21073,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-45-f670ce510761-timeline.jpg",
-                                          "description":  "When Julia wakes, she becomes alert and businessli",
+                                          "description":  "When Julia wakes, she becomes alert and businesslike. She arranges the details of the journey home, giving Winston a different route from the one by which he came. She tells him to wait half an hour before following her. They arrange to meet after work four evenings hence in a crowded market street, where she will blow her nose if the coast is clear.\nShe refuses to tell him her surname or address, and he realizes it is inconceivable that they could ever meet indoors. The secrecy is a necessary part of their rebellion.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-45-f670ce510761-timeline.jpg",
                                           "date":  "evening of May 2, 1984, in the wood",
                                           "title":  "Planning future meetings",
@@ -21081,7 +21081,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-46-3b85c7e0f611-timeline.jpg",
-                                          "description":  "During the month of May they only succeed in makin",
+                                          "description":  "During the month of May they only succeed in making love once more, in the belfry of a ruinous church where an atomic bomb fell thirty years earlier. The air is hot and stagnant, smelling overpoweringly of pigeon dung. They sit talking for hours on the dusty floor, occasionally checking through the arrow-slits that no one is coming.\nJulia tells Winston about her life: her work in Pornosec, her first love affair at sixteen, and her philosophy of breaking the small rules so as to break the big ones. She refuses to believe in the Brotherhood, and thinks the clever thing is to break the rules and stay alive.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-46-3b85c7e0f611-timeline.jpg",
                                           "date":  "late May 1984",
                                           "title":  "Meeting in the church belfry",
@@ -21089,7 +21089,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-47-d99ffe37ec68-timeline.jpg",
-                                          "description":  "Julia tells Winston that the Party\u0027s sexual purita",
+                                          "description":  "Julia tells Winston that the Party's sexual puritanism is intended to induce hysteria, which can be transformed into war-fever and leader-worship. She says, 'When you make love you're using up energy; and afterwards you feel happy and don't give a damn for anything. They can't bear you to feel like that.' Winston agrees that chastity and political orthodoxy are directly connected.\nHe reflects that the Party has also turned the family into an extension of the Thought Police, with children encouraged to spy on their parents. Julia is more acute than Winston in seeing how the system works, even though she is uninterested in political theory.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-47-d99ffe37ec68-timeline.jpg",
                                           "date":  "late May 1984, in the church belfry",
                                           "title":  "Julia explains the Party\u0027s sexual puritanism",
@@ -21097,7 +21097,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-48-5d982773016d-timeline.jpg",
-                                          "description":  "Winston tells Julia the story of his married life ",
+                                          "description":  "Winston tells Julia the story of his married life with Katharine, including the 'frigid little ceremony' they performed once a week. Julia immediately guesses that Katharine used to call it 'our duty to the Party.' Julia says she would have pushed Katharine over the cliff, and Winston admits he is sorry he didn't. He reflects that some kinds of failure are better than others.\nJulia always contradicts him when he says that the individual is always defeated. She believes that it is possible to construct a secret world in which you can live as you choose. Winston replies, 'We are the dead.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-48-5d982773016d-timeline.jpg",
                                           "date":  "late May 1984, in the church belfry",
                                           "title":  "Winston tells Julia about Katharine",
@@ -21105,7 +21105,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-49-3478268aeed8-timeline.jpg",
-                                          "description":  "Julia asks Winston whether he would rather sleep w",
+                                          "description":  "Julia asks Winston whether he would rather sleep with her or a skeleton, and tells him to stop talking about dying. She presses her body against him, and he feels that she is pouring some of her youth and vigour into his. Then she begins making practical plans for their next meeting.\nWinston has already said 'We are the dead,' and she replies, 'We're not dead yet.' He believes they have at most six months, a year, or five years before the Thought Police catch them. Julia's vitality is in sharp contrast to his fatalism.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-49-3478268aeed8-timeline.jpg",
                                           "date":  "late May 1984, in the church belfry",
                                           "title":  "Winston and Julia say We are the dead",
@@ -21113,7 +21113,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-50-0c186deaea29-timeline.jpg",
-                                          "description":  "Winston decides to rent the room above Mr Charring",
+                                          "description":  "Winston decides to rent the room above Mr Charrington's shop so that he and Julia will have a permanent hiding-place. Mr Charrington makes no difficulty about it and even mentions that there are two entries to the house, one through the back yard. He speaks with delicate tact about Winston's need for privacy.\nWinston knows that it is folly, conscious and suicidal folly, to have such a place. But the temptation of a hiding-place that is truly their own, indoors and near at hand, is too much for both of them.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-50-0c186deaea29-timeline.jpg",
                                           "date":  "June 1984",
                                           "title":  "Winston rents the room above the shop",
@@ -21121,7 +21121,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-51-292cc719a606-timeline.jpg",
-                                          "description":  "Julia arrives at the room with a brown canvas tool",
+                                          "description":  "Julia arrives at the room with a brown canvas tool-bag full of spanners and a screwdriver, under which are hidden neat paper packets. She has brought real sugar, a white loaf, jam, a tin of milk, and a whole kilo of Inner Party coffee. She has also bought a complete set of make-up materials and painted her face, something unheard of for a Party woman.\nWinston is astonished and delighted. With just a few dabs of colour she has become far more feminine. They make coffee, and the smell of real coffee fills the room.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-51-292cc719a606-timeline.jpg",
                                           "date":  "June 1984, in the rented room",
                                           "title":  "Julia brings black-market supplies",
@@ -21129,7 +21129,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-52-9f329437da7b-timeline.jpg",
-                                          "description":  "Winston and Julia fling their clothes off and clim",
+                                          "description":  "Winston and Julia fling their clothes off and climb into the huge mahogany bed. It is the first time Winston has stripped naked in her presence, and he is ashamed of his pale, meagre body. They make love and then fall asleep for a little while. When Winston wakes, he watches Julia sleep and feels a deep tenderness.\nDown in the yard a prole woman sings while pegging out diapers. The room, with its absence of a telescreen, feels like a pocket of the past where extinct animals can walk.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-52-9f329437da7b-timeline.jpg",
                                           "date":  "June 1984, in the room above Mr Charrington\u0027s shop",
                                           "title":  "Lovemaking in the rented room",
@@ -21137,7 +21137,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-53-d55d10bdae8b-timeline.jpg",
-                                          "description":  "While Julia is looking at the paperweight, a rat s",
+                                          "description":  "While Julia is looking at the paperweight, a rat sticks its nose out of the wainscoting. Julia throws a shoe at it and chases it away, but Winston is overwhelmed by panic. He goes pale and shuts his eyes, and Julia tries to reassure him with the warmth of her body.\nHe says 'Of all horrors in the world - a rat!' and tells her it is nothing. The fear is connected with a recurring nightmare of something dreadful behind a wall of darkness. This terror will later be exploited in Room 101.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-53-d55d10bdae8b-timeline.jpg",
                                           "date":  "June 1984, in the rented room",
                                           "title":  "Rat frightens Winston",
@@ -21145,7 +21145,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-54-b4d5028070b0-timeline.jpg",
-                                          "description":  "A morning comes when Syme is missing from work. A ",
+                                          "description":  "A morning comes when Syme is missing from work. A few thoughtless people comment on his absence, but on the next day nobody mentions him. On the third day Winston looks at the notice board in the Records Department and sees that the list of the Chess Committee has one name shorter. Syme has ceased to exist; he has never existed.\nWinston is not surprised, but he feels a kind of sadness. Syme was too intelligent, saw too clearly, and spoke too plainly.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-54-b4d5028070b0-timeline.jpg",
                                           "date":  "early June 1984",
                                           "title":  "Syme disappears",
@@ -21153,7 +21153,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-55-60d1473c99c1-timeline.jpg",
-                                          "description":  "The weather is baking hot, and the preparations fo",
+                                          "description":  "The weather is baking hot, and the preparations for Hate Week are in full swing. Processions, meetings, military parades, lectures, waxwork displays and film shows have to be organized. Julia's unit in the Fiction Department is rushing out atrocity pamphlets, while Winston spends long periods going through back files of the Times and altering news items. Rockets kill larger numbers of people than usual, and riots break out.\nA new poster of a monstrous Eurasian soldier appears all over London. The proles are being lashed into frenzies of patriotism, and there are angry demonstrations, burnings of Goldstein in effigy, and attacks on suspected spies.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-55-60d1473c99c1-timeline.jpg",
                                           "date":  "June 1984",
                                           "title":  "Hate Week preparations intensify",
@@ -21161,7 +21161,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-56-df615b43a531-timeline.jpg",
-                                          "description":  "In the room over the shop, Julia and Winston often",
+                                          "description":  "In the room over the shop, Julia and Winston often talk of engaging in active rebellion. Winston tells her of his strange intimacy with O'Brien and his impulse to walk into O'Brien's presence and announce that he is an enemy of the Party. Julia does not think this is impossibly rash, since she knows how to read faces.\nShe refuses to believe that widespread organized opposition exists, and says the tales about Goldstein are rubbish invented by the Party. She also startles Winston by saying that in her opinion the war is not happening; rocket bombs are probably fired by the Government itself to keep people frightened.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-56-df615b43a531-timeline.jpg",
                                           "date":  "June 1984, in the room above Mr Charrington\u0027s shop",
                                           "title":  "Julia and Winston discuss the Brotherhood and O\u0027Brien",
@@ -21169,7 +21169,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-57-3bd982b1c77c-timeline.jpg",
-                                          "description":  "O\u0027Brien stops Winston in the long corridor at the ",
+                                          "description":  "O'Brien stops Winston in the long corridor at the Ministry, almost at the spot where Julia had slipped him the note. He praises Winston's Newspeak article and says he was reading it in the Times. O'Brien mentions a friend who is an expert, and Winston fears it is a reference to the vaporized Syme.\nO'Brien scribbles his address on a slip of paper beneath the telescreen, where any watcher could read it, and hands it to Winston. Winston memorizes it and later drops the paper into the memory hole. He realizes he has reached the outer edges of the conspiracy.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-57-3bd982b1c77c-timeline.jpg",
                                           "date":  "late June or early July 1984, in the Ministry corridor",
                                           "title":  "O\u0027Brien gives Winston his address",
@@ -21177,7 +21177,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-58-41f23cc21e20-timeline.jpg",
-                                          "description":  "Winston wakes up with his eyes full of tears and t",
+                                          "description":  "Winston wakes up with his eyes full of tears and tells Julia that until this moment he believed he had murdered his mother. He recounts the memory of his mother and sister disappearing when he was a child. He had been given a chocolate ration and had demanded the whole piece, then snatched his sister's share and fled. When he came home, his mother and sister were gone.\nHe reflects that his mother had possessed a kind of nobility because she obeyed private standards. The Party has persuaded people that mere impulses and feelings are of no account. He says aloud, 'The proles are human beings. We are not human.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-58-41f23cc21e20-timeline.jpg",
                                           "date":  "one morning in July 1984, in the rented room",
                                           "title":  "Winston tells Julia about his mother",
@@ -21185,7 +21185,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-59-1a15419e63e2-timeline.jpg",
-                                          "description":  "Winston suggests that the best thing would be to w",
+                                          "description":  "Winston suggests that the best thing would be to walk out of the room and never see each other again. Julia refuses, saying, 'I'm rather good at staying alive.' Winston tells her that when the Thought Police catch them, they will be utterly alone and powerless. Julia says they will confess under torture, but the Party cannot make them believe it.\nHe says, 'They can't get inside you. If you can feel that staying human is worth while, even when it can't have any result whatever, you've beaten them.' They hold onto the idea that the inner heart remains impregnable.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-59-1a15419e63e2-timeline.jpg",
                                           "date":  "July 1984, in the rented room",
                                           "title":  "Julia and Winston discuss staying human",
@@ -21193,7 +21193,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-60-15131a03f6ff-timeline.jpg",
-                                          "description":  "Winston and Julia arrive separately at O\u0027Brien\u0027s f",
+                                          "description":  "Winston and Julia arrive separately at O'Brien's flat in the luxurious Inner Party quarter. O'Brien's servant, Martin, admits them and leads them into a long, softly lit room. O'Brien is sitting at a table under a green-shaded lamp, and when he finishes his message he turns off the telescreen, a privilege that astonishes Winston.\nO'Brien offers them wine, which Winston has only read about, and raises his glass 'To our Leader: To Emmanuel Goldstein.' Winston realizes that the Brotherhood is real.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-60-15131a03f6ff-timeline.jpg",
                                           "date":  "July 1984, in the Inner Party quarter",
                                           "title":  "Winston and Julia visit O\u0027Brien\u0027s flat",
@@ -21201,7 +21201,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-61-36bf9a114273-timeline.jpg",
-                                          "description":  "O\u0027Brien questions Winston and Julia about their wi",
+                                          "description":  "O'Brien questions Winston and Julia about their willingness to commit murder, sabotage, betrayal, and even suicide. Julia breaks down at the question of separating from Winston, saying 'No!' and Winston also says 'No.' O'Brien says they did well to tell him, and that it is necessary for the Brotherhood to know everything.\nHe tells them they will be fighting in the dark, and that later he will send them a book from which they will learn the true nature of society. He warns that they will be caught and confess, and that the Brotherhood cannot save them. Before Julia leaves, O'Brien gives her a tablet to conceal the smell of wine.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-61-36bf9a114273-timeline.jpg",
                                           "date":  "July 1984, in O\u0027Brien\u0027s flat",
                                           "title":  "O\u0027Brien recruits them into the Brotherhood",
@@ -21209,7 +21209,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-62-234b079f2844-timeline.jpg",
-                                          "description":  "On the sixth day of Hate Week, during a night demo",
+                                          "description":  "On the sixth day of Hate Week, during a night demonstration in a central London square, the orator announces in mid-sentence that Oceania is at war with Eastasia, not Eurasia. The crowd instantly understands, banners and posters are torn down, and a riotous interlude occurs while the Spies cut down streamers. Within minutes the hate continues exactly as before, but with a new target.\nThe next moment Winston's briefcase is tapped on his shoulder by a man he does not see, who says, 'Excuse me, I think you've dropped your brief-case.' Winston takes it abstractedly, knowing it contains the book. The entire staff of the Ministry then works eighteen-hour days for five days to rectify all records of the change.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-62-234b079f2844-timeline.jpg",
                                           "date":  "during Hate Week, early July 1984",
                                           "title":  "Oceania switches enemy from Eurasia to Eastasia",
@@ -21217,7 +21217,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-63-e2b0dd6f87fc-timeline.jpg",
-                                          "description":  "During the disorder at the demonstration, a man ta",
+                                          "description":  "During the disorder at the demonstration, a man taps Winston on the shoulder and returns what appears to be his dropped brief-case. Inside is a heavy black volume, amateurishly bound, with the title 'The Theory and Practice of Oligarchical Collectivism' by Emmanuel Goldstein. Winston carries it to work and keeps it between his feet while he works for the next six days.\nAt last, after ninety hours of work in five days, Winston takes the book to the room above Mr Charrington's shop and opens it. He begins reading the analysis of the Party and the three super-states.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-63-e2b0dd6f87fc-timeline.jpg",
                                           "date":  "July 1984, during Hate Week",
                                           "title":  "Winston receives Goldstein\u0027s book",
@@ -21225,7 +21225,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-64-8f1ede870bfd-timeline.jpg",
-                                          "description":  "Alone in the room, Winston reads the book with an ",
+                                          "description":  "Alone in the room, Winston reads the book with an intense feeling of bliss and safety. It describes the three kinds of people throughout history, the nature of war, and the meaning of doublethink. Winston feels that the book tells him nothing new, but it reassures him and systematizes what he already knows. He reads the chapters 'Ignorance is Strength' and 'War is Peace.'\nThe book argues that the war is an imposture, fought to use up the products of the machine and preserve a hierarchical society. Winston is fascinated by the idea that the Party's power is maintained by continuous warfare.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-64-8f1ede870bfd-timeline.jpg",
                                           "date":  "a free afternoon in July 1984, in the rented room",
                                           "title":  "Winston reads Goldstein\u0027s book",
@@ -21233,7 +21233,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-65-f428b2230610-timeline.jpg",
-                                          "description":  "Julia arrives at the room and immediately kneels d",
+                                          "description":  "Julia arrives at the room and immediately kneels down by the oil stove to make coffee. Winston suggests they must both read the book, but Julia says he should read it aloud and explain it as he goes. He reads the first chapter to her, but when he looks up she has fallen asleep.\nWinston shuts the book, lies down, and pulls the coverlet over both of them. He reflects that he still has not learned the ultimate secret: he understands how the Party maintains power, but not why. Before falling asleep he murmurs, 'Sanity is not statistical.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-65-f428b2230610-timeline.jpg",
                                           "date":  "late afternoon, July 1984, in the rented room",
                                           "title":  "Julia falls asleep while Goldstein\u0027s book is read",
@@ -21241,7 +21241,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-66-5d3940470c22-timeline.jpg",
-                                          "description":  "Winston wakes to hear the prole woman in the yard ",
+                                          "description":  "Winston wakes to hear the prole woman in the yard singing 'It was only a hopeless fancy.' He and Julia watch her pegging out diapers, and Winston is struck by her beauty and her vitality. He feels a mystical reverence, thinking that the people under the sky, all over the world, are storing up the power that will one day overturn the world. 'If there was hope, it lay in the proles!' he says.\nJulia is more practical, noting that the woman is a metre across the hips. Winston believes that out of those mighty loins a race of conscious beings must one day come. He says 'We are the dead,' and Julia echoes it dutifully.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-66-5d3940470c22-timeline.jpg",
                                           "date":  "evening, August 1984, in the rented room",
                                           "title":  "Winston and Julia watch the prole woman",
@@ -21249,7 +21249,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-67-671a95e11374-timeline.jpg",
-                                          "description":  "An iron voice behind them says, \u0027You are the dead.",
+                                          "description":  "An iron voice behind them says, 'You are the dead.' Julia whispers that it was behind the picture, and the picture falls to the floor, uncovering a telescreen. The voice orders them to stand back to back with their hands behind their heads. The house is surrounded, and men in black uniforms burst in through the window and the stairs.\nA guard smashes Julia in the solar plexus, and she is carried out like a sack. Winston stands still as a glass paperweight is picked up and smashed on the hearth-stone. The fragment of coral rolls across the mat.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-67-671a95e11374-timeline.jpg",
                                           "date":  "evening, August 1984, in the room above Mr Charrington\u0027s shop",
                                           "title":  "Winston and Julia are arrested",
@@ -21257,7 +21257,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-68-751de2c0041f-timeline.jpg",
-                                          "description":  "Mr Charrington comes into the room, and his demean",
+                                          "description":  "Mr Charrington comes into the room, and his demeanour has changed completely. The cockney accent has disappeared, his white hair has turned black, and he is no longer wearing his spectacles. His face has undergone tiny changes that transform him into an alert, cold man of about thirty-five.\nWinston realizes that he is looking, for the first time in his life, at a member of the Thought Police. The kind, harmless antique dealer was an illusion all along.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-68-751de2c0041f-timeline.jpg",
                                           "date":  "at the moment of arrest, August 1984",
                                           "title":  "Mr Charrington reveals himself as Thought Police",
@@ -21265,7 +21265,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-69-180a267f1c1f-timeline.jpg",
-                                          "description":  "Winston finds himself in a high-ceilinged, windowl",
+                                          "description":  "Winston finds himself in a high-ceilinged, windowless cell with walls of glittering white porcelain and four telescreens. He is hungry and has a dull ache in his belly. He has already spent some hours in an ordinary prison, crowded with common criminals, where he heard political prisoners whisper about something called 'room one-oh-one.'\nHe sits as still as he can, trying not to make unexpected movements. The light never goes out, and he understands now why O'Brien spoke of 'the place where there is no darkness.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-69-180a267f1c1f-timeline.jpg",
                                           "date":  "August 1984, after his arrest",
                                           "title":  "Winston is imprisoned in the Ministry of Love",
@@ -21273,7 +21273,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-70-a7ef7b5f52e4-timeline.jpg",
-                                          "description":  "The poet Ampleforth is brought into Winston\u0027s cell",
+                                          "description":  "The poet Ampleforth is brought into Winston's cell, shoeless and unshaven. He tells Winston he was arrested for allowing the word 'God' to remain at the end of a line of Kipling's poetry, because there was no rhyme for 'rod.' Soon after, Parsons is brought in, wearing khaki shorts and a sports-shirt. Parsons confesses that he is guilty of thoughtcrime, having said 'Down with Big Brother!' in his sleep. His little daughter denounced him to the patrols.\nParsons is pathetically eager to be tried fairly and expresses trust in the Party. He uses the lavatory in the cell, and the defective plug leaves a stench behind for hours.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-70-a7ef7b5f52e4-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "Ampleforth and Parsons appear in the cell",
@@ -21281,7 +21281,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-71-0dd58dbec04d-timeline.jpg",
-                                          "description":  "A skull-faced man, dying of starvation, is brought",
+                                          "description":  "A skull-faced man, dying of starvation, is brought into the cell. A chinless prisoner offers him a piece of bread, but the guard knocks it from his hand and then smashes his face with a blow, breaking his dental plate. Later the officer indicates the skull-faced man and says 'Room 101.' The man throws himself on his knees, begging to confess anything, offering his wife and children to be killed, but he is dragged away.\nThe scene reveals the terror that Room 101 inspires, even among prisoners who have lost all dignity.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-71-0dd58dbec04d-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love cell",
                                           "title":  "A starving prisoner is taken to Room 101",
@@ -21289,7 +21289,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-72-9909aeec8b7d-timeline.jpg",
-                                          "description":  "O\u0027Brien enters Winston\u0027s cell with a guard carryin",
+                                          "description":  "O'Brien enters Winston's cell with a guard carrying a long black truncheon. Winston cries out, 'They've got you too!' but O'Brien says, 'They got me a long time ago.' He tells Winston that Winston has always known this. Then the guard strikes Winston on the elbow, and the pain is so intense that Winston collapses, clutching his arm.\nWinston learns an unforgettable lesson: 'Of pain you could wish only one thing: that it should stop. Nothing in the world was so bad as physical pain. In the face of pain there are no heroes.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-72-9909aeec8b7d-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "O\u0027Brien has Winston beaten on the elbow",
@@ -21297,7 +21297,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-73-4e265e136741-timeline.jpg",
-                                          "description":  "Winston is strapped to a bed in a room with a dial",
+                                          "description":  "Winston is strapped to a bed in a room with a dial that controls electric pain. O'Brien shows him a photograph of Jones, Aaronson and Rutherford and then destroys it in a memory hole, saying it never existed. He asks Winston which power Oceania is at war with, and Winston says Eastasia, but admits that he remembers the war being against Eurasia.\nO'Brien insists that the Party controls all records and memories, and therefore controls the past. Winston feels a deadly helplessness when O'Brien calmly says he does not remember the photograph.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-73-4e265e136741-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "O\u0027Brien interrogates Winston about the war and the photograph",
@@ -21305,7 +21305,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-74-9118c775e341-timeline.jpg",
-                                          "description":  "O\u0027Brien holds up four fingers and asks Winston how",
+                                          "description":  "O'Brien holds up four fingers and asks Winston how many he sees. Winston says four, and O'Brien increases the pain until Winston finally screams 'Five! Five! Five!' But O'Brien says he is lying, because he still thinks there are four. Winston begs him to stop, saying 'Four! Five! Four! Anything you like. Only stop it, stop the pain!'\nLater, under further torture, Winston is forced to say he sees five fingers and to believe that two and two can make five. The experience demonstrates the Party's power to destroy objective reality.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-74-9118c775e341-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "O\u0027Brien forces Winston to see five fingers",
@@ -21313,7 +21313,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-75-b59376815fae-timeline.jpg",
-                                          "description":  "O\u0027Brien tells Winston that they have brought him t",
+                                          "description":  "O'Brien tells Winston that they have brought him to the Ministry of Love not merely to extract a confession or to punish him, but to cure him. He says the Party is not interested in the overt act, only in the thought. 'We do not merely destroy our enemies, we change them.' He describes how the Inquisition failed because it made martyrs, but the Party will not make that mistake.\nWinston realizes that O'Brien is not pretending; he genuinely believes what he says. The Party will crush him down to the point from which there is no coming back, and then fill him with itself.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-75-b59376815fae-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "O\u0027Brien explains the Party\u0027s purpose",
@@ -21321,7 +21321,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-76-eab302ebb883-timeline.jpg",
-                                          "description":  "O\u0027Brien tells Winston that the Party seeks power e",
+                                          "description":  "O'Brien tells Winston that the Party seeks power entirely for its own sake, not for the good of others. 'The object of persecution is persecution. The object of torture is torture. The object of power is power.' He describes a future world of fear and treachery and torment, with no love except the love of Big Brother, and says 'If you want a picture of the future, imagine a boot stamping on a human face - for ever.'\nWinston weakly insists that a civilization founded on fear and hatred cannot endure, but O'Brien replies that the Party creates human nature and is immortal. Winston is beaten down by the argument and by the pain of the dial.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-76-eab302ebb883-timeline.jpg",
                                           "date":  "later in August 1984, during a re-integration session",
                                           "title":  "O\u0027Brien explains power for its own sake",
@@ -21329,7 +21329,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-77-17d9311c79b4-timeline.jpg",
-                                          "description":  "O\u0027Brien plays a sound-track of the conversation in",
+                                          "description":  "O'Brien plays a sound-track of the conversation in which Winston promised to commit murder, sabotage, and every kind of betrayal for the Brotherhood. Winston hears himself offering to throw vitriol in a child's face. O'Brien then tells Winston to get up and stand before a three-sided mirror.\nThe recording strips away Winston's moral superiority, and the mirror reveals his physical ruin. O'Brien asks if Winston still considers himself superior, and Winston says yes, but the demonstration has shown his hypocrisy.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-77-17d9311c79b4-timeline.jpg",
                                           "date":  "August 1984, during re-integration",
                                           "title":  "O\u0027Brien plays Winston\u0027s recorded promises",
@@ -21337,7 +21337,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-78-65cd5f167138-timeline.jpg",
-                                          "description":  "O\u0027Brien forces Winston to stand between the wings ",
+                                          "description":  "O'Brien forces Winston to stand between the wings of a three-sided mirror. Winston sees a bowed, grey-coloured, skeleton-like thing: his own body, emaciated and covered with dirt and sores. His hair is coming out, he has lost twenty-five kilograms, and O'Brien wrenches a loose tooth out of his mouth.\nWinston bursts into tears, and O'Brien tells him it will not last forever and that he can escape whenever he chooses. The sight of his ruined body is a crucial step in breaking his resistance.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-78-65cd5f167138-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "Winston sees his ruined body in the mirror",
@@ -21345,7 +21345,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-79-cc9e5af0b8e5-timeline.jpg",
-                                          "description":  "After weeping, Winston says, \u0027I have not betrayed ",
+                                          "description":  "After weeping, Winston says, 'I have not betrayed Julia.' O'Brien acknowledges that this is perfectly true in the sense Winston means: he has stopped loving her? No, he has not stopped loving her; his feelings toward her have remained the same. O'Brien has seen what he means without explanation.\nWinston asks how soon they will shoot him. O'Brien says it might be a long time, but that in the end, when he is cured, they will shoot him. The exchange gives Winston a flicker of the old reverence for O'Brien's intelligence.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-79-cc9e5af0b8e5-timeline.jpg",
                                           "date":  "August 1984, in the Ministry of Love",
                                           "title":  "Winston says he has not betrayed Julia",
@@ -21353,7 +21353,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-80-a4fcb4c10c52-timeline.jpg",
-                                          "description":  "Winston is moved to a more comfortable cell, given",
+                                          "description":  "Winston is moved to a more comfortable cell, given a bath, new clothes, dentures, and better food. He grows stronger and begins to exercise. He also begins to write on a slate, copying the slogans 'Freedom is Slavery' and 'Two and Two Make Five.' He accepts everything the Party says, and practices crimestop to suppress dangerous thoughts.\nHe resolves to keep his hatred locked up inside him like a cyst, hidden even from himself. He hopes that when they shoot him, he will be able to die hating them, and that will be freedom.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-80-a4fcb4c10c52-timeline.jpg",
                                           "date":  "weeks or months after interrogation, in the Ministry of Love",
                                           "title":  "Winston recovers and is re-educated",
@@ -21361,7 +21361,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-81-3d20d8dd754a-timeline.jpg",
-                                          "description":  "In a strange, blissful reverie, Winston imagines w",
+                                          "description":  "In a strange, blissful reverie, Winston imagines walking through the Golden Country, waiting for the bullet, with everything reconciled. Suddenly he starts up with a shock of horror, having cried aloud, 'Julia! Julia! Julia, my love! Julia!' He had a hallucination of her presence, as though she had got into the texture of his skin.\nHe fears that the outburst will set back his re-education and add years to his servitude. He knows now that he must not only think right, but feel right, dream right.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-81-3d20d8dd754a-timeline.jpg",
                                           "date":  "during his recovery in the Ministry of Love",
                                           "title":  "Winston cries out Julia\u0027s name",
@@ -21369,7 +21369,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-82-ef5e341f2d89-timeline.jpg",
-                                          "description":  "O\u0027Brien comes to Winston\u0027s cell and says, \u0027You hav",
+                                          "description":  "O'Brien comes to Winston's cell and says, 'You have had thoughts of deceiving me. That was stupid.' He tells Winston that intellectually he is improving, but emotionally he has failed to make progress. When asked his true feelings towards Big Brother, Winston answers, 'I hate him.' O'Brien says, 'Good. Then the time has come for you to take the last step. You must love Big Brother. It is not enough to obey him: you must love him.'\nO'Brien pushes Winston toward the guards and says 'Room 101.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-82-ef5e341f2d89-timeline.jpg",
                                           "date":  "after the recovery, in the Ministry of Love",
                                           "title":  "O\u0027Brien tells Winston to love Big Brother",
@@ -21377,7 +21377,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-83-c60d36bf54a6-timeline.jpg",
-                                          "description":  "Winston is strapped upright in a chair in a deep u",
+                                          "description":  "Winston is strapped upright in a chair in a deep underground room, unable to move. O'Brien tells him that Room 101 contains the worst thing in the world, and that for Winston the worst thing happens to be rats. A wire cage is brought in, containing two enormous rats, with a mask-like attachment that can be fitted over Winston's face.\nThe rats are starving and vicious. O'Brien explains that pain is not always enough, but everyone has something unendurable, and for Winston it is rats. Winston's panic is overwhelming.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-83-c60d36bf54a6-timeline.jpg",
                                           "date":  "following the order to love Big Brother",
                                           "title":  "Winston is taken to Room 101",
@@ -21385,7 +21385,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-84-5b6a59a43923-timeline.jpg",
-                                          "description":  "The cage with the rats is brought closer until the",
+                                          "description":  "The cage with the rats is brought closer until the wire mask brushes Winston's cheek. He realizes there is only one way to save himself: to interpose another human being between himself and the rats. He screams frantically, 'Do it to Julia! Do it to Julia! Not me! Julia! Tear her face off, strip her to the bones. Not me! Julia! Not me!'\nThe cage door clicks shut, and the rats are withdrawn. But the betrayal has happened. Winston has made O'Brien's final conquest possible by wishing the unendurable punishment on the person he loved.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-84-5b6a59a43923-timeline.jpg",
                                           "date":  "in Room 101, during the rat cage scene",
                                           "title":  "Winston betrays Julia to save himself from rats",
@@ -21393,7 +21393,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-85-2867e1aab8cb-timeline.jpg",
-                                          "description":  "Winston sits in his usual corner of the Chestnut T",
+                                          "description":  "Winston sits in his usual corner of the Chestnut Tree Café, gazing into an empty glass. He drinks Victory Gin laced with cloves and saccharine, and plays chess in a desultory way. He has a sinecure in the Ministry of Truth and always plenty of money. He listens to the telescreen and worries vaguely about the war in Africa.\nHe has grown fatter and his face is coarsely red, but the smell of gin is mixed in his mind with the smell of rats. His mind can no longer fix itself on any subject for more than a few moments at a time.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-85-2867e1aab8cb-timeline.jpg",
                                           "date":  "after his release, early 1985",
                                           "title":  "Winston lives in the Chestnut Tree Café",
@@ -21401,7 +21401,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-86-fe0f3f622581-timeline.jpg",
-                                          "description":  "Winston meets Julia by chance in the Park on a vil",
+                                          "description":  "Winston meets Julia by chance in the Park on a vile, biting March day. She has changed: her face is sallower, with a long scar across her forehead, and her body has thickened and stiffened. She says baldly, 'I betrayed you,' and he answers, 'I betrayed you.' She describes how they make you say 'Do it to somebody else,' and how at the time you really mean it.\nThey both agree that after that you don't feel the same toward the other person any longer. There is nothing more to say, and they part without arranging to meet again.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-86-fe0f3f622581-timeline.jpg",
                                           "date":  "a cold day in March 1985, in a public park",
                                           "title":  "Winston and Julia meet again after betrayal",
@@ -21409,7 +21409,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-87-3930ca7f3449-timeline.jpg",
-                                          "description":  "Back in the Chestnut Tree Café, a trumpet-call ann",
+                                          "description":  "Back in the Chestnut Tree Café, a trumpet-call announces a bulletin from the front: a vast seaborne armada has achieved a perfect coordination and inflicted a total rout on the Eurasian army. Half a million prisoners have been taken, and all Africa is under Oceanic control. The news is 'victory, victory, victory!' Winston is caught up in the cheering, and his feet make convulsive movements under the table.\nHe thinks how only ten minutes ago there had still been equivocation in his heart. Now he feels the final, healing change has happened.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-87-3930ca7f3449-timeline.jpg",
                                           "date":  "afternoon, after the meeting with Julia",
                                           "title":  "Victory bulletin from Africa",
@@ -21417,7 +21417,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-88-95e255fc98dd-timeline.jpg",
-                                          "description":  "In his blissful dream, Winston imagines himself ba",
+                                          "description":  "In his blissful dream, Winston imagines himself back in the Ministry of Love, with everything forgiven, his soul white as snow. He is walking down a white-tiled corridor with the long-hoped-for bullet about to enter his brain. He gazes up at the enormous face of Big Brother and understands at last what kind of smile is hidden beneath the dark moustache.\nTwo gin-scented tears trickle down his nose, and he thinks, 'It was all right, everything was all right, the struggle was finished. He had won the victory over himself. He loved Big Brother.'",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-88-95e255fc98dd-timeline.jpg",
                                           "date":  "end of the story, in the Chestnut Tree Café",
                                           "title":  "Winston loves Big Brother",
@@ -21425,7 +21425,7 @@
                                       },
                                       {
                                           "image_url":  "/wiki-file/book-doc-books-001-1984-4b9fbb7c4955/images/event-timeline-doc-books-001-1984-89-d5a051aa69fa-timeline.jpg",
-                                          "description":  "The book ends with an appendix, \u0027The Principles of",
+                                          "description":  "The book ends with an appendix, 'The Principles of Newspeak,' which describes the structure and purpose of the official language of Oceania. Newspeak was designed to make all other modes of thought impossible by narrowing the vocabulary and eliminating heretical words. The appendix explains the A, B and C vocabularies, and the way that words like 'free' and 'equal' had their meanings purged.\nThe essay is written in the past tense, suggesting that Newspeak has become a thing of the past and that the Party's attempt to freeze history did not ultimately succeed. It offers a faint, ambiguous hope of restoration.",
                                           "local_image":  "./assets/images/event-timeline-doc-books-001-1984-89-d5a051aa69fa-timeline.jpg",
                                           "date":  "after the story\u0027s ending, in the appendix",
                                           "title":  "Appendix on Newspeak",

@@ -8,6 +8,11 @@
 /* No scrollbar on the scene text either; it still scrolls. */
 .sl-viewport .liblib-narrative-scrollbox { overscroll-behavior: contain; scrollbar-width: none; }
 .sl-viewport .liblib-narrative-scrollbox::-webkit-scrollbar { display: none; }
+.sl-viewport .liblib-narrative-scrollbox.at-end { -webkit-mask-image: none; mask-image: none; }
+.sl-viewport .liblib-narrative-scrollbox.at-end.scrolled {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 14px);
+  mask-image: linear-gradient(to bottom, transparent 0, black 14px);
+}
 .sl-viewport {
   max-height: calc(100dvh - var(--header-h) - 140px);
   min-height: 320px;

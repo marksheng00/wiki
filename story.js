@@ -239,6 +239,7 @@
     el('sf-sheet-media').hidden = !n.image;
     overlay.hidden = false;
     el('sf-sheet-scroll').scrollTop = 0;
+    requestAnimationFrame(syncThumb);
     document.documentElement.classList.add('sf-sheet-open');
     if (!reduceMotion()) {
       sheet.style.transition = 'none';
@@ -271,6 +272,29 @@
     sheet.addEventListener('transitionend', done, { once: true });
     setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, 400);
     card.focus({ preventScroll: true });
+  }
+
+  // The sheet's own scrollbar: a thin bar kept clear of the rounded corners,
+  // hidden at rest and shown while scrolling or hovering the sheet.
+  const THUMB_INSET = 20;
+  let thumbTimer = 0;
+  function syncThumb(show) {
+    const box = el('sf-sheet-scroll');
+    const thumb = el('sf-scroll-thumb');
+    if (!box || !thumb) return;
+    const overflow = box.scrollHeight - box.clientHeight;
+    thumb.hidden = overflow <= 1;
+    if (thumb.hidden) return;
+    const track = box.clientHeight - THUMB_INSET * 2;
+    const h = Math.max(32, Math.round(track * box.clientHeight / box.scrollHeight));
+    const y = THUMB_INSET + Math.round((track - h) * (box.scrollTop / overflow));
+    thumb.style.height = `${h}px`;
+    thumb.style.transform = `translateY(${y}px)`;
+    if (show === true) {
+      thumb.classList.add('is-active');
+      clearTimeout(thumbTimer);
+      thumbTimer = setTimeout(() => thumb.classList.remove('is-active'), 900);
+    }
   }
 
   function bindCanvas() {
@@ -317,6 +341,9 @@
       e.preventDefault();
       canvas.scrollBy({ left: dy, behavior: 'instant' });
     }, { passive: false });
+
+    el('sf-sheet-scroll')?.addEventListener('scroll', () => syncThumb(true), { passive: true });
+    window.addEventListener('resize', () => syncThumb());
 
     // The sheet lives on the body so no page transform can trap it.
     const overlay = el('sf-sheet');

@@ -122,13 +122,26 @@
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--text-primary) 20%, transparent) transparent;
+  scrollbar-width: none;
 }
-/* Same thin bar as the storyline text box, kept clear of the round corners. */
-.sf-sheet-scroll::-webkit-scrollbar { width: 3px; }
-.sf-sheet-scroll::-webkit-scrollbar-track { margin: 24px 0; background: transparent; }
-.sf-sheet-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-primary) 20%, transparent); border-radius: 2px; }
+.sf-sheet-scroll::-webkit-scrollbar { display: none; }
+/* Overlay scrollbar drawn by story.js: 4px, inset 6px from the edge and
+   20px from the round corners, faint on hover, clear while scrolling. */
+.sf-scroll-thumb {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-medium, 240ms) var(--ease-out, ease-out);
+}
+.sf-scroll-thumb[hidden] { display: none; }
+.sf-sheet:hover .sf-scroll-thumb { opacity: 0.16; }
+.sf-scroll-thumb.is-active,
+.sf-sheet:hover .sf-scroll-thumb.is-active { opacity: 0.32; transition-duration: var(--duration-quick, 120ms); }
 .sf-sheet-close {
   box-shadow: var(--modal-shadow);
   background: var(--card-bg);

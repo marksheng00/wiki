@@ -97,12 +97,25 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
 }
-/* A digit that just changed settles in from a light blur (td number swap). */
+/* A digit that just changed pops in from below with a light blur: the
+   transitions.dev "Number pop-in" (02), with its live tuning. Digits that
+   did not change stay still; when several change at once, each one rides
+   in one stagger step behind the one before it. */
+.promo-count-time {
+  --digit-dur: 500ms;
+  --digit-distance: 8px;
+  --digit-stagger: 70ms;
+  --digit-blur: 2px;
+  --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
 .promo-digit { display: inline-block; }
-.promo-digit.is-new { animation: promo-digit var(--duration-fast) var(--ease-smooth-out); }
-@keyframes promo-digit {
-  from { opacity: 0; transform: translateY(-4px); filter: blur(var(--blur-small)); }
-  to { opacity: 1; transform: none; filter: none; }
+.promo-digit.is-new {
+  animation: promo-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+  animation-delay: calc(var(--digit-stagger) * var(--digit-step, 0));
+}
+@keyframes promo-digit-pop-in {
+  from { opacity: 0; transform: translateY(var(--digit-distance)); filter: blur(var(--digit-blur)); }
+  to { opacity: 1; transform: none; filter: blur(0); }
 }
 
 /* Call to action: one warm colour picked from the painting. */

@@ -80,7 +80,8 @@
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
-  // Write the time digit by digit so only the digits that change animate.
+  // Write the time digit by digit so only the digits that change animate
+// (transitions.dev Number pop-in).
   function paint(text) {
     var spans = timeEl.children;
     if (spans.length !== text.length) {
@@ -93,9 +94,11 @@
       }
       return;
     }
+    var step = 0;
     for (var j = 0; j < text.length; j++) {
       if (spans[j].textContent === text[j]) continue;
       spans[j].textContent = text[j];
+      spans[j].style.setProperty('--digit-step', Math.min(step++, 2));
       spans[j].classList.remove('is-new');
       void spans[j].offsetWidth;
       spans[j].classList.add('is-new');

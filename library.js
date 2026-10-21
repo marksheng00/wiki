@@ -323,8 +323,8 @@
     nav.innerHTML = `
       <div class="docs-group-label">${esc(c.library)}</div>
       ${row('all', c.popular, popularBooks().length)}
-      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
       ${row('all-books', c.allBooks, allBooks().length)}
+      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
       ${row('all-entries', c.allEntries, entryCount())}
       <div class="docs-group-label lib-nav-group">${esc(c.categories)}</div>
       ${cats.map((cat) => row(cat.id, cat[l], cat.books.length)).join('')}

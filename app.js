@@ -3908,6 +3908,11 @@
       } else {
         hideMobileGraphContinuumArticle();
       }
+      // Expanding from the menu always lands on the graph. If the reader had
+      // scrolled down to the article floor before opening the menu, the
+      // continuum is still resting there; bring it back to the graph.
+      cancelMobileGraphContinuumMotion();
+      setMobileGraphContinuumPosition(0, 0);
 
       // The opaque drawer is committed closed in the same task that transfers
       // the Canvas, so neither host can expose an empty frame between them.

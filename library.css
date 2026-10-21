@@ -165,11 +165,21 @@ body.is-library .btn-mobile-graph-launcher {
    with the pressed grey. Phones get one strip that scrolls and fades out. */
 .lib-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 9px;
-  margin: 0 0 24px;
+  margin: -2px -2px 22px;
+  padding: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
 }
+.lib-filters::-webkit-scrollbar { display: none; }
+/* Lets the last capsule scroll fully out of the faded edge. */
+.lib-filter { flex: none; }
+.lib-filter:last-child { margin-right: 36px; }
 .lib-filter {
   appearance: none;
   display: inline-flex;
@@ -180,11 +190,7 @@ body.is-library .btn-mobile-graph-launcher {
   border: 0;
   border-radius: 48px;
   background: #fff;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.04),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(196, 196, 196, 0.1),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
@@ -196,15 +202,12 @@ body.is-library .btn-mobile-graph-launcher {
   transition: background 150ms var(--ease-smooth-out), color 150ms var(--ease-smooth-out);
 }
 .lib-filter:hover { background: #f7f7f7; }
-.lib-filter[data-active="true"] { background: #f1f1f1; color: #080808; }
+.lib-filter[data-active="true"] { background: #f1f1f1; color: #080808; box-shadow: none; }
 .lib-filter:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 [data-theme="dark"] .lib-filter {
   background: rgba(255, 255, 255, 0.04);
   color: rgba(251, 251, 251, 0.8);
-  box-shadow:
-    0 1px 1px 0 rgba(0, 0, 0, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .lib-filter:hover { background: rgba(255, 255, 255, 0.08); }
 [data-theme="dark"] .lib-filter[data-active="true"] { background: rgba(255, 255, 255, 0.14); color: #fbfbfb; }
@@ -282,11 +285,7 @@ body.is-library .btn-mobile-graph-launcher {
   padding: 0 12px;
   border-radius: 48px;
   background: #fff;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.04),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(196, 196, 196, 0.1),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
@@ -306,10 +305,7 @@ body.is-library .btn-mobile-graph-launcher {
 [data-theme="dark"] .lib-page {
   background: rgba(255, 255, 255, 0.04);
   color: rgba(251, 251, 251, 0.8);
-  box-shadow:
-    0 1px 1px 0 rgba(0, 0, 0, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .lib-page:hover { background: rgba(255, 255, 255, 0.08); }
 [data-theme="dark"] .lib-page.is-current { background: rgba(255, 255, 255, 0.14); color: #fbfbfb; }
@@ -319,16 +315,9 @@ body.is-library .btn-mobile-graph-launcher {
 /* ---------- Phones ---------- */
 @media (max-width: 768px) {
   .lib-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
     padding: 2px var(--m-gutter);
     margin: -2px calc(var(--m-gutter) * -1) 20px;
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
   }
-  .lib-filters::-webkit-scrollbar { display: none; }
-  .lib-filter:last-child { margin-right: 36px; }
   .lib-books {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 12px;

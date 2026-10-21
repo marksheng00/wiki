@@ -326,7 +326,8 @@ body.is-library .btn-mobile-graph-launcher {
   .lib-book-title { font-size: 12px; line-height: 16px; }
   .lib-book-out { display: none; }
   .lib-book-author { font-size: 12px; }
-  .lib-cover { padding: 10px; border-radius: 12px; }
+  .lib-cover:not(.lib-cover--image) { padding: 10px; }
+  .lib-cover { border-radius: 12px; }
   .lib-cover-title { font-size: 13px; line-height: 18px; }
   .lib-entries {
     grid-template-columns: 1fr;

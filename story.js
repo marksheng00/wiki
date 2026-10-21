@@ -446,7 +446,33 @@
     });
   }
 
-  window.StoryPages = { isRoute, route, openScene, openFlow };
+  // What the search palette lists from the story pages: every storyline
+  // scene, every StoryFlow and every card inside one, in the page language
+  // where a translation exists (StoryFlow cards are English only).
+  function searchItems() {
+    const zhScenes = isZh() ? window.WIKI_STORE_ZH?.storylines || [] : [];
+    const sceneItems = scenes().map((s) => {
+      const zh = zhScenes.find((z) => z.index === s.index);
+      return { kind: 'scene', index: s.index, label: (zh && zh.title) || s.title, alt: s.title, date: (zh && zh.date) || s.date };
+    });
+    const flowItems = [];
+    const nodeItems = [];
+    flows().forEach((f) => {
+      const flow = flowById(f.id);
+      flowItems.push({ kind: 'flow', id: f.id, label: flow.title, alt: f.title });
+      (f.nodes || []).forEach((n, i) => nodeItems.push({ kind: 'flow-card', id: f.id, i, label: n.title, alt: n.chapter || '', flow: flow.title }));
+    });
+    return { scenes: sceneItems, flows: flowItems, cards: nodeItems };
+  }
+
+  // Opens a StoryFlow straight onto one of its cards.
+  async function openFlowCard(id, i) {
+    if (!(await openFlow(id))) return false;
+    requestAnimationFrame(() => el('flow-board')?.querySelector(`.sf-card[data-i="${Number(i)}"]`)?.click());
+    return true;
+  }
+
+  window.StoryPages = { isRoute, route, openScene, openFlow, openFlowCard, searchItems };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bind);

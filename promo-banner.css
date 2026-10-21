@@ -36,8 +36,9 @@
     0 12px 42px rgba(0, 0, 0, 0.22);
   transform: translateX(-50%);
   transition: left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
-  animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) 600ms both;
+  animation: promo-enter var(--duration-very-slow) var(--ease-smooth-out) both;
 }
+.promo-bar[hidden] { display: none; }
 [data-theme="dark"] .promo-bar {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.12),

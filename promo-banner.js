@@ -1,6 +1,8 @@
 // Promo card: bilingual A/B copy, the countdown and close.
 // The markup lives in index.html. The card is an overlay only: it never
-// touches page classes or layout. Closing hides it until the next refresh.
+// touches page classes or layout. It waits until the reader scrolls a
+// little or stays a few seconds, so the first screen keeps its own calls to
+// action. Closing hides it until the next refresh.
 (function () {
   var bar = document.getElementById('promo-bar');
   if (!bar) return;
@@ -138,10 +140,50 @@
     }, reduce ? 0 : 260);
   }
 
+  // When to show the card: whichever comes first.
+  var SHOW = {
+    scrollShare: 0.35,  // scrolled past this share of the page...
+    scrollScreens: 1.5, // ...or this many screens, on long pages
+    seconds: 8          // or this long with the tab in front, on any page
+  };
+  var shown = false;
+  var activeSeconds = 0;
+  var clock = null;
+
+  function show() {
+    if (shown) return;
+    shown = true;
+    clearInterval(clock);
+    window.removeEventListener('scroll', onScroll);
+    bar.hidden = false;
+    track('view');
+  }
+
+  // Pages with less than a screen to scroll (StoryFlow, short lists) wait
+  // for the timer instead.
+  function onScroll() {
+    var room = document.documentElement.scrollHeight - window.innerHeight;
+    if (room < window.innerHeight) return;
+    var y = window.scrollY;
+    if (y >= room * SHOW.scrollShare || y >= window.innerHeight * SHOW.scrollScreens) show();
+  }
+
+  var forceShow = /[?&]promo=/.test(location.search);
+  bar.hidden = !forceShow;
   render();
   timer = setInterval(tick, 1000);
   document.addEventListener('readipedia:lang', render);
   bar.querySelector('.promo-close').addEventListener('click', close);
   cta.addEventListener('click', function () { track('click'); });
-  track('view');
+  if (forceShow) {
+    shown = true;
+    track('view');
+  } else {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    clock = setInterval(function () {
+      if (document.visibilityState !== 'visible') return;
+      activeSeconds += 1;
+      if (activeSeconds >= SHOW.seconds) show();
+    }, 1000);
+  }
 })();

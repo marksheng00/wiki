@@ -224,6 +224,11 @@
     'Read the original': '阅读原著',
     'Back to top': '回到顶部',
     'Search entries and pages...': '搜索词条和页面…',
+    'Search books and entries...': '搜索书籍和词条…',
+    'Books': '书籍',
+    'Story': '故事',
+    'Cancel': '取消',
+    'Close': '关闭',
     'No results': '没有结果',
     'Pages': '页面',
     'Entries': '词条',
@@ -522,6 +527,7 @@
       "network": "<circle cx=\"8\" cy=\"3.75\" r=\"1.75\"/><circle cx=\"3.75\" cy=\"12.25\" r=\"1.75\"/><circle cx=\"12.25\" cy=\"12.25\" r=\"1.75\"/><path d=\"M7.2 5.3 4.6 10.7M8.8 5.3l2.6 5.4M5.5 12.25h5\"/>",
       "film": "<rect x=\"2.75\" y=\"2.75\" width=\"10.5\" height=\"10.5\" rx=\"2\"/><path d=\"M5.5 2.75v10.5M10.5 2.75v10.5M2.75 8h2.75M10.5 8h2.75\"/>",
       "route": "<circle cx=\"4\" cy=\"12\" r=\"1.75\"/><circle cx=\"12\" cy=\"4\" r=\"1.75\"/><path d=\"M5.75 12H10a2 2 0 0 0 0-4H6a2 2 0 0 1 0-4h4.25\"/>",
+      "grid": "<rect x=\"2.75\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"2.75\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/>",
       "shapes": "<path d=\"M4 2.25h5.25L12 5v8.75H4Z\"/><path d=\"M9.25 2.25V5H12M6.25 8.25h3.5M6.25 10.75h3.5\"/>"
   };
 
@@ -6160,8 +6166,40 @@
 
     const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    const render = () => {
-      const query = input.value.trim().toLowerCase();
+    // In the library the palette searches the whole library: its pages,
+    // every book and every entry. Elsewhere it searches this book.
+    const inLibrary = () => Boolean(getEl('view-library')?.classList.contains('active') && window.ReadipediaLibrary?.searchItems);
+    const placeholder = () => t(inLibrary() ? 'Search books and entries...' : 'Search entries and pages...');
+
+    const rank = (items, query) => (query
+      ? items.slice().sort((a, b) => (a.label.toLowerCase().startsWith(query) ? 0 : 1) - (b.label.toLowerCase().startsWith(query) ? 0 : 1))
+      : items);
+
+    // Storylines and StoryFlow: the two hub pages, then every scene, every
+    // StoryFlow and every StoryFlow card. The hint names the kind.
+    const storyPages = () => pages.slice(1)
+      .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }));
+    const storyHits = (query, match) => {
+      const story = query && window.StoryPages?.searchItems?.();
+      if (!story) return [];
+      const flowName = t('StoryFlow');
+      const items = [
+        ...story.flows.map((f) => ({ ...f, hint: flowName, icon: 'route' })),
+        ...story.cards.map((c) => ({ ...c, hint: `${flowName} · ${c.flow}`, icon: 'route' })),
+        ...story.scenes.map((s) => ({ ...s, hint: `${t('Storylines')} · ${s.date}`, icon: 'film' }))
+      ];
+      return rank(items.filter(match), query).slice(0, 30);
+    };
+
+    const groupsFor = (query, match) => {
+      if (inLibrary()) {
+        const lib = window.ReadipediaLibrary.searchItems();
+        const pageHits = lib.pages.map((p) => ({ ...p, icon: 'grid' })).filter(match);
+        const bookHits = rank(lib.books.map((b) => ({ ...b, icon: 'book-open' })).filter(match), query).slice(0, query ? 40 : 8);
+        const entryHits = rank(lib.entries.map((e) => ({ ...e, icon: 'shapes' })).filter(match), query).slice(0, query ? 60 : 8);
+        const bookPages = query ? storyPages().filter(match) : [];
+        return [[t('Pages'), query ? pageHits.concat(bookPages) : []], [t('Books'), bookHits], [t('Entries'), entryHits], [t('Story'), storyHits(query, match)]];
+      }
       if (!entities) {
         entities = getEntityTocEntries().map((e) => ({
           kind: 'entity',
@@ -6172,22 +6210,21 @@
           icon: 'shapes'
         }));
       }
+      const pageHits = pages
+        .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
+        .filter(match);
+      const entityHits = rank(entities.filter(match), query).slice(0, query ? 60 : 12);
+      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)]];
+    };
+
+    const render = () => {
+      const query = input.value.trim().toLowerCase();
       const match = (item) => !query
         || item.label.toLowerCase().includes(query)
         || (item.alt && item.alt.toLowerCase().includes(query))
         || item.hint.toLowerCase().includes(query);
-      const pageHits = pages
-        .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
-        .filter(match);
-      const entityHits = entities.filter(match)
-        .sort((a, b) => {
-          if (!query) return 0;
-          const aStarts = a.label.toLowerCase().startsWith(query) ? 0 : 1;
-          const bStarts = b.label.toLowerCase().startsWith(query) ? 0 : 1;
-          return aStarts - bStarts;
-        })
-        .slice(0, query ? 60 : 12);
-      results = [...pageHits, ...entityHits];
+      const groups = groupsFor(query, match);
+      results = groups.flatMap(([, items]) => items);
       activeIndex = Math.min(activeIndex, Math.max(0, results.length - 1));
 
       if (!results.length) {
@@ -6196,7 +6233,7 @@
       }
       let html = '';
       let i = 0;
-      const group = (title, items) => {
+      groups.forEach(([title, items]) => {
         if (!items.length) return;
         html += `<div class="cmdk-group-label">${title}</div>`;
         items.forEach((item) => {
@@ -6206,9 +6243,7 @@
             + `<span class="cmdk-item-hint">${escapeHtml(item.hint)}</span></div>`;
           i += 1;
         });
-      };
-      group(t('Pages'), pageHits);
-      group(t('Entries'), entityHits);
+      });
       list.innerHTML = html;
       input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
       renderIcons(list);
@@ -6229,6 +6264,8 @@
       lastFocus = document.activeElement;
       overlay.hidden = false;
       input.value = '';
+      input.placeholder = placeholder();
+      fitToViewport();
       activeIndex = 0;
       render();
       overlay.getBoundingClientRect();
@@ -6247,6 +6284,18 @@
       close();
       if (item.kind === 'page') {
         getEl(item.id)?.click();
+      } else if (item.kind === 'library') {
+        openLibrary({ category: item.cat });
+      } else if (item.kind === 'book') {
+        getEl('btn-book-home')?.click();
+      } else if (item.kind === 'scene') {
+        window.StoryPages?.openScene(item.index);
+      } else if (item.kind === 'flow') {
+        window.StoryPages?.openFlow(item.id);
+      } else if (item.kind === 'flow-card') {
+        window.StoryPages?.openFlowCard(item.id, item.i);
+      } else if (item.kind === 'link') {
+        window.open(item.href, '_blank', 'noopener');
       } else {
         await prepareForPageNavigation();
         openEntityArticle(item.id);
@@ -6254,6 +6303,13 @@
     };
 
     trigger?.addEventListener('click', open);
+    getEl('cmdk-close')?.addEventListener('click', close);
+    // Phones: keep the panel above the on-screen keyboard.
+    const fitToViewport = () => {
+      const vv = window.visualViewport;
+      if (vv) overlay.style.setProperty('--cmdk-viewport', `${Math.round(vv.height)}px`);
+    };
+    window.visualViewport?.addEventListener('resize', () => { if (!overlay.hidden) fitToViewport(); });
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) close();
     });

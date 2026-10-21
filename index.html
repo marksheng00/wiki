@@ -2,6 +2,8 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
+  <!-- Site root. Prerendered library pages (tools/prerender-library.js) set this to their way back up. -->
+  <base href="./" />
   <meta name="color-scheme" content="light dark" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nineteen Eighty-Four — Readipedia</title>
@@ -66,7 +68,7 @@
     <div class="wiki-header-left">
       <!-- One slot for the logo and the sidebar toggle: hovering the mark turns it into the toggle. -->
       <div class="brand-combo">
-        <a href="#all-books" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
+        <a href="books/" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
           <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/><path class="rp-flap" fill="#9a9aa0" d="M204,0V96H300Z"/></svg></span>
           <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
         </a>
@@ -625,7 +627,7 @@
 
       <footer class="site-footer">
         <div class="footer-brand">
-          <a href="#all-books" class="brand footer-logo" data-footer-nav="wiki-logo">
+          <a href="books/" class="brand footer-logo" data-footer-nav="wiki-logo">
             <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
             <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
           </a>
@@ -734,8 +736,8 @@
   <script src="./data/entity_storyflows.js?v=1" defer></script>
   <script src="./story.js?v=26" defer></script>
   <script src="./data/library.js?v=4" defer></script>
-  <script src="./library.js?v=23" defer></script>
-  <script src="./app.js?v=141" defer></script>
+  <script src="./library.js?v=24" defer></script>
+  <script src="./app.js?v=142" defer></script>
   <script src="./promo-banner.js?v=8" defer></script>
 </body>
 </html>

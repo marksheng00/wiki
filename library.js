@@ -112,8 +112,9 @@
   }
 
   // Library tabs live at their own hashes; categories under #categories/.
-  const TABS = { all: '#books', entries: '#entries', 'all-books': '#all-books', 'all-entries': '#all-entries' };
-  const catHash = (id) => TABS[id] || `#categories/${id}`;
+  // Real paths below the site root (app.js routes them; see libraryPath there).
+  const TABS = { all: 'books/popular/', entries: 'entries/popular/', 'all-books': 'books/', 'all-entries': 'entries/' };
+  const catHash = (id) => window.ReadipediaNav?.libraryPath?.(id) || TABS[id] || `categories/${id}/`;
 
   function bookHref(book, l) {
     if (book.local) return '#book';
@@ -302,7 +303,7 @@
   const ALL_BOOKS_PER_PAGE = 48;
   const ENTRIES_PER_PAGE = 180;
   const POPULAR_ENTRIES = 60;
-  const pageHash = (id, n) => (n > 1 ? `${catHash(id)}/${n}` : catHash(id));
+  const pageHash = (id, n) => catHash(n > 1 ? `${id}/${n}` : id);
 
   function pager(id, current, total, c) {
     if (total < 2) return '';
@@ -437,7 +438,7 @@
 
   function go(category) {
     if (window.ReadipediaNav) window.ReadipediaNav.openLibrary(category);
-    else location.hash = catHash(category);
+    else location.href = catHash(category);
   }
 
   function onFilter(e) {

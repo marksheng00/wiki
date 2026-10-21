@@ -718,9 +718,18 @@
     showArticleView('view-book', options);
   }
 
-  // The library is the site's front page; the logo leads here. Its pages are
-  // the books home (#all-books), popular books (#books), the popular entries (#entries) and one page per
-  // category (#categories/<id>). library.js draws them; this file routes.
+  // The library is the site's front page; the logo leads here. Its pages
+  // live at real paths so search engines can crawl them one by one:
+  //   books/                 all books        books/page/<n>/
+  //   books/popular/         popular books
+  //   entries/               all entries      entries/page/<n>/
+  //   entries/popular/       popular entries
+  //   categories/<id>/       a category       categories/<id>/page/<n>/
+  // Paths are relative to the site root; the prerendered copies of
+  // index.html under those folders set <base> to the root, so relative
+  // links and pushState resolve the same everywhere. The old hashes
+  // (#all-books, #books, #entries, #all-entries, #categories/<id>) still open
+  // their pages. library.js draws them; this file routes.
   function libraryCategoryFromHash(hash) {
     if (hash === '' || hash === 'view-library') return 'all-books';
     if (hash === 'books') return 'all';
@@ -731,12 +740,33 @@
     return match ? match[1] : null;
   }
   const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;
-  const libraryHash = () => {
-    const page = state.libraryCategory || 'all-books';
-    if (page === 'all') return '#books';
-    if (page === 'entries' || /^all-(books|entries)(\/|$)/.test(page)) return `#${page}`;
-    return `#categories/${page}`;
-  };
+
+  function libraryPath(category = 'all-books') {
+    const [page, n] = String(category).split('/');
+    const tail = Number(n) > 1 ? `page/${n}/` : '';
+    if (page === 'all') return 'books/popular/';
+    if (page === 'entries') return 'entries/popular/';
+    if (page === 'all-books') return `books/${tail}`;
+    if (page === 'all-entries') return `entries/${tail}`;
+    return `categories/${page}/${tail}`;
+  }
+  // The page's path below the site root, e.g. "books/page/2/".
+  function sitePath() {
+    const root = new URL('.', document.baseURI).pathname;
+    const path = window.location.pathname.replace(/index\.html$/, '');
+    return path.startsWith(root) ? path.slice(root.length) : '';
+  }
+  function libraryCategoryFromPath(path) {
+    const m = /^(books|entries|categories\/([a-z-]+))\/(?:(popular)\/|page\/(\d+)\/)?$/.exec(path);
+    if (!m) return null;
+    const n = Number(m[4]) > 1 ? `/${m[4]}` : '';
+    if (m[2]) return m[3] ? null : `${m[2]}${n}`;
+    if (m[3]) return n ? null : (m[1] === 'books' ? 'all' : 'entries');
+    return `${m[1] === 'books' ? 'all-books' : 'all-entries'}${n}`;
+  }
+  const libraryHash = () => libraryPath(state.libraryCategory || 'all-books');
+  // Leaving the library goes back to the root page's hash routes.
+  const rootHash = (hash) => (sitePath() ? `./${hash}` : hash);
 
   async function openLibrary(options = {}) {
     await prepareForPageNavigation();
@@ -754,7 +784,8 @@
     openLibrary: (category) => openLibrary({ category }),
     openBook: () => openBookOverview(),
     openEntity: async (id) => { await prepareForPageNavigation(); openEntityArticle(id); },
-    libraryCategory: () => state.libraryCategory || 'all-books'
+    libraryCategory: () => state.libraryCategory || 'all-books',
+    libraryPath
   };
 
   /**
@@ -5298,10 +5329,10 @@
     if (isNavigatingFromHistory) return;
     if (id === 'view-entity') return;
     try {
-      const hash = id === 'view-library' ? libraryHash() : ((type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book');
+      const hash = id === 'view-library' ? libraryHash() : rootHash((type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book');
       const stateData = { type, id, timestamp: Date.now() };
       if (id === 'view-library') stateData.category = state.libraryCategory || 'all-books';
-      if (window.location.hash !== hash) {
+      if (new URL(hash, document.baseURI).href !== window.location.href) {
         window.history.pushState(stateData, '', hash);
       } else {
         window.history.replaceState(stateData, '', hash);
@@ -5328,8 +5359,14 @@
           openBookOverview({ fromHistory: true });
         } else {
           const hash = (window.location.hash || '').replace(/^#/, '');
-          if (isLibraryHash(hash)) {
-            openLibrary({ fromHistory: true, category: libraryCategoryFromHash(hash) });
+          const pathCategory = !hash && libraryCategoryFromPath(sitePath());
+          if (pathCategory) {
+            openLibrary({ fromHistory: true, category: pathCategory });
+          } else if (isLibraryHash(hash)) {
+            // An old library hash: open it and move the URL to its real path.
+            const category = libraryCategoryFromHash(hash);
+            openLibrary({ fromHistory: true, category });
+            try { window.history.replaceState({ type: 'view', id: 'view-library', category }, '', libraryPath(category)); } catch (e) {}
           } else if (hash === 'view-storyline' || hash === 'view-storyflow') {
             showArticleView(hash, { fromHistory: true });
           } else if (window.StoryPages?.isRoute(hash)) {
@@ -5348,11 +5385,11 @@
     try {
       const route = initialRoute || getRouteFromHash();
       if (route.type === 'book') {
-        window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', '#book');
+        window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', rootHash('#book'));
       } else {
         const stateData = { type: route.type, id: route.id, timestamp: Date.now() };
         if (route.category) stateData.category = route.category;
-        window.history.replaceState(stateData, '', route.id === 'view-library' ? libraryHash() : `#${route.id}`);
+        window.history.replaceState(stateData, '', route.id === 'view-library' ? libraryHash() : rootHash(`#${route.id}`));
       }
     } catch (e) {}
   }
@@ -5362,6 +5399,8 @@
     try {
       hash = decodeURIComponent(hash);
     } catch (e) {}
+    const pathCategory = !hash && libraryCategoryFromPath(sitePath());
+    if (pathCategory) return { type: 'view', id: 'view-library', category: pathCategory };
     if (isLibraryHash(hash)) {
       return { type: 'view', id: 'view-library', category: libraryCategoryFromHash(hash) };
     }

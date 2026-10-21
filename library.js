@@ -298,10 +298,10 @@
 
   // A category is paged; page 1 lives at #categories/<id>, the rest at
   // #categories/<id>/<n>, so every page is its own link.
-  const PER_PAGE = 12;
-  const ALL_BOOKS_PER_PAGE = 24;
-  const ENTRIES_PER_PAGE = 60;
-  const POPULAR_ENTRIES = 30;
+  const PER_PAGE = 48;
+  const ALL_BOOKS_PER_PAGE = 48;
+  const ENTRIES_PER_PAGE = 180;
+  const POPULAR_ENTRIES = 60;
   const pageHash = (id, n) => (n > 1 ? `${catHash(id)}/${n}` : catHash(id));
 
   function pager(id, current, total, c) {

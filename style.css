@@ -3692,3 +3692,11 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 @media (prefers-reduced-motion: reduce) {
   .td-filter { transition: none; }
 }
+
+/* Phones: the drawer opens on Get Readify and Settings, then the page's own
+   navigation below them. */
+@media (max-width: 768px) {
+  .wiki-sidebar .wiki-nav-hub > .drawer-apps { order: -2; margin-top: 0; }
+  .wiki-sidebar .wiki-nav-hub > .drawer-settings { order: -1; margin: 24px 0 24px; padding-bottom: 0; }
+  .drawer-seg button { white-space: nowrap; }
+}

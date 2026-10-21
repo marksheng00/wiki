@@ -3,21 +3,41 @@
 
 /* ---------- Storylines ----------
    The theater components live in style.css (.liblib-fused-*, .filmstrip-*).
-   Here only: the picture never pushes the thumbnails off the first screen,
-   and touch swipes sideways go to story.js. */
-/* No scrollbar on the scene text either; it still scrolls. */
-.sl-viewport .liblib-narrative-scrollbox { overscroll-behavior: contain; scrollbar-width: none; }
+   Here: the picture fills the first screen down to the thumbnails, the text
+   box is tall enough for nearly every scene, and touch swipes go to story.js. */
+.sl-viewport {
+  aspect-ratio: auto;
+  height: calc(100dvh - var(--header-h) - 140px);
+  min-height: 360px;
+  touch-action: pan-y;
+}
+/* A deeper shade under the text, since the text box is taller now. */
+.sl-viewport .liblib-fused-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(10, 11, 14, 0.94) 0%,
+    rgba(10, 11, 14, 0.8) 34%,
+    rgba(10, 11, 14, 0.36) 58%,
+    rgba(10, 11, 14, 0) 74%
+  );
+}
+.sl-viewport .liblib-narrative-scrollbox {
+  max-height: 58%;
+  overscroll-behavior: contain;
+  scrollbar-width: none; /* no scrollbar; it still scrolls */
+}
 .sl-viewport .liblib-narrative-scrollbox::-webkit-scrollbar { display: none; }
 /* The td fade over the last 24px always stays; the text ends 24px above
    the bottom so its last line is never under the fade. */
 .sl-viewport .liblib-hero-desc { padding-bottom: 24px; }
-.sl-viewport {
-  max-height: calc(100dvh - var(--header-h) - 140px);
-  min-height: 320px;
-  touch-action: pan-y;
-}
+/* The active thumbnail is marked by being clear; no line under it. */
+#view-storyline .filmstrip-indicator { display: none; }
+/* The promo card floats over the bottom of the screen; keep the thumbnails above it. */
+html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 @media (max-width: 768px) {
-  .sl-viewport { max-height: calc(100dvh - var(--header-h) - 130px); }
+  .sl-viewport { height: clamp(380px, calc(100dvh - var(--header-h) - 150px), 640px); }
+  html.has-promo .sl-viewport { height: clamp(360px, calc(100dvh - var(--header-h) - 236px), 640px); }
+  .sl-viewport .liblib-narrative-scrollbox { max-height: 56%; }
 }
 
 /* ---------- One StoryFlow: a canvas of story cards ----------

@@ -27,7 +27,7 @@
     })();
   </script>
   <link rel="stylesheet" href="./style.css?v=152" />
-  <link rel="stylesheet" href="./story.css?v=10" />
+  <link rel="stylesheet" href="./story.css?v=11" />
   <link rel="stylesheet" href="./library.css?v=11" />
   <link rel="stylesheet" href="./promo-banner.css?v=3" />
   <script>
@@ -608,7 +608,20 @@
             <h1 class="article-h1 detail-title" id="flow-title"></h1>
           </div>
         </header>
-        <div class="prose markdown-prose" id="flow-nodes"></div>
+        <div class="prose" id="flow-lead"></div>
+        <div class="sf-canvas" id="flow-canvas">
+          <div class="sf-board" id="flow-board"><svg class="sf-links" id="flow-links" aria-hidden="true"></svg></div>
+        </div>
+        <div class="sf-sheet-overlay" id="sf-sheet" hidden>
+          <div class="sf-sheet" role="dialog" aria-modal="true" aria-labelledby="sf-sheet-title">
+            <button type="button" class="icon-btn sf-sheet-close" id="sf-sheet-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            <div class="sf-sheet-media" id="sf-sheet-media"><img id="sf-sheet-img" src="" alt="" decoding="async" /></div>
+            <div class="sf-sheet-body">
+              <h2 class="sf-sheet-title" id="sf-sheet-title"></h2>
+              <div class="prose markdown-prose" id="sf-sheet-text" lang="en"></div>
+            </div>
+          </div>
+        </div>
       </article>
 
       <footer class="site-footer">
@@ -719,7 +732,7 @@
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
   <script src="./data/storyflows_complete.js?v=1" defer></script>
   <script src="./data/entity_storyflows.js?v=1" defer></script>
-  <script src="./story.js?v=10" defer></script>
+  <script src="./story.js?v=11" defer></script>
   <script src="./data/library.js?v=15" defer></script>
   <script src="./library.js?v=15" defer></script>
   <script src="./app.js?v=134" defer></script>

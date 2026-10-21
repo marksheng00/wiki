@@ -154,34 +154,184 @@
     return html.replace(/<(\/?)h([234])\b/g, (m, slash, n) => `<${slash}h${Math.min(Number(n) + 1, 5)}`);
   }
 
+  // A canvas of story cards, one per node, joined in reading order. A card
+  // opens into the whole node: picture, title and full text.
+  function nodeBody(n) {
+    const md = nodeMarkdown(n.detail);
+    // The node title is the sheet heading; drop its copy at the top of the
+    // text, and set headings inside the text one level below it.
+    return md.trim().length > 8
+      ? demote(renderMarkdown(md.replace(/^\s*#\s+[^\n]*\n*/, '')))
+      : `<p class="sf-missing">${esc(t('missing'))}</p>`;
+  }
+
   function renderFlow(id) {
     const flow = flowById(id);
     if (!flow) return false;
     currentFlowId = id;
-    const nodes = flow.nodes || [];
     el('flow-title').textContent = flow.title;
-
-    // Like an entity page: the flow's own description opens the article, then
-    // one section per node, headings in the sidebar's table of contents.
-    const lead = `<p>${esc(flow.description)}</p>`;
     const note = isZh() ? `<p class="lang-fallback-note" lang="zh-CN">${esc(t('enOnly'))}</p>` : '';
-    el('flow-nodes').innerHTML = lead + note + nodes.map((n, i) => {
-      const md = nodeMarkdown(n.detail);
-      // The node title is already the section heading; drop the copy at the top of the text.
-      // The node's own title is the section heading, so headings inside the
-      // text sit one level below it, as on an entity page.
-      const body = md.trim().length > 8
-        ? demote(renderMarkdown(md.replace(/^\s*#\s+[^\n]*\n*/, '')))
-        : `<p class="sf-missing">${esc(t('missing'))}</p>`;
-      return `<section class="reading-section sf-node" id="sf-node-${i}">
-        ${n.image ? `<div class="sf-node-media"><img src="${esc(localImage(n.image))}" alt="${esc(n.title)}" loading="lazy" decoding="async"></div>` : ''}
-        <h2>${esc(n.title)}</h2>
-        <div lang="en">${body}</div>
-      </section>`;
-    }).join('');
+    el('flow-lead').innerHTML = `<p>${esc(flow.description)}</p>${note}`;
 
+    const board = el('flow-board');
+    board.querySelectorAll('.sf-card').forEach((c) => c.remove());
+    board.insertAdjacentHTML('beforeend', (flow.nodes || []).map((n, i) => `
+      <button type="button" class="card sf-card" data-i="${i}" aria-haspopup="dialog">
+        <span class="card-stage">${n.image ? `<img src="${esc(localImage(n.image))}" alt="" loading="lazy" decoding="async">` : ''}</span>
+        <span class="card-meta"><span class="card-title" lang="en">${esc(n.title)}</span></span>
+      </button>`).join(''));
+    el('flow-canvas').scrollLeft = 0;
+    requestAnimationFrame(drawLinks);
     return true;
   }
+
+  // Curves from each card to the next, drawn under the cards.
+  function drawLinks() {
+    const board = el('flow-board');
+    const svg = el('flow-links');
+    if (!board || !svg || !board.offsetWidth) return;
+    const cards = [...board.querySelectorAll('.sf-card')];
+    const w = board.scrollWidth;
+    const h = board.scrollHeight;
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const vertical = cards.length > 1 && cards[1].offsetTop >= cards[0].offsetTop + cards[0].offsetHeight;
+    let d = '';
+    for (let i = 0; i < cards.length - 1; i++) {
+      const a = cards[i];
+      const b = cards[i + 1];
+      if (vertical) {
+        const x = a.offsetLeft + a.offsetWidth / 2;
+        d += `M${x} ${a.offsetTop + a.offsetHeight}V${b.offsetTop}`;
+      } else {
+        const x1 = a.offsetLeft + a.offsetWidth;
+        const y1 = a.offsetTop + a.offsetHeight / 2;
+        const x2 = b.offsetLeft;
+        const y2 = b.offsetTop + b.offsetHeight / 2;
+        const mx = (x1 + x2) / 2;
+        d += `M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+      }
+    }
+    svg.innerHTML = d ? `<path d="${d}" />` : '';
+  }
+
+  /* The open card: it grows out of its place on the canvas into a sheet,
+     and shrinks back into it on close. */
+  let openCard = null;
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function flipFrom(sheet, card) {
+    const from = card.getBoundingClientRect();
+    const to = sheet.getBoundingClientRect();
+    return `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`;
+  }
+
+  function openNode(card) {
+    const flow = flowById(currentFlowId);
+    const n = flow?.nodes?.[Number(card.dataset.i)];
+    if (!n) return;
+    openCard = card;
+    const overlay = el('sf-sheet');
+    const sheet = overlay.querySelector('.sf-sheet');
+    el('sf-sheet-title').textContent = n.title;
+    el('sf-sheet-text').innerHTML = nodeBody(n);
+    const img = el('sf-sheet-img');
+    img.src = n.image ? localImage(n.image) : '';
+    img.alt = n.title;
+    el('sf-sheet-media').hidden = !n.image;
+    overlay.hidden = false;
+    sheet.scrollTop = 0;
+    document.documentElement.classList.add('sf-sheet-open');
+    if (!reduceMotion()) {
+      sheet.style.transition = 'none';
+      sheet.style.transformOrigin = 'top left';
+      sheet.style.transform = flipFrom(sheet, card);
+      void sheet.offsetWidth;
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+    }
+    overlay.classList.add('is-open');
+    card.classList.add('is-open');
+    el('sf-sheet-close').focus({ preventScroll: true });
+  }
+
+  function closeNode() {
+    const overlay = el('sf-sheet');
+    if (!overlay || overlay.hidden) return;
+    const sheet = overlay.querySelector('.sf-sheet');
+    const card = openCard;
+    openCard = null;
+    overlay.classList.remove('is-open');
+    document.documentElement.classList.remove('sf-sheet-open');
+    const done = () => {
+      overlay.hidden = true;
+      sheet.style.transform = '';
+      card?.classList.remove('is-open');
+    };
+    if (reduceMotion() || !card || !card.isConnected) { done(); card?.focus({ preventScroll: true }); return; }
+    sheet.style.transform = flipFrom(sheet, card);
+    sheet.addEventListener('transitionend', done, { once: true });
+    setTimeout(() => { if (!overlay.hidden && !overlay.classList.contains('is-open')) done(); }, 400);
+    card.focus({ preventScroll: true });
+  }
+
+  function bindCanvas() {
+    const canvas = el('flow-canvas');
+    if (!canvas) return;
+    canvas.addEventListener('click', (e) => {
+      const card = e.target.closest('.sf-card');
+      if (!card || canvas.dataset.dragged) return;
+      openNode(card);
+    });
+
+    // Drag the canvas with the mouse to look along it.
+    let drag = null;
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      drag = { x: e.clientX, left: canvas.scrollLeft, moved: false };
+      delete canvas.dataset.dragged;
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.moved && Math.abs(dx) < 5) return;
+      drag.moved = true;
+      canvas.classList.add('is-dragging');
+      canvas.scrollLeft = drag.left - dx;
+    });
+    window.addEventListener('pointerup', () => {
+      if (!drag) return;
+      if (drag.moved) {
+        canvas.dataset.dragged = '1';
+        setTimeout(() => { delete canvas.dataset.dragged; }, 0);
+      }
+      drag = null;
+      canvas.classList.remove('is-dragging');
+    });
+
+    // Over the canvas the wheel moves along it; at either end the page scrolls.
+    canvas.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      const max = canvas.scrollWidth - canvas.clientWidth;
+      if (max <= 1) return;
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      if ((dy < 0 && canvas.scrollLeft <= 0) || (dy > 0 && canvas.scrollLeft >= max - 1)) return;
+      e.preventDefault();
+      canvas.scrollBy({ left: dy, behavior: 'instant' });
+    }, { passive: false });
+
+    // The sheet lives on the body so no page transform can trap it.
+    const overlay = el('sf-sheet');
+    if (overlay) document.body.appendChild(overlay);
+    window.addEventListener('popstate', closeNode);
+    overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeNode(); });
+    el('sf-sheet-close')?.addEventListener('click', closeNode);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNode(); });
+    window.addEventListener('resize', () => { if (isShown('view-story-flow')) drawLinks(); });
+  }
+
+
 
   /* ---------- related StoryFlow on entity pages ---------- */
 
@@ -227,8 +377,10 @@
     if (!flowById(id)) return false;
     await bridge().prepare?.();
     activateNav('btn-storyflow-hub');
+    closeNode();
     renderFlow(id);
     bridge().showView?.('view-story-flow', { fromHistory: true });
+    requestAnimationFrame(drawLinks);
     if (!options.fromHistory) bridge().pushHistory?.(`storyflow/${id}`);
     return true;
   }
@@ -252,6 +404,7 @@
 
   function bind() {
     bindTheater();
+    bindCanvas();
     wireFlowCards();
 
     document.addEventListener('click', (e) => {

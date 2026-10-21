@@ -1,5 +1,5 @@
 /**
- * Library: the books home (#books) and one page per category
+ * Library: the books home (#all-books), popular books (#books) and one page per category
  * (#categories/<id>). Both are hub pages: every book, every category and the
  * popular entries link from here, and each category page links to the rest.
  * Data comes from window.READIPEDIA_LIBRARY (data/library.js); app.js owns
@@ -59,7 +59,7 @@
     }
   };
 
-  let page = 'all';
+  let page = 'all-books';
   let pageNum = 1;
   let filter = 'all';
 
@@ -252,9 +252,7 @@
     const all = entryItems(l);
     const rows = applyFilter(all, (x) => x.kind).slice(0, POPULAR_ENTRIES).map((x) => x.html);
     return `
-      <header class="article-masthead detail-head">
-        <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.entries)}</h1></div>
-      </header>
+      <h1 class="lib-sr-only" id="library-title">${esc(c.entries)}</h1>
       ${filterBar(entryKindOptions(all, l), c)}
       <div class="lib-entries">${rows.join('')}</div>
     `;
@@ -265,9 +263,7 @@
     const all = entryItems(l).slice().sort((a, b) => collator.compare(a.name, b.name));
     const { shown, nav } = paged(applyFilter(all, (x) => x.kind), ENTRIES_PER_PAGE, 'all-entries', c);
     return `
-      <header class="article-masthead detail-head">
-        <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.allEntries)}</h1></div>
-      </header>
+      <h1 class="lib-sr-only" id="library-title">${esc(c.allEntries)}</h1>
       ${filterBar(entryKindOptions(all, l), c)}
       <div class="lib-entries">${shown.map((x) => x.html).join('')}</div>
       ${nav}
@@ -348,10 +344,10 @@
       <span class="docs-link-label">${esc(label)}</span><span class="docs-count">${count}</span></a>`;
     nav.innerHTML = `
       <div class="docs-group-label">${esc(c.library)}</div>
-      ${row('all', c.popular, popularBooks().length)}
       ${row('all-books', c.allBooks, allBooks().length)}
-      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
+      ${row('all', c.popular, popularBooks().length)}
       ${row('all-entries', c.allEntries, entryCount())}
+      ${row('entries', c.entries, Math.min(POPULAR_ENTRIES, entryCount()))}
       <div class="docs-group-label lib-nav-group">${esc(c.categories)}</div>
       ${cats.map((cat) => row(cat.id, cat[l], cat.books.length)).join('')}
     `;
@@ -388,7 +384,7 @@
     if (!data() || !root) return;
     const l = lang();
     const c = COPY[l];
-    if (!(page in TABS) && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all';
+    if (!(page in TABS) && !categoriesWithBooks().some((cat) => cat.id === page)) page = 'all-books';
     root.dataset.lang = l;
     root.dataset.page = page;
     const pages = { all: homePage, entries: entriesPage, 'all-books': allBooksPage, 'all-entries': allEntriesPage };
@@ -399,7 +395,7 @@
       reveal(root);
     } else if (how.inPlace) {
       window.scrollTo(0, 0);
-      reveal(root, { withHead: page !== 'all' ? page === 'entries' : true });
+      reveal(root, { withHead: true });
     }
   }
 
@@ -465,7 +461,7 @@
     document.getElementById('library-nav')?.addEventListener('click', onClick);
 
     document.addEventListener('readipedia:library', (e) => {
-      const [next, n] = String(e.detail?.category || 'all').split('/');
+      const [next, n] = String(e.detail?.category || 'all-books').split('/');
       if (next !== page) filter = 'all';
       page = next;
       pageNum = Number(n) || 1;

@@ -456,7 +456,7 @@
       renderMarkdown
     };
     const initialRoute = getRouteFromHash();
-    state.libraryCategory = initialRoute.category || 'all';
+    state.libraryCategory = initialRoute.category || 'all-books';
     initNavHistory(initialRoute);
     initEntityMentionInteractions();
     initEntityPreview();
@@ -712,10 +712,11 @@
   }
 
   // The library is the site's front page; the logo leads here. Its pages are
-  // the books home (#books), the popular entries (#entries) and one page per
+  // the books home (#all-books), popular books (#books), the popular entries (#entries) and one page per
   // category (#categories/<id>). library.js draws them; this file routes.
   function libraryCategoryFromHash(hash) {
-    if (hash === '' || hash === 'books' || hash === 'view-library') return 'all';
+    if (hash === '' || hash === 'view-library') return 'all-books';
+    if (hash === 'books') return 'all';
     if (hash === 'entries') return 'entries';
     const all = /^(all-books|all-entries)(?:\/(\d+))?$/.exec(hash);
     if (all) return all[2] ? `${all[1]}/${all[2]}` : all[1];
@@ -724,7 +725,7 @@
   }
   const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;
   const libraryHash = () => {
-    const page = state.libraryCategory || 'all';
+    const page = state.libraryCategory || 'all-books';
     if (page === 'all') return '#books';
     if (page === 'entries' || /^all-(books|entries)(\/|$)/.test(page)) return `#${page}`;
     return `#categories/${page}`;
@@ -734,7 +735,7 @@
     await prepareForPageNavigation();
     clearEntityFocus();
     clearActiveNav();
-    state.libraryCategory = options.category || 'all';
+    state.libraryCategory = options.category || 'all-books';
     // Moving between library pages is a filter change, like the library on
     // transitions.dev: the page stays put and only its books change.
     const inPlace = getEl('view-library')?.classList.contains('active') || false;
@@ -746,7 +747,7 @@
     openLibrary: (category) => openLibrary({ category }),
     openBook: () => openBookOverview(),
     openEntity: async (id) => { await prepareForPageNavigation(); openEntityArticle(id); },
-    libraryCategory: () => state.libraryCategory || 'all'
+    libraryCategory: () => state.libraryCategory || 'all-books'
   };
 
   /**
@@ -5292,7 +5293,7 @@
     try {
       const hash = id === 'view-library' ? libraryHash() : ((type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book');
       const stateData = { type, id, timestamp: Date.now() };
-      if (id === 'view-library') stateData.category = state.libraryCategory || 'all';
+      if (id === 'view-library') stateData.category = state.libraryCategory || 'all-books';
       if (window.location.hash !== hash) {
         window.history.pushState(stateData, '', hash);
       } else {

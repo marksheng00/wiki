@@ -130,9 +130,10 @@ html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 }
 .sf-sheet {
   position: relative;
+  outline: none;
   display: flex;
   flex: none;
-  width: min(760px, calc(100vw - 112px));
+  width: min(760px, calc(100vw - 64px));
   max-height: calc(100dvh - 64px);
   overflow: hidden;
   border-radius: 24px;
@@ -149,11 +150,6 @@ html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
   scrollbar-width: none;
 }
 .sf-sheet-scroll::-webkit-scrollbar { display: none; }
-.sf-sheet-close {
-  box-shadow: var(--modal-shadow);
-  background: var(--card-bg);
-}
-.sf-sheet-close:hover { background: var(--card-bg-hover); }
 .sf-sheet-media {
   margin: 12px 12px 0;
   aspect-ratio: 16 / 9;
@@ -177,8 +173,8 @@ html.has-promo .sl-viewport { height: calc(100dvh - var(--header-h) - 228px); }
 html.sf-sheet-open { overflow: hidden; }
 @media (max-width: 768px) {
   .sf-sheet-overlay { padding: 12px; align-items: flex-end; }
-  .sf-sheet-frame { flex-direction: column-reverse; align-items: flex-end; gap: 8px; width: 100%; }
-  .sf-sheet { width: 100%; max-height: calc(100dvh - 68px); border-radius: 20px; }
+  .sf-sheet-frame { width: 100%; }
+  .sf-sheet { width: 100%; max-height: calc(100dvh - 96px); border-radius: 20px; }
   .sf-sheet-body { padding: 20px 20px 28px; }
   .sf-sheet-title { font-size: 20px; line-height: 28px; }
 }

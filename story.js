@@ -250,7 +250,7 @@
     }
     overlay.classList.add('is-open');
     card.classList.add('is-open');
-    el('sf-sheet-close').focus({ preventScroll: true });
+    sheet.focus({ preventScroll: true });
   }
 
   function closeNode() {
@@ -323,7 +323,6 @@
     if (overlay) document.body.appendChild(overlay);
     window.addEventListener('popstate', closeNode);
     overlay?.addEventListener('click', (e) => { if (e.target === overlay || e.target.classList.contains('sf-sheet-frame')) closeNode(); });
-    el('sf-sheet-close')?.addEventListener('click', closeNode);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNode(); });
     window.addEventListener('resize', () => { if (isShown('view-story-flow')) drawLinks(); });
   }

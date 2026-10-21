@@ -1,0 +1,296 @@
+/* ==========================================================================
+   Library: popular books (#books), popular entries (#entries) and category
+   pages (#categories/<id>[/<page>]).
+   Same docs layout as the rest of the site (transitions.dev): sidebar of
+   rows on the left, detail head and library cards in the reading column.
+   ========================================================================== */
+
+/* Sidebar: on library pages it lists the library; on book pages, the book. */
+.library-nav {
+  display: none;
+  flex-direction: column;
+}
+body.is-library .library-nav {
+  display: flex;
+}
+body.is-library #wiki-nav-hub > :not(.library-nav):not(.drawer-apps):not(.drawer-settings),
+body.is-library .sidebar-graph-slot,
+body.is-library .btn-mobile-graph-launcher {
+  display: none !important;
+}
+.lib-nav-group {
+  margin-top: 16px;
+}
+
+.lib-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: block;
+}
+.lib-dot {
+  margin: 0 6px;
+  color: var(--text-muted);
+}
+
+/* Popular books has no visible heading; this one is for screen readers and
+   search engines. */
+.lib-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+#view-library[data-page="all"] .lib-books,
+#view-library[data-page="all-books"] .lib-books { padding-top: 8px; }
+
+/* ---------- Books: the transitions.dev library card without its frame ----------
+   The cover is the card's stage (14px radius, stage grey, hairline ring), and
+   under it the card's title and one-line subtitle, in td's type. */
+.lib-books {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 28px 24px;
+}
+.lib-book {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.lib-book-cover {
+  display: block;
+  margin-bottom: 8px;
+}
+.lib-book-title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+.lib-book-tail { white-space: nowrap; }
+.lib-book-out {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-left: 2px;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translate(-2px, 2px);
+  transition: opacity var(--duration-quick) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-smooth-out);
+}
+.lib-book-out .lib-icon { width: 12px; height: 12px; display: inline-block; }
+.lib-book-author {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 13px;
+  padding-bottom: 3px;
+  margin-bottom: -3px;
+  color: #767676;
+}
+[data-theme="dark"] .lib-book-title { color: #ededed; }
+
+.lib-cover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--stage-bg);
+  text-align: center;
+  transition: background-color var(--motion-hover);
+}
+.lib-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--stage-border);
+  pointer-events: none;
+}
+.lib-cover-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.lib-cover--image { padding: 0; }
+.lib-cover--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+[data-theme="dark"] .lib-cover::after { box-shadow: inset 0 0 0 1px rgba(191, 192, 203, 0.08); }
+[data-theme="dark"] .lib-cover-title { color: #ededed; }
+
+/* Hover is the td card's: the panel darkens by a hair. */
+@media (hover: hover) {
+  .lib-book:hover .lib-cover { background-color: color-mix(in srgb, var(--stage-bg) 97%, #000 3%); }
+  [data-theme="dark"] .lib-book:hover .lib-cover { background-color: color-mix(in srgb, var(--stage-bg) 97%, #fff 3%); }
+  .lib-book:hover .lib-cover--image img { filter: brightness(0.97); }
+  .lib-book:hover .lib-book-out { opacity: 1; transform: none; }
+}
+.lib-book:focus-visible { outline: none; }
+.lib-book:focus-visible .lib-cover {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Filter strip: the shared .td-filters component lives in style.css. */
+.lib-filters { margin: -2px -2px 22px; }
+/* Waiting to scroll into view (Texts reveal, library.js). */
+.lib-pending { opacity: 0; }
+#view-library .lib-filters + .lib-books { padding-top: 0; }
+
+/* ---------- Popular entries: one-line rows like the sidebar's ---------- */
+.lib-entries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px 16px;
+  margin: 0 -12px;
+}
+.lib-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-hover);
+}
+.lib-entry:hover { background: var(--hover-bg); }
+.lib-entry:active { background: var(--active-bg); }
+.lib-entry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.lib-entry-name {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--text-ui);
+  font-weight: 400;
+  line-height: var(--leading-ui);
+  color: var(--text-primary);
+}
+.lib-entry-meta {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--text-ui-small);
+  line-height: 16px;
+  color: var(--text-label);
+}
+
+/* ---------- Pager: category pages ----------
+   Round arrow buttons at the ends (the site's detail arrows) and the page
+   numbers as transitions.dev filter capsules, the current one filled. */
+.lib-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 48px;
+}
+.lib-pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+.lib-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 48px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: rgba(38, 38, 38, 0.8);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-quick) var(--ease-smooth-out), color var(--duration-quick) var(--ease-smooth-out);
+}
+.lib-page:hover { background: #f7f7f7; }
+.lib-page.is-current { background: #f1f1f1; color: #080808; }
+.lib-page:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+[data-theme="dark"] .lib-page {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(251, 251, 251, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .lib-page:hover { background: rgba(255, 255, 255, 0.08); }
+[data-theme="dark"] .lib-page.is-current { background: rgba(255, 255, 255, 0.14); color: #fbfbfb; }
+.lib-page-step { text-decoration: none; flex: none; }
+.lib-page-step.is-disabled { opacity: 0.4; pointer-events: none; }
+
+/* ---------- Phones ---------- */
+@media (max-width: 768px) {
+  .lib-filters {
+    padding: 2px var(--m-gutter);
+    margin: -2px calc(var(--m-gutter) * -1) 20px;
+  }
+  .lib-books {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px 12px;
+  }
+  .lib-book-cover { margin-bottom: 6px; }
+  .lib-book-title { font-size: 12px; line-height: 16px; }
+  .lib-book-out { display: none; }
+  .lib-book-author { font-size: 12px; }
+  .lib-cover:not(.lib-cover--image) { padding: 10px; }
+  .lib-cover { border-radius: 12px; }
+  .lib-cover-title { font-size: 13px; line-height: 18px; }
+  .lib-entries {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .lib-entry { height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-cover { transition: none; }
+  .lib-book-out { transition: none; }
+  .lib-page { transition: none; }
+}

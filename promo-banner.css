@@ -1,0 +1,230 @@
+/* Promo card: a painted card floating at the bottom of the reading column, after
+   the OpenDesign campaign bar. Each copy variant has its own painted
+   background cropped from the book's illustrations. Title and line on the left, a countdown in the
+   middle, the call to action and close on the right.
+   Fully decoupled from the page: a fixed overlay that takes no layout
+   space, sets no class or variable the page reads, and changes nothing
+   else on screen when it appears, closes or is removed. */
+
+.promo-bar {
+  --promo-radius: 16px;
+  --promo-fg: #ffffff;
+  --promo-fg-dim: rgba(255, 255, 255, 0.72);
+  --promo-line: rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 700;
+  width: min(880px, calc(100vw - 24px));
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1px auto 1fr auto auto;
+  grid-template-areas: "text rule count . cta close";
+  align-items: center;
+  column-gap: 24px;
+  padding: 14px 12px 14px 28px;
+  border-radius: var(--promo-radius);
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--font-sans);
+  color: var(--promo-fg);
+  background: #2f3a22 center / cover no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    0 12px 42px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%);
+  transition: left var(--panel-open-dur) var(--panel-ease), width var(--panel-open-dur) var(--panel-ease);
+  animation: promo-enter var(--toast-open) var(--toast-ease) both;
+}
+.promo-bar[hidden] { display: none; }
+[data-theme="dark"] .promo-bar {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 12px 42px rgba(0, 0, 0, 0.5);
+}
+
+/* One painting per copy variant, all from the book's own illustrations. */
+.promo-bar[data-variant="all"] { background-image: url('assets/brand/promo-all.jpg'); background-position: center 55%; }
+.promo-bar[data-variant="voices"] { background-image: url('assets/brand/promo-voices.jpg'); }
+.promo-bar[data-variant="library"] { background-image: url('assets/brand/promo-library.jpg'); }
+.promo-bar[data-variant="claude"] { background-image: url('assets/brand/promo-claude.jpg'); }
+.promo-bar[data-variant="import"] { background-image: url('assets/brand/promo-import.jpg'); }
+
+/* A soft shade over the painting keeps the white text crisp. */
+.promo-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(12, 16, 8, 0.55) 0%, rgba(12, 16, 8, 0.16) 55%, rgba(12, 16, 8, 0.34) 100%);
+}
+
+.promo-text { grid-area: text; min-width: 0; }
+.promo-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.promo-title-short { display: none; }
+.promo-sub {
+  margin: 2px 0 0;
+  font-size: var(--text-ui);
+  line-height: 18px;
+  color: var(--promo-fg-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.promo-rule { grid-area: rule; align-self: stretch; background: var(--promo-line); margin: 4px 0; }
+
+.promo-count { grid-area: count; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+.promo-count[hidden] { display: none; }
+.promo-count-label { font-size: var(--text-ui-small); line-height: 16px; color: var(--promo-fg-dim); }
+.promo-count-time {
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+/* A digit that just changed pops in from below with a light blur: the
+   transitions.dev "Number pop-in" (02), with its live tuning. Digits that
+   did not change stay still; when several change at once, each one rides
+   in one stagger step behind the one before it. */
+.promo-count-time {
+  --digit-dur: 500ms;
+  --digit-distance: 8px;
+  --digit-stagger: 70ms;
+  --digit-blur: 2px;
+  --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.promo-digit { display: inline-block; }
+.promo-digit.is-new {
+  animation: promo-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+  animation-delay: calc(var(--digit-stagger) * var(--digit-step, 0));
+}
+@keyframes promo-digit-pop-in {
+  from { opacity: 0; transform: translateY(var(--digit-distance)); filter: blur(var(--digit-blur)); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* Call to action: one warm colour picked from the painting. */
+.promo-cta {
+  grid-area: cta;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  color: #f5e2a8;
+  transition: background var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-cta:hover { background: rgba(255, 255, 255, 0.08); }
+.promo-cta:active { transform: scale(var(--scale-medium)); }
+.promo-cta:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 2px; }
+.promo-cta-arrow { width: 16px; height: 16px; flex: none; color: currentColor; }
+.promo-cta-arrow svg { width: 100%; height: 100%; }
+
+.promo-close {
+  grid-area: close;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: background var(--duration-quick) var(--ease-out), color var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-close:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+.promo-close:active { transform: scale(var(--scale-large)); }
+.promo-close:focus-visible { outline: 2px solid #f5e2a8; outline-offset: 1px; }
+.promo-close svg { width: 18px; height: 18px; }
+
+/* In and out as the transitions.dev Toast (22): a short rise with a light
+   blur and a hair of scale, slower in than out. */
+@keyframes promo-enter {
+  from { opacity: 0; transform: translateX(-50%) translateY(var(--toast-distance)) scale(var(--toast-scale)); filter: blur(var(--toast-blur)); }
+  to { opacity: 1; transform: translateX(-50%); filter: blur(0); }
+}
+.promo-bar.is-leaving {
+  animation: promo-leave var(--toast-close) var(--toast-ease) both;
+  pointer-events: none;
+}
+@keyframes promo-leave {
+  from { opacity: 1; transform: translateX(-50%); filter: blur(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(var(--toast-distance)) scale(var(--toast-scale)); filter: blur(var(--toast-blur)); }
+}
+
+
+/* Centred on the reading column, not the whole window: the same left edge
+   and width the page gives .wiki-main-article, so it follows the sidebar
+   when it is hidden or shown. */
+@media (min-width: 769px) {
+  .promo-bar {
+    --promo-area: calc(100% - var(--main-left) - var(--page-inset));
+    left: calc(var(--main-left) + var(--promo-area) / 2);
+    width: min(880px, var(--promo-area));
+  }
+}
+
+/* A narrow reading column gets the compact two-row card. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .promo-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "text cta close" "count cta close";
+    column-gap: 8px;
+    row-gap: 2px;
+    padding: 12px 8px 12px 20px;
+  }
+  .promo-rule { display: none; }
+  .promo-sub { display: none; }
+  .promo-count { flex-direction: row; align-items: baseline; gap: 6px; }
+  .promo-count-time { font-size: 13px; line-height: 18px; }
+}
+
+@media (max-width: 768px) {
+  .promo-bar {
+    width: calc(100% - 2 * var(--m-gutter));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "text cta close" "count cta close";
+    column-gap: 4px;
+    row-gap: 2px;
+    padding: 12px 6px 12px 16px;
+  }
+  .promo-title { font-size: 15px; line-height: 20px; }
+  .promo-sub, .promo-rule, .promo-title-long { display: none; }
+  .promo-title-short { display: inline; }
+  .promo-count { flex-direction: row; align-items: baseline; gap: 6px; }
+  .promo-count-time { font-size: 13px; line-height: 18px; }
+  .promo-cta { padding: 0 10px; font-size: 14px; }
+  .promo-close { width: 32px; height: 32px; }
+  /* While the graph sheet or the menu is up, the card steps aside. */
+  body.mobile-continuum-header-active .promo-bar,
+  body.menu-open .promo-bar,
+  body.graph-is-expanded .promo-bar { opacity: 0; pointer-events: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-bar, .promo-bar.is-leaving { animation: none; }
+  .promo-digit.is-new { animation: none; }
+}

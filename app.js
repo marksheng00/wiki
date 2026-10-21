@@ -11,7 +11,8 @@
   }
 
   const state = {
-    theme: 'light',
+    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+    themePref: 'system',
     font: 'sans',
     lang: 'en',
     currentEntityId: null,
@@ -27,7 +28,417 @@
     return document.getElementById(id);
   }
 
+  /* Motion tokens live in style.css (:root). JS reads them instead of keeping
+     its own numbers, so CSS and scripted motion always agree, and both drop
+     to zero under prefers-reduced-motion. */
+  // Every getter takes the full custom property name, e.g. motion.ms('--panel-open-dur').
+  const motion = {
+    raw(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    },
+    ms(name) {
+      const value = this.raw(name);
+      const amount = parseFloat(value) || 0;
+      return value.endsWith('ms') ? amount : (value.endsWith('s') ? amount * 1000 : amount);
+    },
+    ease(name) {
+      return this.raw(name) || 'ease-out';
+    },
+    px(name) {
+      return parseFloat(this.raw(name)) || 0;
+    },
+    number(name, fallback = 0) {
+      const value = parseFloat(this.raw(name));
+      return Number.isFinite(value) ? value : fallback;
+    }
+  };
+
+  // JS-driven motion (graph camera, morphs, layout changes) follows the same
+  // smooth-out curve as CSS, read from --ease-smooth-out.
+  function createCubicBezier(x1, y1, x2, y2) {
+    const ax = 3 * x1 - 3 * x2 + 1;
+    const bx = 3 * x2 - 6 * x1;
+    const cx = 3 * x1;
+    const ay = 3 * y1 - 3 * y2 + 1;
+    const by = 3 * y2 - 6 * y1;
+    const cy = 3 * y1;
+    const sampleX = (t) => ((ax * t + bx) * t + cx) * t;
+    const sampleY = (t) => ((ay * t + by) * t + cy) * t;
+    const slopeX = (t) => (3 * ax * t + 2 * bx) * t + cx;
+    return (x) => {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 8; i += 1) {
+        const error = sampleX(t) - x;
+        if (Math.abs(error) < 1e-6) break;
+        const slope = slopeX(t);
+        if (Math.abs(slope) < 1e-6) break;
+        t -= error / slope;
+      }
+      if (t < 0 || t > 1 || Math.abs(sampleX(t) - x) > 1e-4) {
+        let lo = 0;
+        let hi = 1;
+        t = x;
+        for (let i = 0; i < 30; i += 1) {
+          if (sampleX(t) < x) lo = t; else hi = t;
+          t = (lo + hi) / 2;
+        }
+      }
+      return sampleY(t);
+    };
+  }
+
+  let smoothOutEase = null;
+  function easeSmoothOut(linear) {
+    if (!smoothOutEase) {
+      const match = motion.raw('--ease-smooth-out').match(/cubic-bezier\(([^)]+)\)/);
+      const points = match ? match[1].split(',').map(Number) : [0.22, 1, 0.36, 1];
+      smoothOutEase = createCubicBezier(...points);
+    }
+    return smoothOutEase(linear);
+  }
+
+  function scrollBehavior() {
+    return prefersReducedMotion() ? 'auto' : 'smooth';
+  }
+
+  function canAnimate(el) {
+    return Boolean(el && typeof el.animate === 'function' && !prefersReducedMotion());
+  }
+
+  /* Language. Every interface string is written in English in the page;
+     ZH_UI maps it to Chinese. Book, storyline, storyflow and entity-name
+     text comes from WIKI_STORE_ZH. Entity articles exist only in English. */
+  const ZH_UI = {
+    'Skip to content': '跳到正文',
+    'Hide sidebar': '收起侧边栏',
+    'Show sidebar': '展开侧边栏',
+    'Readipedia home': 'Readipedia 首页',
+    'Readify apps': 'Readify 应用',
+    'Download': '下载',
+    'Desktop': '桌面端',
+    'Apple silicon and Intel': 'Apple 芯片与 Intel',
+    'Windows 10 and later': 'Windows 10 及以上',
+    'Mobile': '移动端',
+    'iPhone and iPad': 'iPhone 和 iPad',
+    'Phones and tablets': '手机和平板',
+    'Browser': '浏览器',
+    'Extension': '浏览器扩展',
+    'Chrome and Edge': 'Chrome 和 Edge',
+    'Web app': '网页版',
+    'Nothing to install': '无需安装',
+    'QR code for the Readify app': 'Readify 应用二维码',
+    'On your phone?': '在手机上读？',
+    'Scan to get Readify for iOS or Android.': '扫码获取 iOS 或 Android 版 Readify。',
+    'Search (Ctrl K)': '搜索 (Ctrl K)',
+    'Search': '搜索',
+    'Open Readify': '打开 Readify',
+    'Download for Mac': '下载 Mac 版',
+    'Download for Windows': '下载 Windows 版',
+    'Get the app': '下载 App',
+    'Switch language': '切换语言',
+    'Toggle theme': '切换主题',
+    'Open menu': '打开菜单',
+    'Close menu': '关闭菜单',
+    'Expand graph': '展开图谱',
+    'Close graph explorer': '关闭图谱',
+    'Return to Knowledge Graph': '返回知识图谱',
+    'Open Knowledge Graph': '打开知识图谱',
+    'Return to article': '返回词条',
+    'Book': '书籍',
+    'Overview': '概览',
+    'On this page': '本页目录',
+    'Introduction': '作品概览',
+    'Plot': '情节梗概',
+    'Themes': '核心主题',
+    'Legacy': '背景与影响',
+    'Author': '作者',
+    'Storylines': '故事线',
+    'StoryFlow': '故事视角',
+    'Entities': '词条',
+    'Characters': '人物',
+    'Locations': '地点',
+    'Organizations': '组织',
+    'Objects': '物件',
+    'Creatures': '生物',
+    'Events': '事件',
+    'Actions': '行动',
+    'Concepts': '概念',
+    'Rules': '规则',
+    'Time': '时间',
+    'States': '超级大国',
+    'Expressions': '名言',
+    'Get Readify': '获取 Readify',
+    'This device': '当前设备',
+    'Browser extension': '浏览器扩展',
+    'Nineteen Eighty-Four': '一九八四',
+    'Nineteen Eighty-Four original cover': '《一九八四》初版封面',
+    'George Orwell': '乔治·奥威尔',
+    'Country': '国家',
+    'United Kingdom': '英国',
+    'Language': '原文语言',
+    'English': '英语',
+    'Genre': '类型',
+    'Dystopian, Satire': '反乌托邦、讽刺',
+    'Published': '出版',
+    '8 June 1949': '1949年6月8日',
+    'Read the book in Readify': '在 Readify 阅读本书',
+    'Background and Legacy': '写作背景与影响',
+    'About the Author': '关于作者',
+    'George Orwell (Eric Arthur Blair, 1903 – 1950)': '乔治·奥威尔（埃里克·亚瑟·布莱尔，1903 – 1950）',
+    'Previous entry': '上一个词条',
+    'Next entry': '下一个词条',
+    'Entity visual still': '词条配图',
+    'Back to Nineteen Eighty-Four': '返回《一九八四》',
+    '89 scenes, from Victory Mansions to the Chestnut Tree Café.': '89 个场景，从胜利大厦一路走到栗树咖啡馆。',
+    'Previous scenes': '上一组场景',
+    'Next scenes': '下一组场景',
+    'Three threads through the novel, each told as one path.': '贯穿全书的三条线索，每条都是一段完整的路径。',
+    'Product': '产品',
+    'Company': '公司',
+    'Legal': '法律',
+    'Free tools': '免费工具',
+    'iOS App': 'iOS 应用',
+    'Android App': 'Android 应用',
+    'Web App': '网页版',
+    'macOS App': 'macOS 应用',
+    'Windows App': 'Windows 应用',
+    'Chrome Extension': 'Chrome 扩展',
+    'Download Android APK': '下载 Android APK',
+    'About': '关于',
+    'Contact': '联系我们',
+    'Blog': '博客',
+    'Resources': '资源',
+    'Pricing': '价格',
+    'Privacy': '隐私政策',
+    'Terms': '使用条款',
+    'Free Ebook Converter': '免费电子书转换',
+    'Free Doc Converter': '免费文档转换',
+    'Free Audio Converter': '免费音频转换',
+    'Free Text to Speech': '免费文字转语音',
+    '© 2026 Readify. All rights reserved.': '© 2026 Readify. 保留所有权利。',
+    'Read the book as a living encyclopedia.': '把一本书读成一部活的百科。',
+    'Made by Readify': '由 Readify 出品',
+    'Apps': '应用',
+    'Read the original': '阅读原著',
+    'Back to top': '回到顶部',
+    'Search entries and pages...': '搜索词条和页面…',
+    'Search books and entries...': '搜索书籍和词条…',
+    'Books': '书籍',
+    'Story': '故事',
+    'Cancel': '取消',
+    'Close': '关闭',
+    'No results': '没有结果',
+    'Pages': '页面',
+    'Entries': '词条',
+    'Summary': '摘要',
+    '89 scenes': '89 个场景',
+    'Three threads': '三条线索',
+    'Settings': '设置',
+    'Site language': '界面语言',
+    'Theme': '外观',
+    'Light': '浅色',
+    'Dark': '深色',
+    'System': '跟随系统'
+  };
+  const LANG_KEY = 'readipedia-lang';
+  const zhStore = () => window.WIKI_STORE_ZH || null;
+  const isZh = () => state.lang === 'zh';
+
+  function t(text) {
+    return isZh() && ZH_UI[text] ? ZH_UI[text] : text;
+  }
+
+  // Display name of a graph entity in the current language. node.label stays
+  // the English key used by articles, images and links.
+  function entityName(id, fallback) {
+    if (isZh()) {
+      const zh = zhStore()?.graph_labels?.[id];
+      if (zh) return zh;
+    }
+    if (fallback) return fallback;
+    const node = getKnowledgeIndex()?.nodesById.get(id);
+    return node?.label || id;
+  }
+
+  function storylineAt(index) {
+    const evt = window.WIKI_STORE?.master?.storylines?.[index];
+    if (!evt || !isZh()) return evt;
+    const zh = zhStore()?.storylines?.find((s) => s.index === evt.index);
+    if (!zh) return evt;
+    // The scraped Chinese text stops mid-sentence, like the English excerpts.
+    const desc = /[。！？”’…]$/.test(zh.description) ? zh.description : `${zh.description}……`;
+    return { ...evt, date: zh.date, title: zh.title, description: desc };
+  }
+
+  function readStoredLang() {
+    try {
+      const saved = localStorage.getItem(LANG_KEY);
+      if (saved === 'en' || saved === 'zh') return saved;
+    } catch (e) { /* storage blocked */ }
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    return /^zh\b/i.test(nav) ? 'zh' : 'en';
+  }
+
+  // Swap static interface text in place. The English original of each text
+  // node and attribute is remembered, so switching back needs no table.
+  const i18nText = new WeakMap();
+  const i18nAttr = new WeakMap();
+  const I18N_SKIP = '#lang-dropdown, #view-library, .prose, .reading-section > h2, .entity-toc-link, #entity-toc, .filmstrip-thumb, .storyflow-editorial-row, #cmdk-list, #storyline-hero-date, #storyline-hero-title, #view-entity-title, #mobile-continuum-title, #nav-get-app-label, script, style';
+  const I18N_ATTRS = ['aria-label', 'title', 'alt', 'placeholder', 'data-tooltip'];
+
+  function swapString(current, record) {
+    const en = record && current === record.zh ? record.en : current;
+    const zh = ZH_UI[en];
+    return { en, zh, value: isZh() && zh ? zh : en };
+  }
+
+  function translateStatic(root = document.body) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return node.parentElement?.closest(I18N_SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const raw = node.nodeValue;
+      const trimmed = raw.trim();
+      const res = swapString(trimmed, i18nText.get(node));
+      if (!res.zh) return;
+      i18nText.set(node, { en: res.en, zh: res.zh });
+      if (res.value !== trimmed) node.nodeValue = raw.replace(trimmed, res.value);
+    });
+    root.querySelectorAll(I18N_ATTRS.map((a) => `[${a}]`).join(',')).forEach((el) => {
+      if (el.closest(I18N_SKIP)) return;
+      let records = i18nAttr.get(el);
+      if (!records) { records = {}; i18nAttr.set(el, records); }
+      I18N_ATTRS.forEach((attr) => {
+        const current = el.getAttribute(attr);
+        if (!current) return;
+        const res = swapString(current, records[attr]);
+        if (!res.zh) return;
+        records[attr] = { en: res.en, zh: res.zh };
+        if (res.value !== current) el.setAttribute(attr, res.value);
+      });
+    });
+  }
+
+  function translateEntityLinks() {
+    document.querySelectorAll('.entity-toc-link[data-id]').forEach((link) => {
+      if (!link.dataset.en) link.dataset.en = link.textContent.trim();
+      link.textContent = entityName(link.dataset.id, link.dataset.en);
+    });
+  }
+
+  function translateStoryflowCards() {
+    const flows = window.WIKI_STORE?.master?.storyflows || [];
+    const zhFlows = zhStore()?.storyflows || {};
+    document.querySelectorAll('.storyflow-editorial-row').forEach((row, i) => {
+      const flow = flows[i];
+      const title = row.querySelector('.storyflow-row-title');
+      const desc = row.querySelector('.storyflow-row-desc');
+      const img = row.querySelector('img');
+      const link = row.querySelector('.card-copy');
+      if (!title || !desc) return;
+      if (!row.dataset.enTitle) {
+        row.dataset.enTitle = title.textContent;
+        row.dataset.enDesc = desc.textContent;
+      }
+      const zh = isZh() && flow ? zhFlows[flow.id] : null;
+      const name = zh ? zh.title : row.dataset.enTitle;
+      title.textContent = name;
+      desc.textContent = zh ? zh.description : row.dataset.enDesc;
+      if (img) img.alt = name;
+      if (link) link.setAttribute('aria-label', zh ? `查看「${name}」` : `Explore ${name}`);
+    });
+  }
+
+  function translateFilmstrip() {
+    document.querySelectorAll('.filmstrip-thumb[data-idx]').forEach((thumb) => {
+      const evt = storylineAt(parseInt(thumb.dataset.idx, 10));
+      if (!evt) return;
+      thumb.dataset.tooltip = evt.title;
+      const img = thumb.querySelector('img');
+      if (img) img.alt = evt.title;
+    });
+  }
+
+  function applyLanguage(options = {}) {
+    const zh = isZh();
+    document.documentElement.lang = zh ? 'zh-CN' : 'en';
+    document.title = zh ? '一九八四 — Readipedia' : 'Nineteen Eighty-Four — Readipedia';
+    const langLabel = getEl('lang-current-label');
+    if (langLabel) langLabel.textContent = zh ? '中文' : 'EN';
+    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.setLang === state.lang));
+    });
+    document.querySelectorAll('#lang-dropdown .wiki-dropdown-item').forEach((item) => {
+      item.classList.toggle('active', item.getAttribute('data-lang') === state.lang);
+    });
+
+    translateStatic();
+    translateEntityLinks();
+    translateStoryflowCards();
+    translateFilmstrip();
+    renderBookArticle();
+    if (zh && !window.WIKI_ARTICLES_ZH) ensureZhArticles();
+    if (options.initial) return;
+
+    setStorylineScene(state.currentStorylineIndex, { force: true });
+    if (state.currentEntityId && getEl('view-entity')?.style.display !== 'none') {
+      const model = getEntityArticleModel(state.currentEntityId);
+      if (model) renderEntityPage(model);
+    }
+    if (graphState.continuumEntityId) {
+      const model = getEntityArticleModel(graphState.continuumEntityId);
+      if (model) {
+        renderEntityArticleInto(model, {
+          title: getEl('mobile-continuum-title'),
+          media: getEl('mobile-continuum-media'),
+          image: getEl('mobile-continuum-image'),
+          markdown: getEl('mobile-continuum-markdown')
+        });
+      }
+    }
+    if (getEl('view-book')?.style.display !== 'none') getEl('book-toc')?.__sync?.(true);
+    document.dispatchEvent(new CustomEvent('readipedia:lang'));
+  }
+
+  // Chinese entity articles are a large file, fetched only once Chinese is on.
+  let zhArticlesPromise = null;
+  function ensureZhArticles() {
+    if (window.WIKI_ARTICLES_ZH) return Promise.resolve(true);
+    if (!zhArticlesPromise) {
+      zhArticlesPromise = new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = './data/wiki_articles_zh.js?v=1';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      }).then((ok) => {
+        if (ok) {
+          window.__entityMdCache?.clear();
+          if (isZh()) applyLanguage({ articlesOnly: true });
+        }
+        return ok;
+      });
+    }
+    return zhArticlesPromise;
+  }
+
+  function setLanguage(lang) {
+    if (lang === state.lang) return;
+    state.lang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* storage blocked */ }
+    applyLanguage();
+  }
+
   function init() {
+    state.lang = readStoredLang();
+    initTheme();
     renderBookArticle();
     initGraphControls();
     initNavHubClicks();
@@ -38,111 +449,201 @@
     initDetailsAnimation();
     initMobileGraphContinuum();
     initMobileGestures();
-    initNavHistory();
+    // story.js renders the storyline and StoryFlow pages through these.
+    window.ReadipediaBridge = {
+      setScene: (pos) => setStorylineScene(pos),
+      currentScene: () => state.currentStorylineIndex,
+      isZh,
+      prepare: prepareForPageNavigation,
+      clearActiveNav,
+      showView: showArticleView,
+      pushHistory: (id) => updateNavHistory('story', id),
+      openEntity: (id) => openEntityArticle(id),
+      renderMarkdown
+    };
+    const initialRoute = getRouteFromHash();
+    state.libraryCategory = initialRoute.category || 'all-books';
+    initNavHistory(initialRoute);
     initEntityMentionInteractions();
+    initEntityPreview();
+    initImageReveals();
+    initTooltips();
+    initBackToTopVisibility();
+    initEntityArrows();
+    initBookToc();
+    initSearchPalette();
+    initFooterLinks();
+    initReadifyCtas();
+    initReadifyApps();
+    initEntityBackLink();
+    initDrawerSettings();
+    applyLanguage({ initial: true });
 
-    // Strict product rule: 首页只能是 bookoverview
-    const initialHash = (window.location.hash || '').replace(/^#/, '');
-    if (initialHash === 'view-storyline' || initialHash === 'view-storyflow') {
+    // A view id in the URL is also an element id; keep the browser from
+    // jumping to it, so every page opens at its title.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.addEventListener('load', () => {
+      if (/^#view-/.test(location.hash)) window.scrollTo({ top: 0, behavior: 'instant' });
+    }, { once: true });
+
+    // A fresh visit lands on the library; a refresh restores the page in the URL.
+    if (initialRoute.id === 'view-library') {
       initBalancedTopologyGraph(createGraphContext('overview'));
-      showArticleView(initialHash, { fromHistory: true });
+      openLibrary({ fromHistory: true, category: state.libraryCategory });
+    } else if (initialRoute.type === 'view') {
+      initBalancedTopologyGraph(createGraphContext('overview'));
+      showArticleView(initialRoute.id, { fromHistory: true });
+    } else if (initialRoute.type === 'story') {
+      initBalancedTopologyGraph(createGraphContext('overview'));
+      window.StoryPages.route(initialRoute.id, { fromHistory: true });
+    } else if (initialRoute.type === 'entity') {
+      initBalancedTopologyGraph(createGraphContext('entity', initialRoute.id), { animate: false });
+      openEntityArticle(initialRoute.id, { fromHistory: true, animateGraph: false });
     } else {
       openBookOverview({ fromHistory: true });
     }
   }
 
+  /* Interface icons, drawn on a 16px grid with a 1.5px line so they stay
+     crisp at the 14 to 18px sizes the site uses. Any icon not listed here
+     (the logo's book) still comes from Lucide. */
+  const UI_ICONS = {
+      "search": "<circle cx=\"7.25\" cy=\"7.25\" r=\"4.5\"/><path d=\"M10.5 10.5 13.25 13.25\"/>",
+      "x": "<path d=\"M4.25 4.25 11.75 11.75M11.75 4.25 4.25 11.75\"/>",
+      "menu": "<rect x=\"2\" y=\"2.75\" width=\"12\" height=\"10.5\" rx=\"2.25\"/><path d=\"M6.25 2.75v10.5\"/>",
+      "equal": "<path d=\"M3 6h10M3 10h10\"/>",
+      "chevron-down": "<path d=\"M4.75 6.25 8 9.5l3.25-3.25\"/>",
+      "chevron-left": "<path d=\"M9.75 4.75 6.5 8l3.25 3.25\"/>",
+      "chevron-right": "<path d=\"M6.25 4.75 9.5 8l-3.25 3.25\"/>",
+      "arrow-right": "<path d=\"M3.25 8h9.5M8.75 4l4 4-4 4\"/>",
+      "arrow-left": "<path d=\"M12.75 8h-9.5M7.25 4l-4 4 4 4\"/>",
+      "arrow-up": "<path d=\"M8 12.75v-9.5M4 7.25l4-4 4 4\"/>",
+      "arrow-up-right": "<path d=\"M4.75 11.25 11.25 4.75M5.75 4.75h5.5v5.5\"/>",
+      "arrow-down-to-line": "<path d=\"M8 2.75v7.25M4.75 6.75 8 10l3.25-3.25M3.25 13.25h9.5\"/>",
+      "sun": "<circle cx=\"8\" cy=\"8\" r=\"2.75\"/><path d=\"M8 1.75V3M8 13v1.25M1.75 8H3M13 8h1.25M3.58 3.58l.88.88M11.54 11.54l.88.88M3.58 12.42l.88-.88M11.54 4.46l.88-.88\"/>",
+      "moon": "<path d=\"M13.25 9.75A5.5 5.5 0 1 1 6.25 2.75a4.25 4.25 0 0 0 7 7Z\"/>",
+      "languages": "<path d=\"M2.25 4h6.5M5.5 2.5V4M7.5 4c-.55 2.5-2.25 4.5-4.75 5.75M3.75 6.25c.85 1.5 2.15 2.65 3.75 3.4M8.5 13.5l2.5-6 2.5 6M9.3 11.6h3.4\"/>",
+      "globe": "<circle cx=\"8\" cy=\"8\" r=\"6.25\"/><path d=\"M1.75 8h12.5M8 1.75c1.6 1.75 2.4 3.85 2.4 6.25S9.6 12.5 8 14.25C6.4 12.5 5.6 10.4 5.6 8S6.4 3.5 8 1.75Z\"/>",
+      "book-open": "<path d=\"M8 4.5C6.85 3.55 5.1 3 2.75 3v9.5c2.35 0 4.1.55 5.25 1.5 1.15-.95 2.9-1.5 5.25-1.5V3C10.9 3 9.15 3.55 8 4.5Zm0 0V14\"/>",
+      "network": "<circle cx=\"8\" cy=\"3.75\" r=\"1.75\"/><circle cx=\"3.75\" cy=\"12.25\" r=\"1.75\"/><circle cx=\"12.25\" cy=\"12.25\" r=\"1.75\"/><path d=\"M7.2 5.3 4.6 10.7M8.8 5.3l2.6 5.4M5.5 12.25h5\"/>",
+      "film": "<rect x=\"2.75\" y=\"2.75\" width=\"10.5\" height=\"10.5\" rx=\"2\"/><path d=\"M5.5 2.75v10.5M10.5 2.75v10.5M2.75 8h2.75M10.5 8h2.75\"/>",
+      "route": "<circle cx=\"4\" cy=\"12\" r=\"1.75\"/><circle cx=\"12\" cy=\"4\" r=\"1.75\"/><path d=\"M5.75 12H10a2 2 0 0 0 0-4H6a2 2 0 0 1 0-4h4.25\"/>",
+      "grid": "<rect x=\"2.75\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"2.75\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/>",
+      "shapes": "<path d=\"M4 2.25h5.25L12 5v8.75H4Z\"/><path d=\"M9.25 2.25V5H12M6.25 8.25h3.5M6.25 10.75h3.5\"/>"
+  };
+
+  function renderIcons(root = document) {
+    root.querySelectorAll('i[data-lucide]').forEach((el) => {
+      const name = el.getAttribute('data-lucide');
+      const body = UI_ICONS[name];
+      if (!body) return;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      Array.from(el.attributes).forEach((attr) => {
+        if (attr.name !== 'data-lucide') svg.setAttribute(attr.name, attr.value);
+      });
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '1.5');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.classList.add('lucide', 'ui-icon', `ui-icon-${name}`);
+      svg.innerHTML = body;
+      el.replaceWith(svg);
+    });
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+
   function initIcons() {
-    if (window.lucide && window.lucide.createIcons) {
-      window.lucide.createIcons();
-    }
+    renderIcons();
   }
 
   function initDetailsAnimation() {
     const detailsEls = document.querySelectorAll('details.toc-group, details.toc-cat-details');
+    // The Entities group is a fixed heading: clicking it never folds the list.
+    const entitiesGroup = getEl('grp-entities');
+    entitiesGroup?.querySelector('summary')?.addEventListener('click', (e) => e.preventDefault());
     detailsEls.forEach(details => {
+      if (details === entitiesGroup) return;
       const summary = details.querySelector('summary');
       const content = details.querySelector('.toc-items, .toc-cat-list');
       if (!summary || !content) return;
 
       let isAnimating = false;
+      details.dataset.expanded = details.hasAttribute('open') ? 'true' : 'false';
 
+      // Accordion (transitions.dev): height plus a 2px cross-blur on the list,
+      // opening slower than it closes.
       summary.addEventListener('click', (e) => {
         e.preventDefault();
         if (isAnimating) return;
-        isAnimating = true;
 
-        if (details.hasAttribute('open')) {
-          const startHeight = content.offsetHeight;
-          const animation = content.animate([
-            { height: startHeight + 'px', opacity: 1, overflow: 'hidden' },
-            { height: '0px', opacity: 0, overflow: 'hidden' }
-          ], {
-            duration: 320,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-          });
-          animation.onfinish = () => {
-            details.removeAttribute('open');
-            animation.cancel();
-            isAnimating = false;
-          };
-        } else {
-          details.setAttribute('open', '');
-          const targetHeight = content.offsetHeight;
-          const animation = content.animate([
-            { height: '0px', opacity: 0, overflow: 'hidden' },
-            { height: targetHeight + 'px', opacity: 1, overflow: 'hidden' }
-          ], {
-            duration: 320,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-          });
-          animation.onfinish = () => {
-            animation.cancel();
-            isAnimating = false;
-          };
+        const closing = details.hasAttribute('open');
+        details.dataset.expanded = closing ? 'false' : 'true';
+        if (!closing) details.setAttribute('open', '');
+        if (!canAnimate(content)) {
+          if (closing) details.removeAttribute('open');
+          return;
         }
+        isAnimating = true;
+        const blur = `blur(${motion.px('--blur-small')}px)`;
+        const shown = { height: content.offsetHeight + 'px', opacity: 1, filter: 'blur(0px)', overflow: 'hidden' };
+        const hidden = { height: '0px', opacity: 0, filter: blur, overflow: 'hidden' };
+        const animation = content.animate(closing ? [shown, hidden] : [hidden, shown], {
+          duration: motion.ms(closing ? '--acc-collapse' : '--acc-expand'),
+          easing: motion.ease('--acc-ease'),
+          fill: 'forwards'
+        });
+        animation.onfinish = () => {
+          if (closing) details.removeAttribute('open');
+          animation.cancel();
+          isAnimating = false;
+        };
       });
     });
   }
 
   function renderBookArticle() {
-    if (!window.WIKI_STORE || !window.WIKI_STORE.master) return;
-
-    const art = window.WIKI_STORE.master.article;
-    const author = window.WIKI_STORE.master.author;
-    const isZh = state.lang === 'zh';
+    const master = window.WIKI_STORE?.master;
+    if (!master) return;
+    const { article: art, author } = master;
+    const paragraphs = (list) => list.map((p) => `<p>${p}</p>`).join('');
+    const fill = (id, ready, render) => {
+      const el = getEl(id);
+      if (el && ready) el.innerHTML = render();
+    };
 
     const h1 = getEl('article-h1');
-    if (h1) h1.textContent = isZh ? '一九八四 (Nineteen Eighty-Four)' : 'Nineteen Eighty-Four';
-
-    const tOverview = getEl('text-overview');
-    if (tOverview && art.overview) tOverview.innerHTML = `<p>${art.overview.content}</p>`;
-
-    const tPlot = getEl('text-plot');
-    if (tPlot && art.plot && art.plot.paragraphs) {
-      tPlot.innerHTML = art.plot.paragraphs.map((p) => `<p>${p}</p>`).join('');
+    if (h1) h1.textContent = t('Nineteen Eighty-Four');
+    const headings = { 'sec-overview': 'Overview', 'sec-plot': 'Plot', 'sec-themes': 'Themes', 'sec-background': 'Background and Legacy', 'sec-author': 'About the Author' };
+    const zhBook = isZh() ? zhStore() : null;
+    Object.entries(headings).forEach(([id, en], i) => {
+      const h2 = document.querySelector(`#${id} > h2`);
+      if (!h2) return;
+      h2.textContent = zhBook ? (zhBook.book.sections[i]?.title || t(en)) : en;
+    });
+    if (zhBook) {
+      const sections = zhBook.book.sections;
+      const ids = ['text-overview', 'text-plot', 'text-themes', 'text-background'];
+      ids.forEach((id, i) => fill(id, sections[i], () => paragraphs(sections[i].paragraphs)));
+      fill('text-author', zhBook.author?.sections, () => zhBook.author.sections
+        .map((s) => `<h3>${s.title}</h3>${paragraphs(s.paragraphs)}`)
+        .join(''));
+      return;
     }
-
-    const tThemes = getEl('text-themes');
-    if (tThemes && art.themes) tThemes.innerHTML = `<p>${art.themes.content}</p>`;
-
-    const tBackground = getEl('text-background');
-    if (tBackground && art.background_and_legacy && art.background_and_legacy.paragraphs) {
-      tBackground.innerHTML = art.background_and_legacy.paragraphs.map((p) => `<p>${p}</p>`).join('');
-    }
-
-    const tAuthor = getEl('text-author');
-    if (tAuthor && author && author.sections) {
-      tAuthor.innerHTML = author.sections
-        .map(
-          (s) => `
+    fill('text-overview', art.overview, () => `<p>${art.overview.content}</p>`);
+    fill('text-plot', art.plot?.paragraphs, () => paragraphs(art.plot.paragraphs));
+    fill('text-themes', art.themes, () => `<p>${art.themes.content}</p>`);
+    fill('text-background', art.background_and_legacy?.paragraphs, () => paragraphs(art.background_and_legacy.paragraphs));
+    fill('text-author', author?.sections, () => author.sections
+      .map(
+        (s) => `
         <h3>${s.title}</h3>
         <p>${s.content}</p>
       `
-        )
-        .join('');
-    }
+      )
+      .join(''));
   }
 
   function clearActiveNav() {
@@ -179,10 +680,28 @@
         // short host handoff behind it.
         duration: directReadingNavigation || sidebarOwnsOverlayGraph
           ? 0
-          : (window.innerWidth <= 768 ? 180 : 420),
+          : graphMs(isMobileGraphViewport() ? 180 : 420),
         destination: isSidebarNavigation ? 'sidebar' : 'article'
       });
     }
+  }
+
+  function clearEntityFocus() {
+    state.currentEntityId = null;
+    graphState.continuumEntityId = null;
+    graphState.focusedNode = null;
+    graphState.hoverNode = null;
+    graphState.mobileFocusWeights.clear();
+  }
+
+  // Apply the overview graph immediately, discarding any deferred page graph.
+  function showOverviewGraphNow() {
+    const overviewContext = createGraphContext('overview');
+    state.graphContext = overviewContext;
+    graphState.pendingGraphContext = null;
+    graphState.hasPendingData = false;
+    graphState.pendingGraphData = null;
+    initBalancedTopologyGraph(overviewContext, { animate: false });
   }
 
   async function openBookOverview(options = {}) {
@@ -190,25 +709,81 @@
     if (isMobileGraphViewport()) {
       deactivateMobileGraphContinuum();
     }
-    state.currentEntityId = null;
-    graphState.continuumEntityId = null;
-    graphState.focusedNode = null;
-    graphState.hoverNode = null;
-    graphState.mobileFocusWeights.clear();
+    clearEntityFocus();
     clearActiveNav();
     const btnBook = getEl('btn-book-home');
     if (btnBook) btnBook.classList.add('active');
 
-    // Ensure the overview graph is applied cleanly without deferred staleness
-    const overviewContext = createGraphContext('overview');
-    state.graphContext = overviewContext;
-    graphState.pendingGraphContext = null;
-    graphState.hasPendingData = false;
-    graphState.pendingGraphData = null;
-    initBalancedTopologyGraph(overviewContext, { animate: false });
+    showOverviewGraphNow();
 
     showArticleView('view-book', options);
   }
+
+  // The library is the site's front page; the logo leads here. Its pages
+  // live at real paths so search engines can crawl them one by one:
+  //   books/                 all books        books/page/<n>/
+  //   entries/               all entries      entries/page/<n>/
+  //   categories/<id>/       a category       categories/<id>/page/<n>/
+  // Paths are relative to the site root; the prerendered copies of
+  // index.html under those folders set <base> to the root, so relative
+  // links and pushState resolve the same everywhere. The old hashes
+  // (#all-books, #books, #entries, #all-entries, #categories/<id>) still open
+  // their pages (#books and #entries, the old popular tabs, open
+  // all books and all entries, which now lead with the popular ones). library.js draws them; this file routes.
+  function libraryCategoryFromHash(hash) {
+    if (hash === '' || hash === 'view-library') return 'all-books';
+    if (hash === 'books') return 'all-books';
+    if (hash === 'entries') return 'all-entries';
+    const all = /^(all-books|all-entries)(?:\/(\d+))?$/.exec(hash);
+    if (all) return all[2] ? `${all[1]}/${all[2]}` : all[1];
+    const match = /^categories\/([a-z-]+(?:\/\d+)?)$/.exec(hash);
+    return match ? match[1] : null;
+  }
+  const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;
+
+  function libraryPath(category = 'all-books') {
+    const [page, n] = String(category).split('/');
+    const tail = Number(n) > 1 ? `page/${n}/` : '';
+    if (page === 'all-books') return `books/${tail}`;
+    if (page === 'all-entries') return `entries/${tail}`;
+    return `categories/${page}/${tail}`;
+  }
+  // The page's path below the site root, e.g. "books/page/2/".
+  function sitePath() {
+    const root = new URL('.', document.baseURI).pathname;
+    const path = window.location.pathname.replace(/index\.html$/, '');
+    return path.startsWith(root) ? path.slice(root.length) : '';
+  }
+  function libraryCategoryFromPath(path) {
+    const m = /^(books|entries|categories\/([a-z-]+))\/(?:page\/(\d+)\/)?$/.exec(path);
+    if (!m) return null;
+    const n = Number(m[3]) > 1 ? `/${m[3]}` : '';
+    if (m[2]) return `${m[2]}${n}`;
+    return `${m[1] === 'books' ? 'all-books' : 'all-entries'}${n}`;
+  }
+  const libraryHash = () => libraryPath(state.libraryCategory || 'all-books');
+  // Leaving the library goes back to the root page's hash routes.
+  const rootHash = (hash) => (sitePath() ? `./${hash}` : hash);
+
+  async function openLibrary(options = {}) {
+    await prepareForPageNavigation();
+    clearEntityFocus();
+    clearActiveNav();
+    state.libraryCategory = options.category || 'all-books';
+    // Moving between library pages is a filter change, like the library on
+    // transitions.dev: the page stays put and only its books change.
+    const inPlace = getEl('view-library')?.classList.contains('active') || false;
+    showArticleView('view-library', { ...options, inPlace });
+    document.dispatchEvent(new CustomEvent('readipedia:library', { detail: { category: state.libraryCategory, inPlace } }));
+  }
+  // library.js navigates through these, so its links share this history.
+  window.ReadipediaNav = {
+    openLibrary: (category) => openLibrary({ category }),
+    openBook: () => openBookOverview(),
+    openEntity: async (id) => { await prepareForPageNavigation(); openEntityArticle(id); },
+    libraryCategory: () => state.libraryCategory || 'all-books',
+    libraryPath
+  };
 
   /**
    * Navigation Hub: Direct Full-Page Switches for Book Overview, Storylines & StoryFlow
@@ -279,95 +854,74 @@
   function initStorylineTheater() {
     const track = getEl('liblib-filmstrip-track');
     if (track) {
+      const indicator = document.createElement('div');
+      indicator.className = 'filmstrip-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      track.appendChild(indicator);
       track.addEventListener('click', (e) => {
         const thumb = e.target.closest('.filmstrip-thumb');
-        if (!thumb) return;
-
-        const idx = parseInt(thumb.getAttribute('data-idx'), 10);
-        if (!isNaN(idx)) {
-          setStorylineScene(idx);
-        }
+        const idx = thumb ? parseInt(thumb.getAttribute('data-idx'), 10) : NaN;
+        if (!isNaN(idx)) setStorylineScene(idx);
       });
     }
 
-
-
-    const btnFsPrev = getEl('btn-filmstrip-prev');
-    if (btnFsPrev && track) {
-      btnFsPrev.addEventListener('click', () => {
-        track.scrollBy({ left: -320, behavior: 'smooth' });
-      });
-    }
-
-    const btnFsNext = getEl('btn-filmstrip-next');
-    if (btnFsNext && track) {
-      btnFsNext.addEventListener('click', () => {
-        track.scrollBy({ left: 320, behavior: 'smooth' });
-      });
-    }
+    [['btn-filmstrip-prev', -320], ['btn-filmstrip-next', 320]].forEach(([id, left]) => {
+      const btn = getEl(id);
+      if (btn && track) btn.addEventListener('click', () => track.scrollBy({ left, behavior: scrollBehavior() }));
+    });
 
     const scrollBox = getEl('liblib-narrative-scrollbox');
     if (scrollBox) {
       scrollBox.addEventListener('scroll', () => {
-        if (scrollBox.scrollTop > 8) {
-          scrollBox.classList.add('scrolled');
-        } else {
-          scrollBox.classList.remove('scrolled');
-        }
+        scrollBox.classList[scrollBox.scrollTop > 8 ? 'add' : 'remove']('scrolled');
       }, { passive: true });
     }
 
     // Keyboard Arrow navigation for Storylines Theater
     window.addEventListener('keydown', (e) => {
       const viewStoryline = getEl('view-storyline');
-      if (viewStoryline && viewStoryline.style.display !== 'none') {
-        if (e.key === 'ArrowLeft') {
-          const total = getStorylinesTotal();
-          setStorylineScene((state.currentStorylineIndex - 1 + total) % total);
-        } else if (e.key === 'ArrowRight') {
-          const total = getStorylinesTotal();
-          setStorylineScene((state.currentStorylineIndex + 1) % total);
-        }
+      const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (viewStoryline?.style.display !== 'none' && step) {
+        const total = getStorylinesTotal();
+        setStorylineScene((state.currentStorylineIndex + step + total) % total);
       }
     });
   }
 
+  function renderMarkdown(text) {
+    return window.marked?.parse ? window.marked.parse(text) : `<p>${text.replace(/\n\n/g, '</p><p>')}</p>`;
+  }
+
   function getStorylinesTotal() {
-    const list = (window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.storylines) || [];
+    const list = window.WIKI_STORE?.master?.storylines || [];
     return list.length || 89;
   }
 
-  function setStorylineScene(index) {
-    const storylines = (window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.storylines) || [];
-    const evt = storylines[index];
+  function setStorylineScene(index, options = {}) {
+    const evt = storylineAt(index);
     if (!evt) return;
 
+    const sceneChanged = index !== state.currentStorylineIndex || Boolean(options.force);
     state.currentStorylineIndex = index;
 
     const dateEl = getEl('storyline-hero-date');
     if (dateEl && evt.date) {
-      const capDate = evt.date.charAt(0).toUpperCase() + evt.date.slice(1);
+      const capDate = isZh() ? evt.date : evt.date.charAt(0).toUpperCase() + evt.date.slice(1);
       dateEl.textContent = capDate;
     }
 
     const imgEl = getEl('storyline-hero-img');
     if (imgEl) {
-      imgEl.src = evt.local_image;
+      if (imgEl.getAttribute('src') !== evt.local_image) imgEl.src = evt.local_image;
       imgEl.alt = evt.title;
+      revealImage(imgEl);
     }
 
     const titleEl = getEl('storyline-hero-title');
     if (titleEl) titleEl.textContent = evt.title;
 
     const descEl = getEl('storyline-hero-desc');
-    if (descEl) {
-      const rawText = evt.description || '';
-      if (window.marked && window.marked.parse) {
-        descEl.innerHTML = window.marked.parse(rawText);
-      } else {
-        descEl.innerHTML = `<p>${rawText.replace(/\n\n/g, '</p><p>')}</p>`;
-      }
-    }
+    if (descEl) descEl.innerHTML = renderMarkdown(evt.description || '');
 
     // Reset internal narrative scrollbox position to top
     const scrollBox = getEl('liblib-narrative-scrollbox');
@@ -375,15 +929,44 @@
 
     // Highlight active thumbnail and scroll into view
     const thumbs = document.querySelectorAll('.filmstrip-thumb');
+    let activeThumb = null;
     thumbs.forEach((t) => {
-      const tIdx = parseInt(t.getAttribute('data-idx'), 10);
-      if (tIdx === index) {
-        t.classList.add('active');
-        t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      } else {
-        t.classList.remove('active');
-      }
+      const isActive = parseInt(t.getAttribute('data-idx'), 10) === index;
+      t.classList[isActive ? 'add' : 'remove']('active');
+      if (isActive) activeThumb = t;
     });
+    if (activeThumb) {
+      // Scroll only the strip; scrollIntoView would also move the page.
+      const track = getEl('liblib-filmstrip-track');
+      if (track && track.clientWidth) {
+        const left = activeThumb.offsetLeft - (track.clientWidth - activeThumb.offsetWidth) / 2;
+        track.scrollTo({ left, behavior: scrollBehavior() });
+      }
+    }
+    moveFilmstripIndicator(activeThumb);
+    document.dispatchEvent(new CustomEvent('readipedia:scene', { detail: { pos: index, index: evt.index } }));
+
+    if (sceneChanged) {
+      // A picture already in cache swaps instantly; give it the same soft
+      // cross-blur a freshly loaded one gets from revealImage.
+      if (imgEl && imgEl.dataset.reveal !== 'pending') playSoftSwap([imgEl]);
+      playTextsReveal([dateEl, titleEl, descEl]);
+    }
+  }
+
+  // Sliding indicator (transitions.dev tabs pattern) under the active thumb.
+  function moveFilmstripIndicator(thumb) {
+    const indicator = document.querySelector('.filmstrip-indicator');
+    if (!indicator || !thumb || !thumb.offsetWidth) return;
+    const firstPlacement = !indicator.dataset.placed;
+    if (firstPlacement) indicator.classList.add('is-snapping');
+    indicator.style.setProperty('--indicator-x', `${thumb.offsetLeft}px`);
+    indicator.style.setProperty('--indicator-w', `${thumb.offsetWidth}px`);
+    if (firstPlacement) {
+      void indicator.offsetWidth;
+      indicator.classList.remove('is-snapping');
+      indicator.dataset.placed = 'true';
+    }
   }
 
   /**
@@ -473,35 +1056,43 @@
       strokeWidth: 2.0
     }
   };
+  const GRAPH_HOST_STATE_CLASSES = [
+    'is-expanded',
+    'is-sidebar-handoff',
+    'is-sidebar-overlay-preview',
+    'is-continuum-obscured',
+    'is-viewport-transitioning'
+  ];
+  const CONTINUUM_ARTICLE_CLASSES = ['has-article', 'is-article-ready', 'is-article-resting', 'is-settling', 'is-tracking'];
   const GRAPH_NODE_HOME_STIFFNESS = 140;
   const GRAPH_LINK_SPRING_STIFFNESS = 55;
   const GRAPH_NODE_SPRING_DAMPING = 22;
   const GRAPH_NODE_MAX_RELEASE_SPEED = 900;
 
   const categoryThemeColors = {
-    Characters: { light: '#e11d48', dark: '#fb7185', sepia: '#b91c1c' },
-    Locations: { light: '#059669', dark: '#34d399', sepia: '#047857' },
-    Organizations: { light: '#4f46e5', dark: '#818cf8', sepia: '#4338ca' },
-    Concepts: { light: '#7c3aed', dark: '#a78bfa', sepia: '#6d28d9' },
-    Rules: { light: '#ea580c', dark: '#fb923c', sepia: '#c2410c' },
-    Objects: { light: '#d97706', dark: '#fbbf24', sepia: '#b45309' },
-    Events: { light: '#0284c7', dark: '#38bdf8', sepia: '#0369a1' },
-    Actions: { light: '#2563eb', dark: '#60a5fa', sepia: '#1d4ed8' },
-    Creatures: { light: '#9333ea', dark: '#c084fc', sepia: '#7e22ce' },
-    States: { light: '#0d9488', dark: '#2dd4bf', sepia: '#0f766e' },
-    Expressions: { light: '#db2777', dark: '#f472b6', sepia: '#be185d' },
-    Time: { light: '#64748b', dark: '#94a3b8', sepia: '#475569' }
+    Characters: { light: '#e11d48', dark: '#fb7185' },
+    Locations: { light: '#059669', dark: '#34d399' },
+    Organizations: { light: '#4f46e5', dark: '#818cf8' },
+    Concepts: { light: '#7c3aed', dark: '#a78bfa' },
+    Rules: { light: '#ea580c', dark: '#fb923c' },
+    Objects: { light: '#d97706', dark: '#fbbf24' },
+    Events: { light: '#0284c7', dark: '#38bdf8' },
+    Actions: { light: '#2563eb', dark: '#60a5fa' },
+    Creatures: { light: '#9333ea', dark: '#c084fc' },
+    States: { light: '#0d9488', dark: '#2dd4bf' },
+    Expressions: { light: '#db2777', dark: '#f472b6' },
+    Time: { light: '#64748b', dark: '#94a3b8' }
   };
 
   function getCategoryColor(type) {
-    const themeKey = state.theme === 'dark' ? 'dark' : (state.theme === 'sepia' ? 'sepia' : 'light');
-    return (categoryThemeColors[type] && categoryThemeColors[type][themeKey]) || (state.theme === 'dark' ? '#60a5fa' : '#2563eb');
+    const isDark = state.theme === 'dark';
+    return categoryThemeColors[type]?.[isDark ? 'dark' : 'light'] || (isDark ? '#60a5fa' : '#2563eb');
   }
 
   function getKnowledgeIndex() {
-    const source = window.WIKI_STORE && window.WIKI_STORE.master && window.WIKI_STORE.master.knowledge_graph;
+    const source = window.WIKI_STORE?.master?.knowledge_graph;
     if (!source) return null;
-    if (graphState.knowledgeIndex && graphState.knowledgeIndex.source === source) {
+    if (graphState.knowledgeIndex?.source === source) {
       return graphState.knowledgeIndex;
     }
 
@@ -517,7 +1108,7 @@
     // Compatibility fallback for older stores that only contain category views.
     if (!nodesById.size) {
       Object.values(source.subgraphs || {}).forEach((categoryView) => {
-        const list = (categoryView && categoryView.value) || (Array.isArray(categoryView) ? categoryView : []);
+        const list = categoryView?.value || (Array.isArray(categoryView) ? categoryView : []);
         list.forEach((node) => {
           if (!node || !node.id || nodesById.has(node.id)) return;
           nodesById.set(node.id, { ...node, type: node.type || 'Concepts' });
@@ -526,10 +1117,7 @@
       });
     }
 
-    const neighbors = new Map();
-    nodesById.forEach((_, id) => {
-      neighbors.set(id, new Set());
-    });
+    const neighbors = new Map(Array.from(nodesById.keys(), (id) => [id, new Set()]));
 
     const undirectedEdgeMap = new Map();
     const sourceEdges = Array.isArray(source.all_edges) && source.all_edges.length
@@ -553,10 +1141,7 @@
       neighbors.get(targetId).add(sourceId);
     });
 
-    const degree = new Map();
-    nodesById.forEach((_, id) => {
-      degree.set(id, (neighbors.get(id) || new Set()).size);
-    });
+    const degree = new Map(Array.from(neighbors, ([id, ids]) => [id, ids.size]));
     const undirectedEdges = Array.from(undirectedEdgeMap.values()).sort((left, right) => (
       compareStableText(
         canonicalGraphEdgeKey(left.source, left.target),
@@ -697,7 +1282,7 @@
     return Array.from(ids).sort((leftId, rightId) => {
       const left = index.nodesById.get(leftId);
       const right = index.nodesById.get(rightId);
-      const labelDelta = compareStableText(left && left.label, right && right.label);
+      const labelDelta = compareStableText(left?.label, right?.label);
       return labelDelta || compareStableText(leftId, rightId);
     });
   }
@@ -776,7 +1361,7 @@
       if (degreeDelta) return degreeDelta;
       const left = index.nodesById.get(leftId);
       const right = index.nodesById.get(rightId);
-      const labelDelta = compareStableText(left && left.label, right && right.label);
+      const labelDelta = compareStableText(left?.label, right?.label);
       return labelDelta || compareStableText(leftId, rightId);
     });
 
@@ -1021,8 +1606,8 @@
       };
     }
     const context = createGraphContext(
-      graphContext && graphContext.mode,
-      graphContext && graphContext.rootId,
+      graphContext?.mode,
+      graphContext?.rootId,
       graphContext || {}
     );
     context.rootId = context.mode === 'entity' ? resolveEntityId(context.rootId, index) : null;
@@ -1114,45 +1699,55 @@
     const sourceHeight = img.naturalHeight || img.height;
     if (!sourceWidth || !sourceHeight || !size) return false;
 
-    const targetRatio = 1;
-    const sourceRatio = sourceWidth / sourceHeight;
-    let sourceX = 0;
-    let sourceY = 0;
-    let cropWidth = sourceWidth;
-    let cropHeight = sourceHeight;
-
-    if (sourceRatio > targetRatio) {
-      cropWidth = sourceHeight * targetRatio;
-      sourceX = (sourceWidth - cropWidth) / 2;
-    } else if (sourceRatio < targetRatio) {
-      cropHeight = sourceWidth / targetRatio;
-      // Match the editorial images' upper-biased focal point without any
-      // entity-specific coordinates.
-      sourceY = (sourceHeight - cropHeight) * 0.2;
-    }
-
-    ctx.drawImage(
-      img,
-      sourceX,
-      sourceY,
-      cropWidth,
-      cropHeight,
-      x,
-      y,
-      size,
-      size
-    );
+    // Square crop: centered horizontally, upper-biased (20%) vertically to
+    // match the editorial images' focal point.
+    const crop = Math.min(sourceWidth, sourceHeight);
+    ctx.drawImage(img, (sourceWidth - crop) / 2, (sourceHeight - crop) * 0.2, crop, crop, x, y, size, size);
     return true;
   }
 
   function isDesktopExpandedGraphInteraction() {
-    return window.innerWidth > 768
+    return !isMobileGraphViewport()
       && state.isGraphExpanded
       && state.graphPhase === 'expanded';
   }
 
   function isMobileGraphViewport() {
     return window.innerWidth <= 768;
+  }
+
+  function clamp01(value) {
+    return Math.max(0, Math.min(1, value));
+  }
+
+
+  // Graph motion keeps its original feel (420ms smoothstep, springy mobile
+  // focus); only reduced motion turns it off.
+  function graphMs(ms) {
+    return prefersReducedMotion() ? 0 : ms;
+  }
+
+  function smoothstep(linear) {
+    return linear * linear * (3 - 2 * linear);
+  }
+
+  function mobileGraphFocusEase(progress) {
+    if (progress >= 1) return 1;
+    const response = 4.6;
+    const curve = (value) => 1 - (1 + response * value) * Math.exp(-response * value);
+    return curve(progress) / curve(1);
+  }
+
+  function prefersReducedMotion() {
+    return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function lerpGraphCamera(from, to, progress) {
+    return {
+      x: from.x + (to.x - from.x) * progress,
+      y: from.y + (to.y - from.y) * progress,
+      zoom: from.zoom + (to.zoom - from.zoom) * progress
+    };
   }
 
   function isMobileExpandedGraphInteraction() {
@@ -1164,32 +1759,17 @@
 
   function snapshotGraphNodes(graph) {
     const snapshot = new Map();
-    const nodes = ((graph && graph.graphData && graph.graphData()) || {}).nodes || [];
-    nodes.forEach((node) => {
-      snapshot.set(node.id, {
-        x: node.x,
-        y: node.y,
-        vx: node.vx,
-        vy: node.vy,
-        fx: node.fx,
-        fy: node.fy
-      });
-    });
+    const nodes = graph?.graphData?.()?.nodes || [];
+    nodes.forEach(({ id, x, y, vx, vy, fx, fy }) => snapshot.set(id, { x, y, vx, vy, fx, fy }));
     return snapshot;
   }
 
   function restoreGraphNodes(graph, snapshot) {
     if (!graph || !snapshot) return;
-    const nodes = ((graph.graphData && graph.graphData()) || {}).nodes || [];
+    const nodes = graph.graphData?.()?.nodes || [];
     nodes.forEach((node) => {
       const saved = snapshot.get(node.id);
-      if (!saved) return;
-      node.x = saved.x;
-      node.y = saved.y;
-      node.vx = saved.vx;
-      node.vy = saved.vy;
-      node.fx = saved.fx;
-      node.fy = saved.fy;
+      if (saved) Object.assign(node, saved);
     });
     if (graph.refresh) graph.refresh();
   }
@@ -1245,9 +1825,9 @@
       let renderedRadiusPx = mobile
         ? getMobileRenderedNodeRadiusPx(node, zoom)
         : (node.val || 5) * zoom;
-      if (!mobile && graphState.focusedNode && graphState.focusedNode.id === node.id) {
+      if (!mobile && graphState.focusedNode?.id === node.id) {
         renderedRadiusPx = Math.min(70, Math.max(renderedRadiusPx * 3.5, 42));
-      } else if (!mobile && graphState.hoverNode && graphState.hoverNode.id === node.id) {
+      } else if (!mobile && graphState.hoverNode?.id === node.id) {
         renderedRadiusPx = state.isGraphExpanded
           ? Math.min(32, Math.max(renderedRadiusPx * 1.8, 18))
           : renderedRadiusPx * 1.414;
@@ -1353,10 +1933,10 @@
           && !currentGesture.cancelled
           && currentGesture.pressedNodeId
           && currentGesture.maxDistanceSq <= currentGesture.clickSlopPx * currentGesture.clickSlopPx) {
-          const node = state.graphNodeMap && state.graphNodeMap.get(currentGesture.pressedNodeId);
+          const node = state.graphNodeMap?.get(currentGesture.pressedNodeId);
           if (node) handleGraphNodeActivation(node);
         }
-        if (graphState.pointerGesture && graphState.pointerGesture.revision === revision) {
+        if (graphState.pointerGesture?.revision === revision) {
           graphState.pointerGesture = null;
         }
       });
@@ -1364,7 +1944,7 @@
 
     const cancelGesture = (event) => {
       const gesture = graphState.pointerGesture;
-      if (!gesture || (event && event.pointerId !== undefined && event.pointerId !== gesture.pointerId)) return;
+      if (!gesture || (event?.pointerId !== undefined && event.pointerId !== gesture.pointerId)) return;
       gesture.cancelled = true;
       if (!gesture.handled && gesture.dragNodeId && state.graphNodeMap) {
         startGraphNodeReturn(state.sidebarGraph, state.graphNodeMap.get(gesture.dragNodeId));
@@ -1387,7 +1967,7 @@
 
   function getGraphGestureDistancePx(graph, gesture, translate) {
     if (gesture) return Math.sqrt(gesture.maxDistanceSq);
-    const zoom = graph && graph.zoom ? (graph.zoom() || 1) : 1;
+    const zoom = graph?.zoom ? (graph.zoom() || 1) : 1;
     const graphDistance = translate
       ? Math.hypot(translate.x || 0, translate.y || 0) * zoom
       : 0;
@@ -1404,7 +1984,7 @@
       gesture.handled = true;
     }
 
-    const isMobileDevice = window.innerWidth <= 768;
+    const isMobileDevice = isMobileGraphViewport();
     if (!isMobileDevice) {
       await navigateFromGraphNode(node.id, { collapseGraph: false });
       return;
@@ -1424,7 +2004,7 @@
     if (!graphState.focusedNode) return;
     graphState.hoverNode = null;
     if (isMobileGraphViewport()) {
-      transitionMobileGraphFocus(state.sidebarGraph, null, 220);
+      transitionMobileGraphFocus(state.sidebarGraph, null, graphMs(motion.ms('--duration-fast')));
       return;
     }
     graphState.focusedNode = null;
@@ -1434,7 +2014,7 @@
   function getMobileVisualViewportHeight() {
     return Math.max(
       1,
-      Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight)
+      Math.round(window.visualViewport?.height || window.innerHeight)
     );
   }
 
@@ -1447,7 +2027,7 @@
     const previousTarget = graphState.continuumMotionTarget;
     const hadContinuumGesture = Boolean(graphState.continuumGesture);
     const interruptedFloorGesture = Boolean(
-      graphState.continuumGesture && graphState.continuumGesture.owner === 'floor'
+      graphState.continuumGesture?.owner === 'floor'
     );
     const viewportWidth = window.innerWidth;
     const widthChanged = graphState.continuumViewportWidth === null
@@ -1474,7 +2054,7 @@
     // Preserve physical progress (and an interrupted settle's direction) rather
     // than replaying an old pixel target in a differently sized viewport.
     if (continuum.classList.contains('has-article') && previousGeometry.travel > 0) {
-      const progress = Math.max(0, Math.min(1, previousPosition / previousGeometry.travel));
+      const progress = clamp01(previousPosition / previousGeometry.travel);
       const nextGeometry = getMobileGraphContinuumGeometry();
       const velocityScale = nextGeometry.travel / previousGeometry.travel;
       cancelMobileGraphContinuumMotion({ resetVelocity: false });
@@ -1497,12 +2077,9 @@
 
   function releaseMobileGraphContinuumViewport() {
     const continuum = getEl('mobile-graph-continuum');
-    if (continuum) {
-      continuum.style.removeProperty('--mobile-continuum-viewport-height');
-      continuum.style.removeProperty('--mobile-continuum-peek');
-      continuum.style.removeProperty('--mobile-continuum-header-height');
-      continuum.style.removeProperty('--mobile-continuum-article-height');
-    }
+    ['viewport-height', 'peek', 'header-height', 'article-height'].forEach((name) => {
+      continuum?.style.removeProperty(`--mobile-continuum-${name}`);
+    });
     graphState.continuumViewportWidth = null;
     graphState.continuumViewportHeight = null;
     graphState.continuumHeaderHeight = null;
@@ -1514,7 +2091,7 @@
     const continuum = getEl('mobile-graph-continuum');
     const fallbackHeight = graphState.continuumViewportHeight
       ? null
-      : (continuum && continuum.classList.contains('is-active')
+      : (continuum?.classList.contains('is-active')
         ? continuum.getBoundingClientRect().height
         : null);
     const viewportHeight = Math.max(
@@ -1557,13 +2134,24 @@
     };
   }
 
-  function getExpandedGraphSize(isMobile = window.innerWidth <= 768) {
+  // Left edge of the centered page on wide screens (0 when the page is full-width).
+  function getHeaderHeight() {
+    const header = document.querySelector('.wiki-header');
+    return Math.max(0, header?.getBoundingClientRect().height || 68);
+  }
+
+  function getDesktopPageInsetLeft() {
+    const sidebar = getEl('wiki-sidebar');
+    return sidebar ? parseFloat(getComputedStyle(sidebar).left) || 0 : 0;
+  }
+
+  function getExpandedGraphSize(isMobile = isMobileGraphViewport()) {
     if (isMobile) {
       const height = graphState.continuumViewportHeight || getMobileVisualViewportHeight();
       return { width: window.innerWidth, height };
     }
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-    const usableHeight = Math.max(1, window.innerHeight - 52);
+    const usableHeight = Math.max(1, window.innerHeight - getHeaderHeight());
     const minWidth = Math.min(420, viewportWidth);
     const minHeight = Math.min(300, usableHeight);
     const width = Math.min(760, viewportWidth, Math.max(minWidth, Math.round(viewportWidth * 0.48)));
@@ -1574,7 +2162,7 @@
   function configureGraphPhysics(graph, isExpanded) {
     if (!graph) return;
     if (graph.backgroundColor) {
-      const needsOpaqueCanvas = isExpanded && window.innerWidth <= 768;
+      const needsOpaqueCanvas = isExpanded && isMobileGraphViewport();
       const pageColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-page').trim() || '#ffffff';
       graph.backgroundColor(needsOpaqueCanvas ? pageColor : 'rgba(0,0,0,0)');
     }
@@ -1604,8 +2192,8 @@
     const slot = getEl('sidebar-graph-slot');
     const rect = container ? container.getBoundingClientRect() : null;
     return {
-      width: Math.max(1, (rect && rect.width) || (container && container.clientWidth) || (slot && slot.clientWidth) || 268),
-      height: Math.max(1, (rect && rect.height) || (container && container.clientHeight) || (slot && slot.clientHeight) || 145)
+      width: Math.max(1, rect?.width || container?.clientWidth || slot?.clientWidth || 268),
+      height: Math.max(1, rect?.height || container?.clientHeight || slot?.clientHeight || 145)
     };
   }
 
@@ -1650,7 +2238,7 @@
     if (!data || !data.nodes || !data.nodes.length) return;
     const positionedNodes = data.nodes.map((node) => {
       if (positionMap && !positionMap.has(node.id)) return null;
-      const position = positionMap && positionMap.get(node.id);
+      const position = positionMap?.get(node.id);
       const x = position ? position.x : node.x;
       const y = position ? position.y : node.y;
       return Number.isFinite(x) && Number.isFinite(y) ? { ...node, x, y } : null;
@@ -1703,7 +2291,7 @@
 
   function cancelGraphCameraTransition() {
     const transition = graphState.cameraTransition;
-    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    if (transition?.frameId) cancelAnimationFrame(transition.frameId);
     graphState.cameraTransition = null;
   }
 
@@ -1724,7 +2312,7 @@
 
   function cancelMobileGraphFocusTransition() {
     const transition = graphState.mobileFocusTransition;
-    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    if (transition?.frameId) cancelAnimationFrame(transition.frameId);
     graphState.mobileFocusTransition = null;
   }
 
@@ -1739,13 +2327,13 @@
     cancelMobileGraphFocusTransition();
     graphState.mobileFocusWeights.clear();
     const continuum = getEl('mobile-graph-continuum');
-    const hasArticle = continuum && continuum.classList.contains('has-article');
+    const hasArticle = continuum?.classList.contains('has-article');
     if (!hasArticle && (!state.graphContext || state.graphContext.mode !== 'entity')) {
       graphState.focusedNode = null;
       requestGraphRedraw(state.sidebarGraph);
       return false;
     }
-    const rootId = (state.graphContext && state.graphContext.mode === 'entity' && state.graphContext.rootId)
+    const rootId = (state.graphContext?.mode === 'entity' && state.graphContext.rootId)
       || (hasArticle ? state.currentEntityId : null)
       || (hasArticle ? graphState.continuumEntityId : null)
       || null;
@@ -1761,14 +2349,33 @@
   function getMobileGraphFocusWeight(nodeId) {
     const value = graphState.mobileFocusWeights.get(nodeId);
     const focus = Number.isFinite(value)
-      ? Math.max(0, Math.min(1, value))
-      : (graphState.focusedNode && graphState.focusedNode.id === nodeId ? 1 : 0);
-    return focus * Math.max(0, Math.min(1, graphState.mobileExpansionProgress));
+      ? clamp01(value)
+      : (graphState.focusedNode?.id === nodeId ? 1 : 0);
+    return focus * clamp01(graphState.mobileExpansionProgress);
+  }
+
+  function getGraphRenderScale(globalScale) {
+    return globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+  }
+
+  // Desktop focus/hover enlargement, in canvas units.
+  function getDesktopNodeRadius(node, scale, isFocused, isHovered) {
+    const radius = node.val || 5;
+    if (isFocused) return Math.min(70 / scale, Math.max(radius * 3.5, 42 / scale));
+    if (!isHovered) return radius;
+    return state.isGraphExpanded ? Math.min(32 / scale, Math.max(radius * 1.8, 18 / scale)) : radius * 1.414;
+  }
+
+  function fillGraphCircle(ctx, x, y, radius, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.fill();
   }
 
   function getMobileRenderedNodeRadiusPx(node, globalScale) {
-    const scale = Math.max(0.01, globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1);
-    const previewRadiusFloor = 5 * (1 - Math.max(0, Math.min(1, graphState.mobileExpansionProgress)));
+    const scale = Math.max(0.01, getGraphRenderScale(globalScale));
+    const previewRadiusFloor = 5 * (1 - clamp01(graphState.mobileExpansionProgress));
     const baseRadiusPx = Math.max(previewRadiusFloor, (node.val || 5) * scale);
     // Focus is a restrained increment over the node's actual rendered size,
     // never an absolute radius ceiling. The old 30px ceiling produced a zero
@@ -1800,13 +2407,9 @@
     const startedAt = performance.now();
     const tick = (now) => {
       if (graphState.cameraTransition !== transition) return;
-      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
-      const eased = linear * linear * (3 - 2 * linear);
-      applyGraphCamera(graph, {
-        x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
-        y: startCamera.y + (targetCamera.y - startCamera.y) * eased,
-        zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * eased
-      });
+      const linear = clamp01((now - startedAt) / duration);
+      const eased = smoothstep(linear);
+      applyGraphCamera(graph, lerpGraphCamera(startCamera, targetCamera, eased));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
       } else {
@@ -1816,18 +2419,11 @@
     transition.frameId = requestAnimationFrame(tick);
   }
 
-  function mobileGraphFocusEase(progress) {
-    if (progress >= 1) return 1;
-    const response = 4.6;
-    const curve = (value) => 1 - (1 + response * value) * Math.exp(-response * value);
-    return curve(progress) / curve(1);
-  }
-
-  function transitionMobileGraphFocus(graph, nextNode, duration = MOBILE_GRAPH_FOCUS_DURATION_MS) {
+  function transitionMobileGraphFocus(graph, nextNode, duration = graphMs(MOBILE_GRAPH_FOCUS_DURATION_MS)) {
     if (!isMobileGraphViewport() || !graph) return false;
     const data = graph.graphData ? graph.graphData() : null;
-    const nodes = (data && data.nodes) || [];
-    const previousFocusedId = graphState.focusedNode && graphState.focusedNode.id;
+    const nodes = data?.nodes || [];
+    const previousFocusedId = graphState.focusedNode?.id;
     const fromWeights = new Map(nodes.map((node) => {
       const existing = graphState.mobileFocusWeights.get(node.id);
       return [node.id, Number.isFinite(existing) ? existing : (node.id === previousFocusedId ? 1 : 0)];
@@ -1855,7 +2451,7 @@
       || Math.abs(startCamera.y - targetCamera.y) > 0.001
       || Math.abs(startCamera.zoom - targetCamera.zoom) > 0.001
     );
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion = prefersReducedMotion();
 
     const apply = (progress) => {
       nodes.forEach((node) => {
@@ -1863,13 +2459,7 @@
         const to = nextNode && node.id === nextNode.id ? 1 : 0;
         graphState.mobileFocusWeights.set(node.id, from + (to - from) * progress);
       });
-      if (cameraNeedsMotion) {
-        applyGraphCamera(graph, {
-          x: startCamera.x + (targetCamera.x - startCamera.x) * progress,
-          y: startCamera.y + (targetCamera.y - startCamera.y) * progress,
-          zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * progress
-        });
-      }
+      if (cameraNeedsMotion) applyGraphCamera(graph, lerpGraphCamera(startCamera, targetCamera, progress));
       requestGraphRedraw(graph);
     };
 
@@ -1889,7 +2479,7 @@
     const startedAt = performance.now();
     const tick = (now) => {
       if (graphState.mobileFocusTransition !== transition) return;
-      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+      const linear = clamp01((now - startedAt) / duration);
       apply(mobileGraphFocusEase(linear));
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -1906,7 +2496,7 @@
   function fitGraphToViewport(graph, duration = 0, options = {}) {
     const expansionProgress = options.expansionProgress === undefined
       ? (state.isGraphExpanded ? 1 : 0)
-      : Math.max(0, Math.min(1, options.expansionProgress));
+      : clamp01(options.expansionProgress);
     const size = options.size || getCurrentGraphViewportSize();
     const positionMap = Object.prototype.hasOwnProperty.call(options, 'positionMap')
       ? options.positionMap
@@ -1925,20 +2515,14 @@
     toExpansion,
     onProgress = null
   ) {
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion = prefersReducedMotion();
     const initialTarget = getTargetRect();
     const startCamera = getCurrentGraphCamera(graph);
     cancelGraphCameraTransition();
 
     if (reducedMotion || duration <= 0) {
       applyFixedGraphRect(container, initialTarget);
-      const fitCamera = getGraphCameraForViewport(
-        graph,
-        initialTarget,
-        toExpansion,
-        graphState.activeTargetPositions
-      );
-      applyGraphCamera(graph, fitCamera);
+      applyGraphCamera(graph, getGraphCameraForViewport(graph, initialTarget, toExpansion, graphState.activeTargetPositions));
       if (onProgress) onProgress(toExpansion);
       return Promise.resolve(initialTarget);
     }
@@ -1946,35 +2530,21 @@
     return new Promise((resolve) => {
       const startedAt = performance.now();
       const tick = (now) => {
-        const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
+        const linear = clamp01((now - startedAt) / duration);
         // Smooth acceleration and deceleration keeps the interpolation visible
         // instead of completing most of the distance in the first few frames.
-        const eased = linear * linear * (3 - 2 * linear);
+        const eased = smoothstep(linear);
         if (onProgress) onProgress(toExpansion === 1 ? eased : 1 - eased);
         const target = getTargetRect();
-        const rect = {
-          left: fromRect.left + (target.left - fromRect.left) * eased,
-          top: fromRect.top + (target.top - fromRect.top) * eased,
-          width: fromRect.width + (target.width - fromRect.width) * eased,
-          height: fromRect.height + (target.height - fromRect.height) * eased
-        };
+        const rect = {};
+        ['left', 'top', 'width', 'height'].forEach((key) => {
+          rect[key] = fromRect[key] + (target[key] - fromRect[key]) * eased;
+        });
         applyFixedGraphRect(container, rect);
-        const fitCamera = getGraphCameraForViewport(
-          graph,
-          target,
-          toExpansion,
-          graphState.activeTargetPositions
-        );
-        const targetCamera = fitCamera;
-        if (startCamera && targetCamera) {
-          applyGraphCamera(graph, {
-            x: startCamera.x + (targetCamera.x - startCamera.x) * eased,
-            y: startCamera.y + (targetCamera.y - startCamera.y) * eased,
-            zoom: startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * eased
-          });
-        } else {
-          applyGraphCamera(graph, targetCamera);
-        }
+        const targetCamera = getGraphCameraForViewport(graph, target, toExpansion, graphState.activeTargetPositions);
+        applyGraphCamera(graph, startCamera && targetCamera
+          ? lerpGraphCamera(startCamera, targetCamera, eased)
+          : targetCamera);
 
         if (linear < 1) {
           window.requestAnimationFrame(tick);
@@ -1992,7 +2562,7 @@
 
   function cancelGraphLayoutTransition() {
     const transition = graphState.layoutTransition;
-    if (transition && transition.frameId) cancelAnimationFrame(transition.frameId);
+    if (transition?.frameId) cancelAnimationFrame(transition.frameId);
     graphState.layoutTransition = null;
   }
 
@@ -2025,18 +2595,13 @@
 
   function advanceGraphTransitionWithViewport(transition, progress) {
     if (!transition || transition.committed) return;
-    transition.applyNodes(Math.max(0, Math.min(1, progress)));
+    transition.applyNodes(clamp01(progress));
     requestGraphRedraw(state.sidebarGraph);
   }
 
   function placeGraphNode(node, position) {
     if (!node || !position) return;
-    node.x = position.x;
-    node.y = position.y;
-    node.vx = 0;
-    node.vy = 0;
-    node.fx = position.x;
-    node.fy = position.y;
+    Object.assign(node, { x: position.x, y: position.y, vx: 0, vy: 0, fx: position.x, fy: position.y });
   }
 
   function cancelAllGraphNodeSprings(settle = false) {
@@ -2045,14 +2610,14 @@
     graphState.draggedNodeId = null;
     if (settle) {
       graphState.nodeSprings.forEach((spring) => placeGraphNode(spring.node, spring.target));
-      if (state.sidebarGraph && state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+      if (state.sidebarGraph?.refresh) state.sidebarGraph.refresh();
     }
     graphState.nodeSprings.clear();
   }
 
   function getGraphGestureReleaseVelocity(graph, gesture) {
     if (!gesture || performance.now() - gesture.lastMoveAt > 90) return { x: 0, y: 0 };
-    const zoom = graph && graph.zoom ? Math.max(0.01, graph.zoom() || 1) : 1;
+    const zoom = graph?.zoom ? Math.max(0.01, graph.zoom() || 1) : 1;
     let x = (gesture.velocityX * 1000) / zoom;
     let y = (gesture.velocityY * 1000) / zoom;
     const speed = Math.hypot(x, y);
@@ -2067,8 +2632,8 @@
   function ensureGraphSpringNetwork(graph) {
     if (!graph || graph !== state.sidebarGraph) return false;
     const data = graph.graphData ? graph.graphData() : null;
-    const nodes = (data && data.nodes) || [];
-    const links = (data && data.links) || [];
+    const nodes = data?.nodes || [];
+    const links = data?.links || [];
     const degrees = new Map(nodes.map((node) => [node.id, 0]));
     links.forEach((link) => {
       const sourceId = getLinkEndpointId(link.source);
@@ -2080,7 +2645,7 @@
       const target = graphState.activeTargetPositions.get(node.id);
       if (!target) return;
       const existing = graphState.nodeSprings.get(node.id);
-      if (existing && existing.graph === graph) {
+      if (existing?.graph === graph) {
         existing.degreeScale = Math.sqrt(Math.max(1, degrees.get(node.id) || 0));
         return;
       }
@@ -2111,7 +2676,7 @@
       const stepCount = Math.max(1, Math.ceil(elapsed / (1 / 120)));
       const step = elapsed / stepCount;
       const data = graph.graphData ? graph.graphData() : null;
-      const links = (data && data.links) || [];
+      const links = data?.links || [];
 
       for (let stepIndex = 0; stepIndex < stepCount; stepIndex += 1) {
         const forces = new Map();
@@ -2211,7 +2776,7 @@
       spring.velocityY = Number.isFinite(releaseVelocity.y) ? releaseVelocity.y : 0;
     }
 
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion = prefersReducedMotion();
     if (reducedMotion) {
       cancelAllGraphNodeSprings(true);
       return;
@@ -2220,8 +2785,8 @@
   }
 
   function getGraphItemTransitionAlpha(item, fallback = 1) {
-    return Number.isFinite(item && item.transitionAlpha)
-      ? Math.max(0, Math.min(1, item.transitionAlpha))
+    return Number.isFinite(item?.transitionAlpha)
+      ? clamp01(item.transitionAlpha)
       : fallback;
   }
 
@@ -2237,7 +2802,7 @@
 
   function createGraphDataTransitionPlan(graph, graphData) {
     const currentData = (graph.graphData && graph.graphData()) || { nodes: [], links: [] };
-    const currentNodes = (currentData.nodes || []).filter((node) => node && node.id);
+    const currentNodes = (currentData.nodes || []).filter((node) => node?.id);
     const currentNodeMap = new Map(currentNodes.map((node) => [node.id, node]));
     const nextTargets = graphData.layout.targetPositions;
     const nextNodeIds = new Set(graphData.nodes.map((node) => node.id));
@@ -2427,21 +2992,15 @@
     const cameraStart = getCurrentGraphCamera(graph) || targetCamera;
     const apply = (progress) => {
       transition.applyNodes(progress);
-      if (cameraStart && targetCamera) {
-        applyGraphCamera(graph, {
-          x: cameraStart.x + (targetCamera.x - cameraStart.x) * progress,
-          y: cameraStart.y + (targetCamera.y - cameraStart.y) * progress,
-          zoom: cameraStart.zoom + (targetCamera.zoom - cameraStart.zoom) * progress
-        });
-      }
+      if (cameraStart && targetCamera) applyGraphCamera(graph, lerpGraphCamera(cameraStart, targetCamera, progress));
       requestGraphRedraw(graph);
     };
 
     const startedAt = performance.now();
     const tick = (now) => {
       if (graphState.layoutTransition !== transition || graphState.dataRevision !== transition.revision) return;
-      const linear = Math.max(0, Math.min(1, (now - startedAt) / duration));
-      const eased = linear * linear * (3 - 2 * linear);
+      const linear = clamp01((now - startedAt) / duration);
+      const eased = smoothstep(linear);
       apply(eased);
       if (linear < 1) {
         transition.frameId = requestAnimationFrame(tick);
@@ -2476,7 +3035,7 @@
 
   function applyGraphData(graph, graphData, animate = true, options = {}) {
     if (!graph) return;
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion = prefersReducedMotion();
     cancelGraphCameraTransition();
     if (isMobileGraphViewport()) clearMobileGraphFocusVisuals();
     cancelGraphLayoutTransition();
@@ -2486,20 +3045,23 @@
     graphState.pointerGestureRevision += 1;
     ++graphState.dataRevision;
     const transitionDuration = animate && !reducedMotion ? 420 : 0;
-    graphState.activeTargetPositions = (graphData.layout && graphData.layout.targetPositions) || new Map();
+    graphState.activeTargetPositions = graphData.layout?.targetPositions || new Map();
     state.graphContext = graphData.context;
+
+    // The fitted camera depends on the graph's current data, so it is measured
+    // after each graphData() swap below.
+    const fitCamera = () => getGraphCameraForViewport(
+      graph,
+      options.viewportSize || getCurrentGraphViewportSize(),
+      options.expansionProgress === undefined
+        ? (state.isGraphExpanded ? 1 : 0)
+        : options.expansionProgress,
+      graphData.layout?.targetPositions
+    );
 
     if (transitionDuration <= 0) {
       graph.graphData({ nodes: graphData.nodes, links: graphData.links });
-      const camera = getGraphCameraForViewport(
-        graph,
-        options.viewportSize || getCurrentGraphViewportSize(),
-        options.expansionProgress === undefined
-          ? (state.isGraphExpanded ? 1 : 0)
-          : options.expansionProgress,
-        graphData.layout && graphData.layout.targetPositions
-      );
-      commitGraphDataImmediately(graph, graphData, camera);
+      commitGraphDataImmediately(graph, graphData, fitCamera());
       return;
     }
 
@@ -2508,16 +3070,38 @@
     graph.graphData(plan.unionData);
     state.graphNodeMap = plan.transition.finalNodeMap;
     configureGraphPhysics(graph, state.isGraphExpanded);
+    transitionGraphToLayout(graph, plan.transition, fitCamera(), transitionDuration);
+  }
 
-    const camera = getGraphCameraForViewport(
-      graph,
-      options.viewportSize || getCurrentGraphViewportSize(),
-      options.expansionProgress === undefined
-        ? (state.isGraphExpanded ? 1 : 0)
-        : options.expansionProgress,
-      graphData.layout && graphData.layout.targetPositions
-    );
-    transitionGraphToLayout(graph, plan.transition, camera, transitionDuration);
+  function fitGraphTooltipToViewport(clientX, clientY) {
+    const tooltip = document.querySelector('#canvas-sidebar-graph .graph-tooltip');
+    const host = tooltip?.parentElement;
+    const clip = getEl('sidebar-graph-container');
+    if (!tooltip || !host || !clip || !tooltip.textContent || !tooltip.offsetWidth) return;
+    const padding = 8;
+    const hostRect = host.getBoundingClientRect();
+    const clipRect = clip.getBoundingClientRect();
+    const bounds = {
+      left: Math.max(clipRect.left, 0) + padding,
+      top: Math.max(clipRect.top, 0) + padding,
+      right: Math.min(clipRect.right, window.innerWidth) - padding,
+      bottom: Math.min(clipRect.bottom, window.innerHeight) - padding
+    };
+    // Wrap long labels to the visible window instead of the hidden canvas width.
+    tooltip.style.maxWidth = `${Math.max(0, Math.min(240, bounds.right - bounds.left))}px`;
+    const width = tooltip.offsetWidth;
+    const height = tooltip.offsetHeight;
+    // Keep ForceGraph's horizontal anchoring and default below-cursor
+    // placement, flipping above or clamping only when it would be clipped.
+    const anchorX = clientX - width * ((clientX - hostRect.left) / Math.max(1, hostRect.width));
+    const left = Math.max(bounds.left, Math.min(anchorX, bounds.right - width));
+    const below = clientY + 21;
+    const above = clientY - height - 8;
+    let top = hostRect.bottom - clientY < 100 ? above : below;
+    if (top + height > bounds.bottom) top = above;
+    if (top < bounds.top && below + height <= bounds.bottom) top = below;
+    top = Math.max(bounds.top, Math.min(top, bounds.bottom - height));
+    tooltip.style.transform = `translate(${left - clientX}px, ${top - clientY}px)`;
   }
 
   function initBalancedTopologyGraph(graphContext, options = {}) {
@@ -2538,6 +3122,14 @@
       container.addEventListener('mouseleave', () => {
         graphState.hoverNode = null;
       });
+      // ForceGraph places its label tooltip against the full render canvas,
+      // which is larger than the clipped preview window. Re-fit it to the
+      // visible window after ForceGraph positions it (and once more after the
+      // label text updates on the next frame).
+      container.addEventListener('pointermove', (event) => {
+        fitGraphTooltipToViewport(event.clientX, event.clientY);
+        requestAnimationFrame(() => fitGraphTooltipToViewport(event.clientX, event.clientY));
+      }, { passive: true });
 
       const Graph = ForceGraph()(container)
         .width(renderSize.width)
@@ -2549,8 +3141,8 @@
         .nodeId('id')
         .nodeVal('val')
         .nodeLabel((node) => (
-          window.innerWidth > 768 && !graphState.layoutTransition
-            ? (node.label || node.id)
+          !isMobileGraphViewport() && !graphState.layoutTransition
+            ? entityName(node.id, node.label)
             : ''
         ))
         .linkCurvature(0.18)
@@ -2565,39 +3157,31 @@
             );
             return baseWidth + (1.28 - baseWidth) * focusWeight;
           }
-          const activeId = (graphState.focusedNode && graphState.focusedNode.id) || (graphState.hoverNode && graphState.hoverNode.id);
+          const activeId = graphState.focusedNode?.id || graphState.hoverNode?.id;
           return activeId && (sourceId === activeId || targetId === activeId) ? 1.5 : baseWidth;
         })
         .linkColor((link) => {
           const isDark = state.theme === 'dark';
-          const isSepia = state.theme === 'sepia';
           const transitionAlpha = getGraphItemTransitionAlpha(link);
-          const makeColor = (alpha) => {
-            const resolvedAlpha = Math.max(0, Math.min(1, alpha * transitionAlpha));
-            if (isDark) return `rgba(255,255,255,${resolvedAlpha})`;
-            if (isSepia) return `rgba(45,38,30,${resolvedAlpha})`;
-            return `rgba(0,0,0,${resolvedAlpha})`;
-          };
+          const makeColor = (alpha) => `rgba(${isDark ? '255,255,255' : '0,0,0'},${clamp01(alpha * transitionAlpha)})`;
           if (isMobileGraphViewport()) {
             const focusWeight = Math.max(
               getMobileGraphFocusWeight(getLinkEndpointId(link.source)),
               getMobileGraphFocusWeight(getLinkEndpointId(link.target))
             );
-            const baseAlpha = isDark ? 0.22 : (isSepia ? 0.18 : 0.16);
-            const focusedAlpha = isDark ? 0.38 : (isSepia ? 0.32 : 0.3);
+            const baseAlpha = isDark ? 0.32 : 0.16;
+            const focusedAlpha = isDark ? 0.55 : 0.3;
             const alpha = baseAlpha + (focusedAlpha - baseAlpha) * focusWeight;
             return makeColor(alpha);
           }
-          const activeId = (graphState.focusedNode && graphState.focusedNode.id)
-            || (graphState.hoverNode && graphState.hoverNode.id);
+          const activeId = graphState.focusedNode?.id
+            || graphState.hoverNode?.id;
           if (activeId) {
             const isConnected = getLinkEndpointId(link.source) === activeId
               || getLinkEndpointId(link.target) === activeId;
-            return makeColor(isConnected
-              ? (isDark ? 0.42 : (isSepia ? 0.38 : 0.34))
-              : (isDark ? 0.18 : (isSepia ? 0.18 : 0.12)));
+            if (isConnected) return makeColor(isDark ? 0.6 : 0.34);
           }
-          return makeColor(isDark ? 0.18 : (isSepia ? 0.18 : 0.12));
+          return makeColor(isDark ? 0.28 : 0.12);
         })
         .onNodeDrag((node) => {
           bindNodeDragToPointerGesture(node);
@@ -2605,7 +3189,7 @@
         })
         .onNodeDragEnd(async (node, translate) => {
           const gesture = graphState.pointerGesture;
-          const isTrackedPointerDrag = gesture && gesture.dragNodeId === node.id;
+          const isTrackedPointerDrag = gesture?.dragNodeId === node.id;
           const dragDistancePx = getGraphGestureDistancePx(Graph, gesture, translate);
 
           if (isTrackedPointerDrag && gesture.platform === 'mobile') {
@@ -2629,55 +3213,33 @@
         })
         .onNodeHover((node) => {
           if (graphState.layoutTransition) return;
-          if (!graphState.focusedNode) {
-            graphState.hoverNode = node || null;
-          }
+          if (!graphState.focusedNode) graphState.hoverNode = node || null;
         })
         .onNodeClick(handleGraphNodeActivation)
         .onBackgroundClick(handleGraphBackgroundActivation)
         .nodePointerAreaPaint((node, color, ctx, globalScale) => {
           if (graphState.layoutTransition || getGraphItemTransitionAlpha(node) < 0.55) return;
-          const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
+          const scale = getGraphRenderScale(globalScale);
+          let hitRadiusPx;
           if (isMobileGraphViewport()) {
-            const visualRadiusPx = getMobileRenderedNodeRadiusPx(node, scale);
-            const minimumHitRadiusPx = state.isGraphExpanded ? 22 : 18;
-            const hitRadiusPx = Math.max(minimumHitRadiusPx, visualRadiusPx + 4);
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, hitRadiusPx / scale, 0, 2 * Math.PI, false);
-            ctx.fill();
-            return;
+            hitRadiusPx = Math.max(state.isGraphExpanded ? 22 : 18, getMobileRenderedNodeRadiusPx(node, scale) + 4);
+          } else {
+            // On desktop, the hit area tracks the visual radius with only 2.5px
+            // of screen padding, so hover/click never trigger far from a node.
+            const visualRadius = getDesktopNodeRadius(
+              node,
+              scale,
+              graphState.focusedNode?.id === node.id,
+              graphState.hoverNode?.id === node.id
+            );
+            hitRadiusPx = Math.max(state.isGraphExpanded ? 12 : 9, visualRadius * scale + 2.5);
           }
-          const isFocused = graphState.focusedNode && graphState.focusedNode.id === node.id;
-          const isHovered = graphState.hoverNode && graphState.hoverNode.id === node.id;
-          let visualRadius = node.val || 5;
-          if (isFocused) {
-            const minCanvasR = 42 / scale;
-            const maxCanvasR = 70 / scale;
-            visualRadius = Math.min(maxCanvasR, Math.max((node.val || 5) * 3.5, minCanvasR));
-          } else if (isHovered) {
-            if (state.isGraphExpanded) {
-              const minCanvasR = 18 / scale;
-              const maxCanvasR = 32 / scale;
-              visualRadius = Math.min(maxCanvasR, Math.max(visualRadius * 1.8, minCanvasR));
-            } else {
-              visualRadius = visualRadius * 1.414;
-            }
-          }
-          // On desktop, hit area tightly tracks visual radius with only 2.5px screen padding.
-          // This ensures that the cursor must actually touch or be within 2-3px of the node edge to trigger hover/click,
-          // completely eliminating the false trigger 1-2 mouse body lengths away!
-          const visualRadiusPx = visualRadius * scale;
-          const hitRadiusPx = Math.max(state.isGraphExpanded ? 12 : 9, visualRadiusPx + 2.5);
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, hitRadiusPx / scale, 0, 2 * Math.PI, false);
-          ctx.fill();
+          fillGraphCircle(ctx, node.x, node.y, hitRadiusPx / scale, color);
         })
         .nodeCanvasObject((node, ctx, globalScale) => {
           const isMobileDevice = isMobileGraphViewport();
-          const isFocused = graphState.focusedNode && graphState.focusedNode.id === node.id;
-          const isHovered = graphState.hoverNode && graphState.hoverNode.id === node.id;
+          const isFocused = graphState.focusedNode?.id === node.id;
+          const isHovered = graphState.hoverNode?.id === node.id;
           const isPrimary = node.isPrimary;
           
           let alpha = 1;
@@ -2690,48 +3252,32 @@
           ctx.save();
           ctx.globalAlpha = alpha * getGraphItemTransitionAlpha(node);
 
-          const baseColor = getCategoryColor(node.type);
-          let radius = node.val || 5;
-          if (isMobileDevice) {
-            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-            radius = getMobileRenderedNodeRadiusPx(node, scale) / scale;
-          } else if (isFocused) {
-            const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-            const minCanvasR = 42 / scale; // Hero screen radius: 42px (84px diameter)
-            const maxCanvasR = 70 / scale; // Hero screen ceiling: 70px (140px diameter)
-            radius = Math.min(maxCanvasR, Math.max((node.val || 5) * 3.5, minCanvasR));
-          } else if (isHovered) {
-            if (state.isGraphExpanded) {
-              const scale = globalScale || (state.sidebarGraph ? state.sidebarGraph.zoom() : 1) || 1;
-              const minCanvasR = 18 / scale; // Floor: at least 36px diameter on screen
-              const maxCanvasR = 32 / scale; // Ceiling: at most 64px diameter on screen
-              radius = Math.min(maxCanvasR, Math.max(radius * 1.8, minCanvasR));
-            } else {
-              radius = radius * 1.414;
-            }
-          }
+          const scale = getGraphRenderScale(globalScale);
+          const radius = isMobileDevice
+            ? getMobileRenderedNodeRadiusPx(node, scale) / scale
+            : getDesktopNodeRadius(node, scale, isFocused, isHovered);
 
-          // If node has cached image, draw pure borderless circular portrait
-          let hasDrawnImage = false;
-          if (node.imgSrc && graphState.imgCache.has(node.imgSrc)) {
-            const img = graphState.imgCache.get(node.imgSrc);
-            if (img && img.complete && img.naturalWidth > 0) {
-              ctx.save();
-              ctx.beginPath();
-              ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-              ctx.clip();
-              drawGraphImageCover(ctx, img, node.x - radius, node.y - radius, radius * 2);
-              ctx.restore();
-              hasDrawnImage = true;
-            }
-          }
-
-          // If no image, draw pure flat solid dot (100% Zero-Stroke, Zero-Ring)
-          if (!hasDrawnImage) {
+          // Draw a borderless circular portrait when the image is ready,
+          // otherwise a flat category-colored dot.
+          const img = node.imgSrc && graphState.imgCache.get(node.imgSrc);
+          if (img?.complete && img.naturalWidth > 0) {
+            ctx.save();
             ctx.beginPath();
             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-            ctx.fillStyle = baseColor;
-            ctx.fill();
+            ctx.clip();
+            drawGraphImageCover(ctx, img, node.x - radius, node.y - radius, radius * 2);
+            ctx.restore();
+          } else {
+            fillGraphCircle(ctx, node.x, node.y, radius, getCategoryColor(node.type));
+          }
+          // Dark mode: the portraits are mostly dark, so a light hairline
+          // ring keeps each node readable against the dark page.
+          if (state.theme === 'dark') {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 1.25 / scale;
+            ctx.strokeStyle = isFocused || isHovered ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.42)';
+            ctx.stroke();
           }
 
           ctx.restore();
@@ -2776,13 +3322,13 @@
 
   function scheduleGraphForPage(graphContext, options = {}) {
     const context = createGraphContext(
-      graphContext && graphContext.mode,
-      graphContext && graphContext.rootId,
+      graphContext?.mode,
+      graphContext?.rootId,
       graphContext || {}
     );
     const isViewportTransitioning = state.graphPhase !== 'small' && state.graphPhase !== 'expanded';
     const shouldDefer = isViewportTransitioning || (
-      window.innerWidth <= 768
+      isMobileGraphViewport()
       && !state.isGraphExpanded
       && state.graphPhase === 'small'
     );
@@ -2811,8 +3357,8 @@
     const context = canUsePrepared
       ? prepared.context
       : createGraphContext(
-          pendingContext && pendingContext.mode,
-          pendingContext && pendingContext.rootId,
+          pendingContext?.mode,
+          pendingContext?.rootId,
           { budget: currentBudget }
         );
     graphState.pendingGraphBuildRevision += 1;
@@ -2866,7 +3412,7 @@
     container.style.width = `${rect.width}px`;
     container.style.height = `${rect.height}px`;
     container.style.margin = '0';
-    container.style.zIndex = window.innerWidth <= 768 ? '500' : '100';
+    container.style.zIndex = isMobileGraphViewport() ? '500' : '100';
   }
 
   function resetGraphContainerStyles(container) {
@@ -2896,13 +3442,7 @@
       finishMobileGraphSidebarOverlayLease({ restoreExpanded: false });
     }
     if (container.parentElement !== slot) slot.appendChild(container);
-    container.classList.remove(
-      'is-expanded',
-      'is-sidebar-handoff',
-      'is-sidebar-overlay-preview',
-      'is-continuum-obscured',
-      'is-viewport-transitioning'
-    );
+    container.classList.remove(...GRAPH_HOST_STATE_CLASSES);
     resetGraphContainerStyles(container);
     document.body.classList.remove('graph-is-expanded', 'mobile-sidebar-graph-returning');
     if (sidebar) {
@@ -2910,7 +3450,7 @@
       sidebar.inert = false;
     }
     const continuum = getEl('mobile-graph-continuum');
-    if (continuum && continuum.classList.contains('is-active')) {
+    if (continuum?.classList.contains('is-active')) {
       deactivateMobileGraphContinuum();
     }
 
@@ -2990,7 +3530,7 @@
     if (!launcher) return { right: 17, bottom: 17 };
     const rect = launcher.getBoundingClientRect();
     const controlRect = control ? control.getBoundingClientRect() : null;
-    const halfControl = controlRect && controlRect.width ? controlRect.width / 2 : 24;
+    const halfControl = controlRect?.width ? controlRect.width / 2 : 24;
     const viewportHeight = graphState.continuumViewportHeight || getMobileVisualViewportHeight();
     return {
       right: Math.max(0, window.innerWidth - (rect.left + rect.width / 2) - halfControl),
@@ -2999,13 +3539,13 @@
   }
 
   function setMobileGraphControlShape(progress) {
-    const normalized = Math.max(0, Math.min(1, progress));
+    const normalized = clamp01(progress);
     const firstStroke = getEl('graph-control-morph-a');
     const secondStroke = getEl('graph-control-morph-b');
     const from = MOBILE_GRAPH_CONTROL_SHAPES.corner;
     const continuum = getEl('mobile-graph-continuum');
     const hasArticle = Boolean(
-      (continuum && continuum.classList.contains('has-article'))
+      continuum?.classList.contains('has-article')
       || graphState.continuumEntityId
       || (state.currentEntityId && getEl('view-entity') && getEl('view-entity').style.display === 'block')
     );
@@ -3027,7 +3567,7 @@
 
   function setMobileGraphLauncherPresentation(launcher, options = {}) {
     if (!launcher) return;
-    const opacity = Math.max(0, Math.min(1, Number(options.opacity) || 0));
+    const opacity = clamp01(Number(options.opacity) || 0);
     const interactive = options.interactive === true;
     const continuumReading = options.continuumReading === true;
     launcher.classList.toggle('is-graph-morphing', options.morphing === true);
@@ -3038,7 +3578,7 @@
     launcher.setAttribute('aria-hidden', interactive ? 'false' : 'true');
     launcher.setAttribute(
       'aria-label',
-      continuumReading ? 'Return to Knowledge Graph' : 'Open Knowledge Graph'
+      t(continuumReading ? 'Return to Knowledge Graph' : 'Open Knowledge Graph')
     );
   }
 
@@ -3048,7 +3588,7 @@
     surface = state.graphReturnSurface
   ) {
     if (!isMobileGraphViewport()) return;
-    const normalized = Math.max(0, Math.min(1, progress));
+    const normalized = clamp01(progress);
     const container = getEl('sidebar-graph-container');
     const expandButton = getEl('btn-graph-expand');
     const launcher = getEl('btn-mobile-graph-launcher');
@@ -3057,7 +3597,7 @@
     graphState.mobileExpansionProgress = normalized;
     const returnsToArticle = surface === 'article';
     const launcherHandoff = returnsToArticle
-      ? Math.max(0, Math.min(1, normalized / 0.28))
+      ? clamp01(normalized / 0.28)
       : 1;
     const expandedInsets = getMobileGraphControlExpandedInsets(launcher, expandButton);
     const controlRight = returnsToArticle
@@ -3067,7 +3607,7 @@
       ? expandedInsets.bottom
       : expandedInsets.bottom * normalized;
     const controlOpacity = returnsToArticle
-      ? launcherHandoff * (0.85 + 0.15 * normalized)
+      ? launcherHandoff
       : 0.35 + 0.65 * normalized;
     const glyphInset = returnsToArticle
       ? MOBILE_GRAPH_CONTROL_ICON_INSET_PX
@@ -3089,11 +3629,11 @@
       expandButton.tabIndex = isInteractive ? 0 : -1;
       expandButton.setAttribute('aria-hidden', isInteractive ? 'false' : 'true');
       expandButton.setAttribute('aria-expanded', isStableExpanded ? 'true' : 'false');
-      expandButton.setAttribute('aria-label', isStableExpanded ? 'Close graph explorer' : 'Expand graph');
+      expandButton.setAttribute('aria-label', t(isStableExpanded ? 'Close graph explorer' : 'Expand graph'));
     }
     if (launcher) {
       setMobileGraphLauncherPresentation(launcher, {
-        opacity: returnsToArticle ? 0.85 * (1 - launcherHandoff) : 0,
+        opacity: returnsToArticle ? 1 - launcherHandoff : 0,
         interactive: isStableSmall && returnsToArticle,
         morphing: transitioning
       });
@@ -3112,12 +3652,12 @@
 
   function getMobileGraphContinuumHeaderHeight() {
     const header = document.querySelector('.wiki-header');
-    return Math.max(0, (header && header.getBoundingClientRect().height) || 52);
+    return Math.max(0, (header?.getBoundingClientRect().height) || 52);
   }
 
   function getMobileGraphContinuumProgress(position = graphState.continuumPosition) {
     const travel = getMobileGraphContinuumGeometry().travel;
-    return travel > 0 ? Math.max(0, Math.min(1, position / travel)) : 0;
+    return travel > 0 ? clamp01(position / travel) : 0;
   }
 
   function getMobileGraphContinuumChromeReveal(progress) {
@@ -3172,7 +3712,7 @@
     let budget = 0;
     for (let index = 0; index < count; index += 1) {
       const property = properties[index % properties.length];
-      if (property !== 'all' && property !== 'transform') continue;
+      if (property !== 'all' && property !== 'transform' && property !== 'opacity') continue;
       budget = Math.max(
         budget,
         durations[index % durations.length] + delays[index % delays.length]
@@ -3199,9 +3739,10 @@
       }
     };
     pending.onTransitionFinish = (event) => {
-      if (event.target !== sidebar || event.propertyName !== 'transform') return;
-      const rect = sidebar.getBoundingClientRect();
-      if (!sidebar.classList.contains('is-open') && rect.right <= 1) complete();
+      // The phone menu fades rather than slides; it is gone once transparent.
+      if (event.target !== sidebar || event.propertyName !== 'opacity') return;
+      if (!sidebar.classList.contains('is-open')
+        && parseFloat(getComputedStyle(sidebar).opacity) <= 0.01) complete();
     };
     sidebar.addEventListener('transitionend', pending.onTransitionFinish);
     graphState.sidebarOverlayLeaseRestore = pending;
@@ -3348,7 +3889,7 @@
     return lease;
   }
 
-  function expandMobileGraphSidebarOverlayLease(duration = 420) {
+  function expandMobileGraphSidebarOverlayLease(duration = graphMs(motion.ms('--duration-slow'))) {
     const lease = graphState.sidebarOverlayLease;
     const container = getEl('sidebar-graph-container');
     const mobileSlot = getEl('mobile-graph-continuum-graph-slot');
@@ -3432,12 +3973,12 @@
     const reveal = hasArticle ? getMobileGraphContinuumChromeReveal(progress) : 0;
     const isStableReading = hasArticle && isMobileGraphContinuumStableReading();
     setMobileGraphLauncherPresentation(launcher, {
-      opacity: 0.85 * reveal,
+      opacity: reveal,
       interactive: isStableReading,
       continuumReading: reveal > 0.001,
       morphing: Boolean(
         graphState.continuumMotionTarget !== null
-        || (graphState.continuumGesture && graphState.continuumGesture.owner === 'floor')
+        || (graphState.continuumGesture?.owner === 'floor')
       )
     });
   }
@@ -3459,13 +4000,12 @@
     // A single physical position drives the sheet and every secondary depth
     // cue. No class, scroll offset, or independent CSS transition may move a
     // second surface on its own.
-    const depthProgress = Math.max(0, Math.min(1, (progress - 0.04) / 0.96));
-    const controlFade = 1 - Math.max(0, Math.min(1, (progress - 0.08) / 0.52));
+    const depthProgress = clamp01((progress - 0.04) / 0.96);
+    const controlFade = 1 - clamp01((progress - 0.08) / 0.52);
     const controlLift = hasArticle
       ? geometry.previewPeek + Math.max(0, Math.min(geometry.travel, position))
       : 0;
 
-    continuum.style.setProperty('--mobile-continuum-progress', String(progress));
     continuum.style.setProperty('--mobile-continuum-sheet-y', `${sheetY}px`);
     continuum.style.setProperty(
       '--mobile-continuum-graph-shift',
@@ -3493,7 +4033,7 @@
     }
     continuum.classList.toggle('is-settling', graphState.continuumMotionTarget !== null);
     continuum.classList.toggle('is-tracking', Boolean(
-      graphState.continuumGesture && graphState.continuumGesture.owner === 'floor'
+      graphState.continuumGesture?.owner === 'floor'
     ));
     continuum.classList.toggle('is-article-resting', isMobileGraphContinuumStableReading());
     updateMobileGraphContinuumHeader(progress);
@@ -3502,7 +4042,7 @@
     const expandButton = getEl('btn-graph-expand');
     if (expandButton && continuumOwnsGraph && state.graphPhase === 'expanded') {
       const floorIsIdle = graphState.continuumMotionTarget === null
-        && !(graphState.continuumGesture && graphState.continuumGesture.owner === 'floor');
+        && !(graphState.continuumGesture?.owner === 'floor');
       const closeIsInteractive = controlFade > 0.12
         && floorIsIdle
         && Math.abs(position) <= 0.5;
@@ -3511,7 +4051,7 @@
       expandButton.setAttribute('aria-hidden', closeIsInteractive ? 'false' : 'true');
       expandButton.setAttribute(
         'aria-label',
-        hasArticle ? 'Return to article' : 'Close graph explorer'
+        t(hasArticle ? 'Return to article' : 'Close graph explorer')
       );
       setMobileGraphControlShape(1);
     }
@@ -3569,26 +4109,10 @@
     state.currentEntityId = entityId;
     updateNavHistory('entity', entityId);
 
-    // Sync matching TOC link
-    document.querySelectorAll('.toc-item').forEach((i) => i.classList.remove('active'));
-    const tocLink = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
-    if (tocLink) {
-      tocLink.classList.add('active');
-      const parentDetails = tocLink.closest('details');
-      if (parentDetails) parentDetails.open = true;
-    }
+    activateEntityTocLink(entityId);
 
     // Update background desktop state so resize to desktop is seamless
-    const model = getEntityArticleModel(entityId);
-    if (model) {
-      renderEntityArticleInto(model, {
-        category: getEl('view-entity-cat'),
-        title: getEl('view-entity-title'),
-        media: getEl('view-entity-media'),
-        image: getEl('view-entity-img'),
-        markdown: getEl('view-entity-markdown')
-      });
-    }
+    renderEntityPage(getEntityArticleModel(entityId));
 
     // Schedule background graph for the new entity without visual transition
     scheduleGraphForPage(createGraphContext('entity', entityId), { animate: false });
@@ -3633,7 +4157,7 @@
     }
     graphState.continuumVelocity = releaseVelocity;
 
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (prefersReducedMotion()) {
       finishMobileGraphContinuumSettle(target);
       return;
     }
@@ -3675,7 +4199,7 @@
   }
 
   function getMobileGraphContinuumReleaseVelocity(gesture, now = performance.now()) {
-    const samples = gesture && gesture.samples;
+    const samples = gesture?.samples;
     if (!samples || samples.length < 2) return 0;
     const last = samples[samples.length - 1];
     if (now - last.time > MOBILE_CONTINUUM_VELOCITY_STALE_MS) return 0;
@@ -3750,13 +4274,7 @@
     graphState.continuumPosition = 0;
     graphState.continuumVelocity = 0;
     captureMobileGraphContinuumViewport(true);
-    continuum.classList.remove(
-      'has-article',
-      'is-article-ready',
-      'is-article-resting',
-      'is-settling',
-      'is-tracking'
-    );
+    continuum.classList.remove(...CONTINUUM_ARTICLE_CLASSES);
     continuum.classList.add('is-active');
     continuum.setAttribute('aria-hidden', 'false');
     const article = getEl('mobile-graph-continuum-article');
@@ -3784,13 +4302,7 @@
     graphState.continuumGesture = null;
     graphState.continuumPosition = 0;
     graphState.continuumVelocity = 0;
-    continuum.classList.remove(
-      'has-article',
-      'is-article-ready',
-      'is-article-resting',
-      'is-settling',
-      'is-tracking'
-    );
+    continuum.classList.remove(...CONTINUUM_ARTICLE_CLASSES);
     if (article) {
       article.scrollTop = 0;
       article.setAttribute('aria-hidden', 'true');
@@ -3821,13 +4333,7 @@
       if (slot && container.parentElement !== slot) {
         slot.appendChild(container);
       }
-      container.classList.remove(
-        'is-expanded',
-        'is-sidebar-handoff',
-        'is-sidebar-overlay-preview',
-        'is-continuum-obscured',
-        'is-viewport-transitioning'
-      );
+      container.classList.remove(...GRAPH_HOST_STATE_CLASSES);
       resetGraphContainerStyles(container);
       container.style.removeProperty('--mobile-continuum-control-lift');
       container.style.setProperty(
@@ -3901,6 +4407,12 @@
       image: getEl('mobile-continuum-image'),
       markdown: getEl('mobile-continuum-markdown')
     });
+    const entries = getEntityTocEntries();
+    renderEntitySiblings(entries, entries.find((e) => e.id === model.id), {
+      view: article,
+      rowId: 'mobile-continuum-siblings',
+      onPick: openEntityInContinuum
+    });
 
     graphState.continuumEntityId = model.id;
     article.setAttribute('aria-hidden', 'false');
@@ -3960,7 +4472,7 @@
       gesture.lastY = touch.clientY;
       gesture.samples = [{ time: gesture.startTime, position: currentPosition }];
       const article = getEl('mobile-graph-continuum-article');
-      if (article && article.scrollTop < 1) article.scrollTop = 0;
+      if (article?.scrollTop < 1) article.scrollTop = 0;
       updateMobileGraphContinuumProgress();
     };
 
@@ -3978,7 +4490,7 @@
       if (article && target && article.contains(target)) {
         source = 'article';
       } else if (graphContainer && target && graphContainer.contains(target)) {
-        if (expandButton && expandButton.contains(target)) return;
+        if (expandButton?.contains(target)) return;
         const graphNode = getGraphNodeAtClientPoint(
           state.sidebarGraph,
           graphContainer,
@@ -4041,7 +4553,7 @@
         const isAtArticle = graphState.continuumPosition >= geometry.travel - 1;
         const article = getEl('mobile-graph-continuum-article');
         if (gesture.source === 'article' && isAtArticle) {
-          if ((article && article.scrollTop > 0.5) || deltaY < 0) {
+          if ((article?.scrollTop > 0.5) || deltaY < 0) {
             gesture.owner = 'article-scroll';
             gesture.lastY = touch.clientY;
             return;
@@ -4129,9 +4641,14 @@
     if (!container || !state.sidebarGraph || !slot) return Promise.resolve();
 
     const targetState = typeof forceState === 'boolean' ? forceState : !state.isGraphExpanded;
+    if (!isMobileGraphViewport()) {
+      const control = getEl('btn-graph-expand');
+      control?.setAttribute('aria-label', t(targetState ? 'Close graph explorer' : 'Expand graph'));
+      control?.setAttribute('aria-expanded', String(targetState));
+    }
     const transitionDuration = Number.isFinite(options.duration)
       ? Math.max(0, options.duration)
-      : 420;
+      : graphMs(motion.ms('--duration-slow'));
     const isStable = state.graphPhase === 'small' || state.graphPhase === 'expanded';
     if (targetState === state.isGraphExpanded && isStable) return Promise.resolve();
     if (!isStable) {
@@ -4139,7 +4656,7 @@
     }
 
     graphState.containerTransitionPromise = (async () => {
-      const isMobile = window.innerWidth <= 768;
+      const isMobile = isMobileGraphViewport();
       const requestedDestination = options.destination === 'sidebar'
         || options.destination === 'article'
         ? options.destination
@@ -4147,7 +4664,7 @@
       let effectiveDestination = requestedDestination || state.graphReturnSurface;
       if (isMobile && !targetState && !requestedDestination) {
         const continuum = getEl('mobile-graph-continuum');
-        if (continuum && continuum.classList.contains('has-article') && graphState.continuumEntityId) {
+        if (continuum?.classList.contains('has-article') && graphState.continuumEntityId) {
           commitMobileGraphContinuumReadingContext();
           effectiveDestination = 'article';
           state.graphReturnSurface = 'article';
@@ -4190,7 +4707,7 @@
       }
       const sidebar = getEl('wiki-sidebar');
       if (targetState && isMobile) {
-        state.graphReturnSurface = sidebar && sidebar.classList.contains('is-open') ? 'sidebar' : 'article';
+        state.graphReturnSurface = sidebar?.classList.contains('is-open') ? 'sidebar' : 'article';
       }
       state.isGraphExpanded = targetState;
 
@@ -4227,8 +4744,8 @@
           // one host/geometry handoff after the current interpolation completes.
           const size = getExpandedGraphSize(isMobile);
           return {
-            left: 0,
-            top: isMobile ? 0 : 52,
+            left: isMobile ? 0 : getDesktopPageInsetLeft(),
+            top: isMobile ? 0 : getHeaderHeight() + 8,
             width: size.width,
             height: size.height
           };
@@ -4269,7 +4786,7 @@
           stabilizeMobileGraphContinuum();
           syncMobileGraphContextRootFocus();
           const continuum = getEl('mobile-graph-continuum');
-          const hasArticle = continuum && continuum.classList.contains('has-article');
+          const hasArticle = continuum?.classList.contains('has-article');
           if (!hasArticle && (!state.graphContext || state.graphContext.mode !== 'entity')) {
             fitGraphToViewport(state.sidebarGraph, 0, {
               size: getExpandedGraphSize(true),
@@ -4293,7 +4810,7 @@
         }
         const startRect = container.getBoundingClientRect();
         const returnsToArticleLauncher = isMobile && collapseDestination === 'article' && launcher;
-        const sidebarWasOpen = Boolean(sidebar && sidebar.classList.contains('is-open'));
+        const sidebarWasOpen = Boolean(sidebar?.classList.contains('is-open'));
         const revealsSidebarGraph = isMobile
           && collapseDestination === 'sidebar'
           && !sidebarWasOpen;
@@ -4301,7 +4818,7 @@
           // The drawer establishes the final coordinate system immediately.
           // Its own translate must not compete with the one Canvas morph.
           if (!sidebar || !sidebar.classList.contains('is-open')) openMobileSidebar({ animate: false });
-        } else if (returnsToArticleLauncher && sidebar && sidebar.classList.contains('is-open')) {
+        } else if (returnsToArticleLauncher && sidebar?.classList.contains('is-open')) {
           closeMobileSidebar({ animate: false });
         }
 
@@ -4369,7 +4886,7 @@
           });
         }
       }
-      if (targetState || window.innerWidth > 768) flushPendingGraphData();
+      if (targetState || !isMobileGraphViewport()) flushPendingGraphData();
       if (graphState.resizePending) scheduleGraphResizeSync();
     })();
 
@@ -4378,7 +4895,7 @@
 
   async function navigateFromGraphNode(entityId, options = {}) {
     const collapseGraph = options.collapseGraph !== false;
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = isMobileGraphViewport();
     const preserveFocusThroughCollapse = isMobile
       && collapseGraph
       && (state.isGraphExpanded || state.graphPhase !== 'small');
@@ -4391,7 +4908,7 @@
     }
     if (collapseGraph && (state.isGraphExpanded || state.graphPhase !== 'small')) {
       await toggleGraphExpand(false, {
-        duration: isMobile ? 180 : 420,
+        duration: graphMs(isMobile ? 180 : 420),
         destination: 'article'
       });
     }
@@ -4414,7 +4931,7 @@
    */
   function initMobileGestures() {
     // Strictly mobile-only gesture engine (<= 768px)
-    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1080);
+    const isMobileDevice = isMobileGraphViewport() || ('ontouchstart' in window && window.innerWidth <= 1080);
     if (!isMobileDevice) return;
 
     let touchStartX = 0;
@@ -4424,7 +4941,7 @@
 
     // 1. Global Horizontal Swipe (Main Reading Area Left -> Right)
     document.addEventListener('touchstart', (e) => {
-      if (window.innerWidth > 768 || e.touches.length !== 1) return;
+      if (!isMobileGraphViewport() || e.touches.length !== 1) return;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();
@@ -4440,7 +4957,7 @@
       const deltaY = touch.clientY - touchStartY;
       const elapsed = Date.now() - touchStartTime;
 
-      const isMobile = window.innerWidth <= 1080;
+      const isMobile = isMobileGraphViewport();
       if (!isMobile) return;
 
       const absX = Math.abs(deltaX);
@@ -4449,7 +4966,7 @@
       // Horizontal Swipe Check
       if (absX > 60 && absX > absY * 1.3 && elapsed < 600) {
         const sidebar = getEl('wiki-sidebar');
-        const isOpen = sidebar && sidebar.classList.contains('is-open');
+        const isOpen = sidebar?.classList.contains('is-open');
         // An open drawer sits above the continuum and owns its closing swipe.
         // With the drawer closed, the fullscreen graph/article surface keeps all
         // navigation gestures so a floor interaction can never open the drawer.
@@ -4563,7 +5080,7 @@
   }
 
   function scheduleGraphResizeSync(options = {}) {
-    const flushMobileRender = Boolean(options && options.flushMobileRender === true);
+    const flushMobileRender = Boolean(options?.flushMobileRender === true);
     const resizeRevision = ++graphState.resizeRevision;
     if (graphState.resizeFrame) cancelAnimationFrame(graphState.resizeFrame);
     graphState.resizeFrame = requestAnimationFrame(() => {
@@ -4620,7 +5137,7 @@
       graphState.resizePending = false;
       cancelGraphCameraTransition();
       settleGraphLayoutTransitionNodes();
-      if (window.innerWidth > 768) flushPendingGraphData();
+      if (!isMobileGraphViewport()) flushPendingGraphData();
       reconcileGraphContextForEnvironment();
       const container = getEl('sidebar-graph-container');
       const canvasContainer = getEl('canvas-sidebar-graph');
@@ -4654,8 +5171,8 @@
       }
       if (state.isGraphExpanded) {
         applyFixedGraphRect(container, {
-          left: 0,
-          top: window.innerWidth <= 768 ? 0 : 52,
+          left: isMobileGraphViewport() ? 0 : getDesktopPageInsetLeft(),
+          top: isMobileGraphViewport() ? 0 : 52,
           width: expandedSize.width,
           height: expandedSize.height
         });
@@ -4686,15 +5203,15 @@
     const continuum = getEl('mobile-graph-continuum');
     if (isMobileGraphContinuumActive() && continuum) {
       const article = getEl('mobile-graph-continuum-article');
-      if (isMobileGraphContinuumStableReading() && article && article.scrollTop > 2) {
-        article.scrollTo({ top: 0, behavior: 'smooth' });
+      if (isMobileGraphContinuumStableReading() && article?.scrollTop > 2) {
+        article.scrollTo({ top: 0, behavior: scrollBehavior() });
       } else if (continuum.classList.contains('has-article')) {
         if (article) article.scrollTop = 0;
         startMobileGraphContinuumSettle(0, 0);
       }
       return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   }
 
   function initGraphControls() {
@@ -4715,7 +5232,7 @@
         }
         if (isMobileGraphViewport() && isMobileGraphContinuumActive()) {
           const continuum = getEl('mobile-graph-continuum');
-          if (continuum && continuum.classList.contains('has-article')) {
+          if (continuum?.classList.contains('has-article')) {
             const geometry = getMobileGraphContinuumGeometry();
             if (graphState.continuumPosition < geometry.travel * 0.5) {
               startMobileGraphContinuumSettle(geometry.travel);
@@ -4733,7 +5250,7 @@
         e.stopPropagation();
         if (isMobileGraphContinuumActive()) {
           const continuum = getEl('mobile-graph-continuum');
-          if (continuum && continuum.classList.contains('has-article')) {
+          if (continuum?.classList.contains('has-article')) {
             const geometry = getMobileGraphContinuumGeometry();
             if (graphState.continuumPosition > geometry.travel * 0.5) {
               startMobileGraphContinuumSettle(0);
@@ -4748,21 +5265,11 @@
         closeMobileSidebar();
 
         const bookView = getEl('view-book');
-        const isHomepage = (!state.currentEntityId) || (bookView && bookView.style.display !== 'none');
+        const isHomepage = (!state.currentEntityId) || (bookView?.style.display !== 'none');
         if (isHomepage) {
-          state.currentEntityId = null;
-          graphState.continuumEntityId = null;
-          graphState.focusedNode = null;
-          graphState.hoverNode = null;
-          graphState.mobileFocusWeights.clear();
-          const continuum = getEl('mobile-graph-continuum');
-          if (continuum) hideMobileGraphContinuumArticle();
-          const overviewContext = createGraphContext('overview');
-          state.graphContext = overviewContext;
-          graphState.pendingGraphContext = null;
-          graphState.hasPendingData = false;
-          graphState.pendingGraphData = null;
-          initBalancedTopologyGraph(overviewContext, { animate: false });
+          clearEntityFocus();
+          hideMobileGraphContinuumArticle();
+          showOverviewGraphNow();
         }
         toggleGraphExpand(true);
       });
@@ -4819,9 +5326,10 @@
     if (isNavigatingFromHistory) return;
     if (id === 'view-entity') return;
     try {
-      const hash = type === 'entity' ? `#${id}` : (type === 'view' ? `#${id}` : '#book');
+      const hash = id === 'view-library' ? libraryHash() : rootHash((type === 'entity' || type === 'view' || type === 'story') ? `#${id}` : '#book');
       const stateData = { type, id, timestamp: Date.now() };
-      if (window.location.hash !== hash) {
+      if (id === 'view-library') stateData.category = state.libraryCategory || 'all-books';
+      if (new URL(hash, document.baseURI).href !== window.location.href) {
         window.history.pushState(stateData, '', hash);
       } else {
         window.history.replaceState(stateData, '', hash);
@@ -4831,23 +5339,39 @@
     }
   }
 
-  function initNavHistory() {
+  function initNavHistory(initialRoute) {
     window.addEventListener('popstate', (event) => {
       const stateData = event.state;
       isNavigatingFromHistory = true;
       try {
-        if (stateData && stateData.type === 'entity' && stateData.id && stateData.id !== 'view-entity') {
+        if (stateData?.type === 'story' && stateData.id) {
+          window.StoryPages?.route(stateData.id, { fromHistory: true });
+        } else if (stateData?.type === 'entity' && stateData.id && stateData.id !== 'view-entity') {
           openEntityArticle(stateData.id, { fromHistory: true });
-        } else if (stateData && stateData.type === 'view' && stateData.id && stateData.id !== 'view-entity') {
+        } else if (stateData?.type === 'view' && stateData.id === 'view-library') {
+          openLibrary({ fromHistory: true, category: stateData.category });
+        } else if (stateData?.type === 'view' && stateData.id && stateData.id !== 'view-entity') {
           showArticleView(stateData.id, { fromHistory: true });
-        } else if (stateData && stateData.type === 'book') {
+        } else if (stateData?.type === 'book') {
           openBookOverview({ fromHistory: true });
         } else {
           const hash = (window.location.hash || '').replace(/^#/, '');
-          if (hash === 'view-storyline' || hash === 'view-storyflow') {
+          const pathCategory = !hash && libraryCategoryFromPath(sitePath());
+          if (pathCategory) {
+            openLibrary({ fromHistory: true, category: pathCategory });
+          } else if (isLibraryHash(hash)) {
+            // An old library hash: open it and move the URL to its real path.
+            const category = libraryCategoryFromHash(hash);
+            openLibrary({ fromHistory: true, category });
+            try { window.history.replaceState({ type: 'view', id: 'view-library', category }, '', libraryPath(category)); } catch (e) {}
+          } else if (hash === 'view-storyline' || hash === 'view-storyflow') {
             showArticleView(hash, { fromHistory: true });
-          } else if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
-            openEntityArticle(hash, { fromHistory: true });
+          } else if (window.StoryPages?.isRoute(hash)) {
+            window.StoryPages.route(hash, { fromHistory: true });
+          } else if (getRouteFromHash().type === 'entity') {
+            // A typed or linked hash: decode it and accept a name as well as
+            // an id, the same as on first load; anything else is the book.
+            openEntityArticle(getRouteFromHash().id, { fromHistory: true });
           } else {
             openBookOverview({ fromHistory: true });
           }
@@ -4858,13 +5382,36 @@
     });
 
     try {
-      const hash = (window.location.hash || '').replace(/^#/, '');
-      if (hash === 'view-storyline' || hash === 'view-storyflow') {
-        window.history.replaceState({ type: 'view', id: hash, timestamp: Date.now() }, '', window.location.hash);
+      const route = initialRoute || getRouteFromHash();
+      if (route.type === 'book') {
+        window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', rootHash('#book'));
       } else {
-        window.history.replaceState({ type: 'book', id: 'view-book', timestamp: Date.now() }, '', '#book');
+        const stateData = { type: route.type, id: route.id, timestamp: Date.now() };
+        if (route.category) stateData.category = route.category;
+        window.history.replaceState(stateData, '', route.id === 'view-library' ? libraryHash() : rootHash(`#${route.id}`));
       }
     } catch (e) {}
+  }
+
+  function getRouteFromHash() {
+    let hash = (window.location.hash || '').replace(/^#/, '');
+    try {
+      hash = decodeURIComponent(hash);
+    } catch (e) {}
+    const pathCategory = !hash && libraryCategoryFromPath(sitePath());
+    if (pathCategory) return { type: 'view', id: 'view-library', category: pathCategory };
+    if (isLibraryHash(hash)) {
+      return { type: 'view', id: 'view-library', category: libraryCategoryFromHash(hash) };
+    }
+    if (hash === 'view-storyline' || hash === 'view-storyflow') {
+      return { type: 'view', id: hash };
+    }
+    if (window.StoryPages?.isRoute(hash)) return { type: 'story', id: hash };
+    if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
+      const entityId = resolveEntityId(hash, getKnowledgeIndex());
+      if (entityId) return { type: 'entity', id: entityId };
+    }
+    return { type: 'book', id: 'view-book' };
   }
 
   /* ==========================================================================
@@ -4873,18 +5420,18 @@
   let cachedEntityLinkerData = null;
 
   function getEntityLinkerData() {
-    if (cachedEntityLinkerData) return cachedEntityLinkerData;
+    if (cachedEntityLinkerData?.lang === state.lang) return cachedEntityLinkerData.entries;
     const index = getKnowledgeIndex();
     if (!index || !index.nodesById) return null;
     const entries = [];
     index.nodesById.forEach((node, id) => {
-      const label = (node.label || '').trim();
-      if (label.length >= 3) {
+      const label = (isZh() ? entityName(id, '') : (node.label || '')).trim();
+      if (label.length >= (isZh() ? 2 : 3)) {
         entries.push({ id, label });
       }
     });
     entries.sort((a, b) => b.label.length - a.label.length);
-    cachedEntityLinkerData = entries;
+    cachedEntityLinkerData = { lang: state.lang, entries };
     return entries;
   }
 
@@ -4910,7 +5457,10 @@
       labelToId.set(c.label.toLowerCase(), c.id);
     });
 
-    const regex = new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
+    // Chinese has no word boundaries; match names as they stand.
+    const regex = isZh()
+      ? new RegExp(`(${escapedTerms.join('|')})`, 'g')
+      : new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
     const parts = rawHtml.split(/(<[^>]+>)/g);
     let inProtectedTag = false;
     let protectedTagName = '';
@@ -4927,17 +5477,12 @@
           inProtectedTag = false;
           protectedTagName = '';
         }
-      } else {
-        if (!inProtectedTag) {
-          const text = parts[i];
-          if (text && text.trim()) {
-            parts[i] = text.replace(regex, (match) => {
-              const id = labelToId.get(match.toLowerCase());
-              if (!id) return match;
-              return `<a href="javascript:void(0)" class="entity-mention-chip" data-entity-id="${id}" title="View ${match} in Knowledge Graph">${match}</a>`;
-            });
-          }
-        }
+      } else if (!inProtectedTag && parts[i]?.trim()) {
+        parts[i] = parts[i].replace(regex, (match) => {
+          const id = labelToId.get(match.toLowerCase());
+          if (!id) return match;
+          return `<a href="javascript:void(0)" class="entity-mention-chip" data-entity-id="${id}">${match}</a>`;
+        });
       }
     }
 
@@ -4961,7 +5506,7 @@
         if (model) {
           showMobileGraphContinuumArticle(model);
           commitMobileGraphContinuumReadingContext(model.id);
-          const node = state.graphNodeMap && state.graphNodeMap.get(model.id);
+          const node = state.graphNodeMap?.get(model.id);
           if (node) {
             transitionMobileGraphFocus(state.sidebarGraph, node);
           } else {
@@ -4979,7 +5524,7 @@
     });
 
     document.addEventListener('mouseover', (e) => {
-      if (window.innerWidth <= 768) return;
+      if (isMobileGraphViewport()) return;
       const chip = e.target.closest('.entity-mention-chip');
       if (!chip) return;
       const entityId = chip.getAttribute('data-entity-id');
@@ -4992,7 +5537,7 @@
     });
 
     document.addEventListener('mouseout', (e) => {
-      if (window.innerWidth <= 768) return;
+      if (isMobileGraphViewport()) return;
       const chip = e.target.closest('.entity-mention-chip');
       if (!chip) return;
       if (graphState.hoverNode) {
@@ -5022,6 +5567,17 @@
       targetEl.style.display = 'block';
       targetEl.classList.add('active');
     }
+    document.body.classList.toggle('is-library', targetViewId === 'view-library');
+    if (targetViewId === 'view-library') clearActiveNav();
+    // Keep the sidebar in step when a page opens from the address bar or
+    // history, not only from its own sidebar link.
+    const hubItem = { 'view-book': 'btn-book-home', 'view-storyline': 'btn-storylines-hub', 'view-storyflow': 'btn-storyflow-hub' }[targetViewId];
+    if (hubItem) {
+      clearActiveNav();
+      getEl(hubItem)?.classList.add('active');
+    }
+    getEl('book-toc')?.__sync?.(targetViewId === 'view-book');
+    if (targetViewId !== 'view-entity') getEl('entity-toc')?.__sync?.(false);
 
     const mainArticle = document.querySelector('.wiki-main-article');
     if (mainArticle) {
@@ -5037,30 +5593,373 @@
       updateNavHistory(type, targetViewId);
     }
 
-    window.scrollTo(0, 0);
+    if (!options.inPlace) window.scrollTo(0, 0);
     initIcons();
     closeMobileSidebar();
+    if (!options.inPlace) playPageEnter(targetEl);
+  }
+
+  /* ==========================================================================
+     Page and content motion (patterns adapted from transitions.dev)
+     ========================================================================== */
+  let pageEnterAnimations = [];
+
+  // Page side-by-side: the incoming page slides 8px in from the right out of
+  // a 3px blur. The old page leaves at once, so navigation never waits.
+  function playPageEnter(viewEl) {
+    pageEnterAnimations.forEach((animation) => animation.cancel());
+    pageEnterAnimations = [];
+    if (!canAnimate(viewEl)) return;
+    const distance = motion.px('--page-slide-distance');
+    const blur = motion.px('--page-blur');
+    pageEnterAnimations.push(
+      viewEl.animate(
+        [{ transform: `translateX(${distance}px)`, filter: `blur(${blur}px)` }, { transform: 'none', filter: 'blur(0px)' }],
+        { duration: motion.ms('--page-slide-dur'), easing: motion.ease('--page-slide-ease') }
+      ),
+      viewEl.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: motion.ms('--page-fade-dur'), easing: motion.ease('--page-fade-ease') }
+      )
+    );
+  }
+
+  // Text swap soft: content replaced in place cross-blurs, with no movement.
+  function playSoftSwap(elements) {
+    const duration = motion.ms('--text-soft-dur');
+    const blur = motion.px('--text-soft-blur');
+    elements.forEach((el) => {
+      if (!canAnimate(el)) return;
+      el.animate([
+        { opacity: 0, filter: `blur(${blur}px)` },
+        { opacity: 1, filter: 'blur(0px)' }
+      ], { duration, easing: motion.ease('--text-soft-ease') });
+    });
+  }
+
+  // Texts reveal: stacked lines rise 12px out of a blur, staggered.
+  function playTextsReveal(elements) {
+    const duration = motion.ms('--stagger-dur');
+    const stagger = motion.ms('--stagger-stagger');
+    const distance = motion.px('--stagger-distance');
+    const blur = motion.px('--stagger-blur');
+    elements.filter(Boolean).forEach((el, index) => {
+      if (!canAnimate(el)) return;
+      el.animate([
+        { opacity: 0, transform: `translateY(${distance}px)`, filter: `blur(${blur}px)` },
+        { opacity: 1, transform: 'none', filter: 'blur(0px)' }
+      ], { duration, delay: index * stagger, easing: motion.ease('--stagger-ease'), fill: 'backwards' });
+    });
+  }
+
+  // Skeleton reveal for images. A picture that is already decoded shows at
+  // once; one still loading waits behind a pulsing frame and then fades in.
+  function revealImage(img, host = img?.parentElement) {
+    if (!img || !img.getAttribute('src')) return;
+    const finish = () => {
+      if (img.dataset.reveal === 'pending') img.dataset.reveal = 'shown';
+      host?.classList.remove('is-media-loading');
+    };
+    if (img.complete && img.naturalWidth > 0) {
+      if (img.dataset.reveal === 'pending') finish();
+      return;
+    }
+    img.classList.add('is-swapping');
+    img.dataset.reveal = 'pending';
+    void img.offsetWidth;
+    img.classList.remove('is-swapping');
+    host?.classList.add('is-media-loading');
+    img.addEventListener('load', finish, { once: true });
+    img.addEventListener('error', finish, { once: true });
+  }
+
+  // Library and story pages render their own markup; they reveal images
+  // through this hook.
+  window.ReadipediaMedia = {
+    reveal(root) {
+      root?.querySelectorAll?.('img[src]').forEach((img) => revealImage(img));
+    }
+  };
+
+  // Tooltip (transitions.dev 17): one bubble for every [data-tooltip]. It
+  // appears after a short delay, leaves at once, and travels between
+  // neighbouring triggers instead of blinking out and back. Mouse only.
+  function initTooltips() {
+    const tip = document.createElement('span');
+    tip.className = 't-tt';
+    tip.id = 't-tt';
+    tip.setAttribute('role', 'tooltip');
+    tip.setAttribute('aria-hidden', 'true');
+    tip.dataset.show = 'false';
+    tip.innerHTML = '<span class="t-tt-text"></span>';
+    document.body.appendChild(tip);
+    const text = tip.firstChild;
+    let current = null;
+    let hideTimer = 0;
+
+    function hide() {
+      current = null;
+      tip.dataset.show = 'false';
+      tip.setAttribute('aria-hidden', 'true');
+    }
+
+    function place(trigger) {
+      clearTimeout(hideTimer);
+      const label = trigger.getAttribute('data-tooltip');
+      if (!label) return;
+      const showing = tip.dataset.show === 'true';
+      current = trigger;
+      text.textContent = label;
+      const cs = getComputedStyle(tip);
+      const width = Math.ceil(text.scrollWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
+      const height = tip.offsetHeight;
+      const r = trigger.getBoundingClientRect();
+      const gap = 8;
+      const below = r.top - gap - height < 8;
+      const x = Math.max(8, Math.min(window.innerWidth - width - 8, r.left + r.width / 2 - width / 2));
+      const y = below ? r.bottom + gap : r.top - gap - height;
+      tip.dataset.side = below ? 'bottom' : 'top';
+      if (!showing) {
+        tip.style.transition = 'none';
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--tt-x', `${x}px`);
+        tip.style.setProperty('--tt-y', `${y}px`);
+        void tip.offsetWidth;
+        tip.style.transition = '';
+      } else {
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--tt-x', `${x}px`);
+        tip.style.setProperty('--tt-y', `${y}px`);
+      }
+      tip.dataset.show = 'true';
+      tip.setAttribute('aria-hidden', 'false');
+    }
+
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const trigger = e.target.closest?.('[data-tooltip]');
+      if (trigger && trigger !== current) place(trigger);
+    });
+    document.addEventListener('pointerout', (e) => {
+      if (!current || e.pointerType !== 'mouse') return;
+      const next = e.relatedTarget?.closest?.('[data-tooltip]');
+      if (next) return;
+      if (current.contains(e.relatedTarget)) return;
+      // A short grace lets the bubble travel to a neighbouring trigger.
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hide, 0);
+    });
+    document.addEventListener('focusin', (e) => {
+      const trigger = e.target.closest?.('[data-tooltip]');
+      if (trigger && trigger.matches(':focus-visible')) place(trigger);
+    });
+    document.addEventListener('focusout', hide);
+    document.addEventListener('pointerdown', hide);
+    window.addEventListener('scroll', () => { if (current) hide(); }, { passive: true });
+  }
+
+  function initImageReveals() {
+    document.querySelectorAll(
+      '.infobox-media img, .storyflow-row-media img, .filmstrip-thumb img'
+    ).forEach((img) => revealImage(img));
+  }
+
+  // Back to top only shows once there is somewhere to go back to.
+  function initBackToTopVisibility() {
+    const btn = getEl('btn-back-to-top');
+    if (!btn) return;
+    let frame = null;
+    const sync = () => {
+      frame = null;
+      btn.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.6);
+    };
+    window.addEventListener('scroll', () => {
+      if (frame === null) frame = requestAnimationFrame(sync);
+    }, { passive: true });
+    sync();
+  }
+
+  /* Entity preview bubble (transitions.dev tooltip pattern): one bubble for
+     every entity link. CSS owns the 80ms appear delay and the 50ms hide;
+     while it is open, moving to another link glides the same bubble there.
+     Links in running text are separated by words rather than sitting side by
+     side like toolbar buttons, so leaving a link waits one --tt-delay before
+     hiding, long enough to reach a neighbouring link and glide. */
+  function initEntityPreview() {
+    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    const GAP_PX = 8;
+    const EDGE_PX = 16;
+    const MAX_WIDTH_PX = 320;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'entity-preview';
+    bubble.id = 'entity-preview';
+    bubble.setAttribute('role', 'tooltip');
+    bubble.setAttribute('aria-hidden', 'true');
+    bubble.dataset.show = 'false';
+    bubble.innerHTML = `
+      <div class="entity-preview-inner">
+        <div class="entity-preview-media"><img alt="" decoding="async" /></div>
+        <div class="entity-preview-body">
+          <div class="entity-preview-title"></div>
+          <div class="entity-preview-text"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(bubble);
+
+    const inner = bubble.querySelector('.entity-preview-inner');
+    const media = bubble.querySelector('.entity-preview-media');
+    const image = media.querySelector('img');
+    const titleEl = bubble.querySelector('.entity-preview-title');
+    const textEl = bubble.querySelector('.entity-preview-text');
+    const excerptCache = new Map();
+    let hideTimer = null;
+    let currentChip = null;
+    let pointer = { x: 0, y: 0 };
+
+    const isShowing = () => bubble.dataset.show === 'true';
+
+    function excerptFor(model) {
+      if (excerptCache.has(`${state.lang}_${model.id}`)) return excerptCache.get(`${state.lang}_${model.id}`);
+      const scratch = document.createElement('div');
+      scratch.innerHTML = model.html || '';
+      const first = Array.from(scratch.querySelectorAll('p'))
+        .map((p) => p.textContent.replace(/\s+/g, ' ').trim())
+        .find((text) => text.length > 40) || scratch.textContent.replace(/\s+/g, ' ').trim();
+      let text = first || '';
+      if (text.length > 220) text = `${text.slice(0, 220).replace(/\s+\S*$/, '')}…`;
+      excerptCache.set(`${state.lang}_${model.id}`, text);
+      return text;
+    }
+
+    function fill(entityId) {
+      const model = getEntityArticleModel(entityId);
+      if (!model) return false;
+      titleEl.textContent = model.name || model.label;
+      textEl.textContent = excerptFor(model);
+      if (model.imagePath) {
+        if (image.getAttribute('src') !== model.imagePath) {
+          image.src = model.imagePath;
+          revealImage(image, media);
+        }
+        media.style.display = '';
+      } else {
+        image.removeAttribute('src');
+        media.style.display = 'none';
+      }
+      return true;
+    }
+
+    function anchorRect(chip) {
+      const rects = Array.from(chip.getClientRects());
+      return rects.find((r) => pointer.y >= r.top - 2 && pointer.y <= r.bottom + 2) || rects[0] || chip.getBoundingClientRect();
+    }
+
+    function place(chip) {
+      const entityId = chip.getAttribute('data-entity-id');
+      if (!entityId || !fill(entityId)) return;
+      currentChip = chip;
+      chip.setAttribute('aria-describedby', bubble.id);
+
+      const width = Math.min(MAX_WIDTH_PX, window.innerWidth - EDGE_PX * 2);
+      bubble.style.setProperty('--preview-w', `${width}px`);
+      const height = Math.ceil(inner.getBoundingClientRect().height);
+      const r = anchorRect(chip);
+      const fitsBelow = r.bottom + GAP_PX + height <= window.innerHeight - EDGE_PX;
+      const y = fitsBelow ? r.bottom + GAP_PX : Math.max(EDGE_PX, r.top - GAP_PX - height);
+      const x = Math.max(EDGE_PX, Math.min(window.innerWidth - EDGE_PX - width, r.left + r.width / 2 - width / 2));
+      const origin = `${Math.round(r.left + r.width / 2 - x)}px ${fitsBelow ? '0%' : '100%'}`;
+
+      const apply = () => {
+        bubble.style.setProperty('--preview-h', `${height}px`);
+        bubble.style.setProperty('--preview-x', `${Math.round(x)}px`);
+        bubble.style.setProperty('--preview-y', `${Math.round(y)}px`);
+        bubble.style.setProperty('--preview-origin', origin);
+      };
+
+      if (isShowing()) {
+        apply();
+        playSoftSwap([inner]);
+      } else {
+        // Snap the geometry while hidden so only the appear plays.
+        bubble.classList.add('is-placing');
+        apply();
+        void bubble.offsetWidth;
+        bubble.classList.remove('is-placing');
+        bubble.dataset.show = 'true';
+        bubble.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    function hide() {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+      if (currentChip) currentChip.removeAttribute('aria-describedby');
+      currentChip = null;
+      bubble.dataset.show = 'false';
+      bubble.setAttribute('aria-hidden', 'true');
+    }
+
+    function request(chip) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+      if (chip === currentChip && isShowing()) return;
+      place(chip);
+    }
+
+    function release() {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hide, motion.ms('--tt-delay'));
+    }
+
+    document.addEventListener('pointermove', (e) => {
+      pointer = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (chip) request(chip);
+    });
+    document.addEventListener('pointerout', (e) => {
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (!chip) return;
+      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+      release();
+    });
+    document.addEventListener('focusin', (e) => {
+      const chip = e.target.closest?.('.entity-mention-chip');
+      if (chip && chip.matches(':focus-visible')) request(chip);
+    });
+    document.addEventListener('focusout', (e) => {
+      if (e.target.closest?.('.entity-mention-chip')) release();
+    });
+    document.addEventListener('click', hide, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hide();
+    });
+    window.addEventListener('scroll', () => {
+      if (isShowing()) hide();
+    }, { passive: true, capture: true });
+    window.addEventListener('resize', hide, { passive: true });
   }
 
   function getEntityArticleModel(entityId) {
     if (!entityId) return null;
     const knowledgeIndex = getKnowledgeIndex();
     const resolvedEntityId = resolveEntityId(entityId, knowledgeIndex) || entityId;
-    const foundNode = knowledgeIndex && knowledgeIndex.nodesById.get(resolvedEntityId);
+    const foundNode = knowledgeIndex?.nodesById.get(resolvedEntityId);
     const label = foundNode ? foundNode.label : resolvedEntityId;
-    const category = ((foundNode && foundNode.type) || 'Characters').replace(/s$/, '');
-    const images = (window.WIKI_STORE && window.WIKI_STORE.images) || {};
+    const images = window.WIKI_STORE?.images || {};
     const imagePath = images[label] || images[resolvedEntityId] || images[entityId] || null;
 
     if (!window.__entityMdCache) window.__entityMdCache = new Map();
     const cacheKey = `${state.lang}_${resolvedEntityId}`;
     let html = window.__entityMdCache.get(cacheKey);
     if (html === undefined) {
-      const articles = (window.WIKI_STORE && window.WIKI_STORE.articles) || {};
-      let markdown = articles[label] || articles[resolvedEntityId] || articles[entityId];
-      if (!markdown) {
-        markdown = `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
-      }
+      const articles = window.WIKI_STORE?.articles || {};
+      const zhMarkdown = isZh() ? window.WIKI_ARTICLES_ZH?.[resolvedEntityId] : null;
+      const markdown = zhMarkdown || articles[label] || articles[resolvedEntityId] || articles[entityId] || `## Overview\n\n**${label}** is a canonical entity in George Orwell's *Nineteen Eighty-Four*.\n\n## Narrative Significance\n\nDirectly interlinked with Winston Smith's psychological struggle, the surveillance apparatus of the Party, and the reality control of Ingsoc.`;
 
       const cleanMarkdown = markdown
         .replace(/^#\s+[^\n]+\n*/, '')
@@ -5068,19 +5967,19 @@
         .replace(/>\s+\*\*源文件\*\*:[^\n]*\n*/gi, '')
         .replace(/^---\s*\n*/gm, '')
         .replace(/^#\s+[^\n]+\n*/, '')
-        .replace(/##\s+Related StoryFlow[\s\S]*$/i, '')
+        .replace(/##\s+(Related StoryFlow|相关\s*(StoryFlow|故事)[^\n]*)[\s\S]*$/i, '')
         .trim();
-      html = window.marked && window.marked.parse
-        ? window.marked.parse(cleanMarkdown)
-        : `<p>${cleanMarkdown.replace(/\n\n/g, '</p><p>')}</p>`;
-      html = enrichHtmlWithEntityLinks(html, resolvedEntityId, label);
+      html = enrichHtmlWithEntityLinks(renderMarkdown(cleanMarkdown), resolvedEntityId, zhMarkdown ? entityName(resolvedEntityId, label) : label);
+      if (isZh() && !zhMarkdown) {
+        html = `<p class="lang-fallback-note" lang="zh-CN">本词条暂无中文版，以下为英文原文。</p><div lang="en">${html}</div>`;
+      }
       window.__entityMdCache.set(cacheKey, html);
     }
 
     return {
       id: resolvedEntityId,
       label,
-      category,
+      name: entityName(resolvedEntityId, label),
       imagePath,
       html
     };
@@ -5088,15 +5987,20 @@
 
   function renderEntityArticleInto(model, targets) {
     if (!model || !targets) return false;
-    if (targets.category) targets.category.textContent = model.category;
-    if (targets.title) targets.title.textContent = model.label;
+    if (targets.title) targets.title.textContent = model.name || model.label;
     if (targets.markdown) targets.markdown.innerHTML = model.html;
 
     if (targets.media && targets.image) {
       if (model.imagePath) {
         targets.image.src = model.imagePath;
-        targets.image.alt = model.label;
-        targets.media.style.display = 'block';
+        targets.image.alt = model.name || model.label;
+        targets.media.style.display = '';
+        targets.media.setAttribute('aria-hidden', 'false');
+      } else if (targets.keepMedia) {
+        // The entry page keeps its Readify and back buttons without a still.
+        targets.image.removeAttribute('src');
+        targets.image.alt = '';
+        targets.media.style.display = '';
         targets.media.setAttribute('aria-hidden', 'false');
       } else {
         targets.image.removeAttribute('src');
@@ -5104,8 +6008,628 @@
         targets.media.style.display = 'none';
         targets.media.setAttribute('aria-hidden', 'true');
       }
+      targets.media.classList.toggle('is-imageless', !model.imagePath);
     }
     return true;
+  }
+
+  function renderEntityPage(model) {
+    renderEntityArticleInto(model, {
+      title: getEl('view-entity-title'),
+      media: getEl('view-entity-media'),
+      image: getEl('view-entity-img'),
+      markdown: getEl('view-entity-markdown'),
+      keepMedia: true
+    });
+    revealImage(getEl('view-entity-img'));
+    document.dispatchEvent(new CustomEvent('readipedia:entity', { detail: { id: model.id, label: model.label } }));
+    renderEntityDetailChrome(model.id);
+    renderEntityToc(model.id);
+  }
+
+  // Entries in sidebar order, used by the prev/next arrows and the search palette.
+  function getEntityTocEntries() {
+    return Array.from(document.querySelectorAll('.entity-toc-link')).map((link) => {
+      const group = link.closest('details.toc-cat-details');
+      const category = group?.querySelector('summary .docs-link-label')?.textContent.trim() || '';
+      return { id: link.getAttribute('data-id'), label: link.textContent.trim(), category, link };
+    });
+  }
+
+  function singularCategory(category) {
+    if (/ies$/.test(category)) return category.replace(/ies$/, 'y');
+    if (/s$/.test(category) && !/ss$/.test(category)) return category.slice(0, -1);
+    return category;
+  }
+
+  // Subtitle and prev/next arrows of an entity page.
+  function renderEntityDetailChrome(entityId) {
+    const entries = getEntityTocEntries();
+    const index = entries.findIndex((entry) => entry.id === entityId);
+    const entry = entries[index];
+    const sub = getEl('view-entity-sub');
+    if (sub) {
+      sub.textContent = entry
+        ? `${singularCategory(entry.category)} in Nineteen Eighty-Four`
+        : 'An entry in Nineteen Eighty-Four';
+    }
+    renderEntitySiblings(entries, entry);
+    const prev = getEl('btn-entity-prev');
+    const next = getEl('btn-entity-next');
+    if (prev) {
+      prev.disabled = index <= 0;
+      prev.dataset.target = index > 0 ? entries[index - 1].id : '';
+    }
+    if (next) {
+      next.disabled = index < 0 || index >= entries.length - 1;
+      next.dataset.target = index >= 0 && index < entries.length - 1 ? entries[index + 1].id : '';
+    }
+  }
+
+  // Phones (transitions.dev detail pattern): a sideways row of the other
+  // entries in the same category stands in for the prev/next arrows.
+  // Same-category entries as a sideways pill row. The entry page and the
+  // graph's second floor each keep one row; `onPick` opens the chosen entry.
+  function renderEntitySiblings(entries, entry, options = {}) {
+    const view = options.view || getEl('view-entity');
+    const rowId = options.rowId || 'entity-siblings';
+    if (!view) return;
+    let row = getEl(rowId);
+    if (!row) {
+      row = document.createElement('nav');
+      row.id = rowId;
+      row.className = 'entity-siblings td-filters';
+      const onPick = options.onPick || openEntityArticle;
+      row.addEventListener('click', (event) => {
+        const link = event.target.closest('a[data-id]');
+        if (!link) return;
+        event.preventDefault();
+        if (link.getAttribute('aria-current') !== 'page') onPick(link.dataset.id);
+      });
+      view.insertBefore(row, view.firstElementChild);
+    }
+    row.setAttribute('aria-label', entry?.category || t('Entries'));
+    const siblings = entry ? entries.filter((e) => e.category === entry.category) : [];
+    row.hidden = siblings.length < 2;
+    row.innerHTML = siblings.map((e) => (
+      `<a href="#${e.id}" class="entity-sibling td-filter" data-id="${e.id}"${e.id === entry.id ? ' aria-current="page"' : ''}>${e.label.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</a>`
+    )).join('');
+    requestAnimationFrame(() => {
+      const current = row.querySelector('[aria-current="page"]');
+      if (current && row.clientWidth) {
+        row.scrollLeft = current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2;
+      }
+    });
+  }
+
+  // A pill on the second floor swaps the article in place, as a graph tap does.
+  function openEntityInContinuum(entityId) {
+    const model = getEntityArticleModel(entityId);
+    if (!model || !showMobileGraphContinuumArticle(model)) return;
+    commitMobileGraphContinuumReadingContext(model.id);
+    const node = state.graphNodeMap?.get(model.id);
+    if (node) transitionMobileGraphFocus(state.sidebarGraph, node);
+  }
+
+  function initEntityArrows() {
+    ['btn-entity-prev', 'btn-entity-next'].forEach((id) => {
+      const button = getEl(id);
+      if (!button) return;
+      button.addEventListener('click', async () => {
+        const target = button.dataset.target;
+        if (!target) return;
+        await prepareForPageNavigation();
+        openEntityArticle(target);
+      });
+    });
+  }
+
+  /* Contents lists in the sidebar. The book's sits under Overview and an
+     entry's under its own link; each opens only while its page shows, stays
+     on screen as you read, and a bar marks the section in view. */
+  const sectionTocs = new Set();
+
+  function bindSectionToc(toc) {
+    const links = Array.from(toc.querySelectorAll('.book-toc-link'));
+    const indicator = toc.querySelector('.book-toc-indicator');
+    let lockUntil = 0;
+
+    const mark = (link, instant = false) => {
+      links.forEach((l) => {
+        l.classList.toggle('is-current', l === link);
+        if (l === link) l.setAttribute('aria-current', 'location');
+        else l.removeAttribute('aria-current');
+      });
+      if (!indicator || !link) return;
+      if (instant) indicator.style.transition = 'none';
+      indicator.style.height = `${link.offsetHeight}px`;
+      indicator.style.transform = `translateY(${link.offsetTop}px)`;
+      if (instant) {
+        indicator.getBoundingClientRect();
+        indicator.style.transition = '';
+      }
+    };
+
+    const scrollToSection = (link) => {
+      const section = getEl(link.dataset.target);
+      if (!section) return;
+      lockUntil = performance.now() + 900;
+      mark(link);
+      const top = link === links[0]
+        ? 0
+        : section.getBoundingClientRect().top + window.scrollY - getHeaderHeight() - 24;
+      window.scrollTo({ top, behavior: scrollBehavior() });
+    };
+
+    const spy = () => {
+      if (!toc.classList.contains('is-open') || !toc.isConnected || performance.now() < lockUntil) return;
+      const line = getHeaderHeight() + 120;
+      let current = links[0];
+      links.forEach((link) => {
+        const section = getEl(link.dataset.target);
+        if (section && section.getBoundingClientRect().top <= line) current = link;
+      });
+      if (current && !current.classList.contains('is-current')) mark(current);
+    };
+    const place = () => mark(links.find((l) => l.classList.contains('is-current')) || links[0], true);
+
+    toc.__scrollTo = scrollToSection;
+    toc.__spy = spy;
+    toc.__place = place;
+    toc.__sync = (open) => {
+      toc.classList.toggle('is-open', open);
+      if (open) requestAnimationFrame(() => { place(); spy(); });
+    };
+    sectionTocs.add(toc);
+    return links;
+  }
+
+  function initSectionTocTracking() {
+    let frame = 0;
+    window.addEventListener('scroll', () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        sectionTocs.forEach((toc) => toc.__spy());
+      });
+    }, { passive: true });
+    const placeAll = () => sectionTocs.forEach((toc) => toc.isConnected && toc.__place());
+    window.addEventListener('resize', placeAll);
+    if (document.fonts?.ready) document.fonts.ready.then(placeAll);
+  }
+
+  function initBookToc() {
+    const toc = getEl('book-toc');
+    if (!toc) return;
+    initSectionTocTracking();
+    const links = bindSectionToc(toc);
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (!getEl('view-book')?.classList.contains('active')) {
+          getEl('btn-book-home')?.click();
+          setTimeout(() => toc.__scrollTo(link), motion.ms('--duration-medium'));
+          return;
+        }
+        toc.__scrollTo(link);
+        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
+      });
+    });
+    requestAnimationFrame(toc.__place);
+    toc.__sync(Boolean(getEl('view-book')?.classList.contains('active')));
+  }
+
+  // Builds the entry's contents from its section headings and nests it under
+  // the entry's own sidebar link.
+  function renderEntityToc(entityId) {
+    getEl('entity-toc')?.remove();
+    sectionTocs.forEach((toc) => { if (!toc.isConnected) sectionTocs.delete(toc); });
+    const markdown = getEl('view-entity-markdown');
+    const anchor = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
+    if (!markdown || !anchor) return;
+    let headings = Array.from(markdown.querySelectorAll('h2'));
+    if (headings.length < 2) headings = Array.from(markdown.querySelectorAll('h2, h3'));
+    if (!headings.length) return;
+
+    const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section';
+    const used = new Set();
+    const items = headings.map((heading, i) => {
+      const base = slug(heading.textContent);
+      let id = `entry-${base === 'section' ? `section-${i + 1}` : base}`;
+      while (used.has(id)) id += '-x';
+      used.add(id);
+      heading.id = id;
+      return { id, label: heading.textContent.trim() };
+    });
+    const article = getEl('view-entity');
+    const lead = markdown.firstElementChild;
+    const leadIsHeading = lead && headings.includes(lead);
+    if (!leadIsHeading) items.unshift({ id: 'view-entity', label: t('Summary') });
+
+    const toc = document.createElement('div');
+    toc.className = 'book-toc entity-section-toc';
+    toc.id = 'entity-toc';
+    const nav = document.createElement('nav');
+    nav.className = 'book-toc-inner';
+    nav.setAttribute('aria-label', t('On this page'));
+    nav.innerHTML = '<span class="book-toc-indicator" aria-hidden="true"></span>';
+    items.forEach((item, index) => {
+      const link = document.createElement('a');
+      link.className = `book-toc-link${index === 0 ? ' is-current' : ''}`;
+      link.href = `#${item.id}`;
+      link.dataset.target = item.id;
+      link.textContent = item.label;
+      nav.appendChild(link);
+    });
+    toc.appendChild(nav);
+    anchor.after(toc);
+    if (article && !article.id) article.id = 'view-entity';
+
+    const links = bindSectionToc(toc);
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toc.__scrollTo(link);
+        if (window.innerWidth <= 768) getEl('btn-sidebar-close')?.click();
+      });
+    });
+    requestAnimationFrame(() => toc.__sync(true));
+  }
+
+  /* Search palette (Ctrl K): pages and every entity, filtered as you type. */
+  function initSearchPalette() {
+    const overlay = getEl('cmdk');
+    const input = getEl('cmdk-input');
+    const list = getEl('cmdk-list');
+    const trigger = getEl('btn-search');
+    if (!overlay || !input || !list) return;
+
+    const pages = [
+      { kind: 'page', id: 'btn-book-home', label: 'Overview', hint: 'Nineteen Eighty-Four', icon: 'book-open' },
+      { kind: 'page', id: 'btn-storylines-hub', label: 'Storylines', hint: '89 scenes', icon: 'film' },
+      { kind: 'page', id: 'btn-storyflow-hub', label: 'StoryFlow', hint: 'Three threads', icon: 'route' }
+    ];
+    let entities = null;
+    document.addEventListener('readipedia:lang', () => { entities = null; });
+    let results = [];
+    let activeIndex = 0;
+    let closeTimer = 0;
+    let lastFocus = null;
+
+    const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    // In the library the palette searches the whole library: its pages,
+    // every book and every entry. Elsewhere it searches this book.
+    const inLibrary = () => Boolean(getEl('view-library')?.classList.contains('active') && window.ReadipediaLibrary?.searchItems);
+    const placeholder = () => t(inLibrary() ? 'Search books and entries...' : 'Search entries and pages...');
+
+    const rank = (items, query) => (query
+      ? items.slice().sort((a, b) => (a.label.toLowerCase().startsWith(query) ? 0 : 1) - (b.label.toLowerCase().startsWith(query) ? 0 : 1))
+      : items);
+
+    // Storylines and StoryFlow: the two hub pages, then every scene, every
+    // StoryFlow and every StoryFlow card. The hint names the kind.
+    const storyPages = () => pages.slice(1)
+      .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }));
+    const storyHits = (query, match) => {
+      const story = query && window.StoryPages?.searchItems?.();
+      if (!story) return [];
+      const flowName = t('StoryFlow');
+      const items = [
+        ...story.flows.map((f) => ({ ...f, hint: flowName, icon: 'route' })),
+        ...story.cards.map((c) => ({ ...c, hint: `${flowName} · ${c.flow}`, icon: 'route' })),
+        ...story.scenes.map((s) => ({ ...s, hint: `${t('Storylines')} · ${s.date}`, icon: 'film' }))
+      ];
+      return rank(items.filter(match), query).slice(0, 30);
+    };
+
+    const groupsFor = (query, match) => {
+      if (inLibrary()) {
+        const lib = window.ReadipediaLibrary.searchItems();
+        const pageHits = lib.pages.map((p) => ({ ...p, icon: 'grid' })).filter(match);
+        const bookHits = rank(lib.books.map((b) => ({ ...b, icon: 'book-open' })).filter(match), query).slice(0, query ? 40 : 8);
+        const entryHits = rank(lib.entries.map((e) => ({ ...e, icon: 'shapes' })).filter(match), query).slice(0, query ? 60 : 8);
+        const bookPages = query ? storyPages().filter(match) : [];
+        return [[t('Pages'), query ? pageHits.concat(bookPages) : []], [t('Books'), bookHits], [t('Entries'), entryHits], [t('Story'), storyHits(query, match)]];
+      }
+      if (!entities) {
+        entities = getEntityTocEntries().map((e) => ({
+          kind: 'entity',
+          id: e.id,
+          label: e.label,
+          alt: e.link.dataset.en || '',
+          hint: isZh() ? e.category : singularCategory(e.category),
+          icon: 'shapes'
+        }));
+      }
+      const pageHits = pages
+        .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
+        .filter(match);
+      const entityHits = rank(entities.filter(match), query).slice(0, query ? 60 : 12);
+      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)]];
+    };
+
+    const render = () => {
+      const query = input.value.trim().toLowerCase();
+      const match = (item) => !query
+        || item.label.toLowerCase().includes(query)
+        || (item.alt && item.alt.toLowerCase().includes(query))
+        || item.hint.toLowerCase().includes(query);
+      const groups = groupsFor(query, match);
+      results = groups.flatMap(([, items]) => items);
+      activeIndex = Math.min(activeIndex, Math.max(0, results.length - 1));
+
+      if (!results.length) {
+        list.innerHTML = `<div class="cmdk-empty">${t('No results')}</div>`;
+        return;
+      }
+      let html = '';
+      let i = 0;
+      groups.forEach(([title, items]) => {
+        if (!items.length) return;
+        html += `<div class="cmdk-group-label">${title}</div>`;
+        items.forEach((item) => {
+          html += `<div class="cmdk-item" role="option" id="cmdk-opt-${i}" data-index="${i}" aria-selected="${i === activeIndex}">`
+            + `<i data-lucide="${item.icon}" class="cmdk-item-ic"></i>`
+            + `<span class="cmdk-item-label">${escapeHtml(item.label)}</span>`
+            + `<span class="cmdk-item-hint">${escapeHtml(item.hint)}</span></div>`;
+          i += 1;
+        });
+      });
+      list.innerHTML = html;
+      input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
+      renderIcons(list);
+    };
+
+    const setActive = (index) => {
+      if (!results.length) return;
+      activeIndex = (index + results.length) % results.length;
+      list.querySelectorAll('.cmdk-item').forEach((el) => {
+        el.setAttribute('aria-selected', String(Number(el.dataset.index) === activeIndex));
+      });
+      input.setAttribute('aria-activedescendant', `cmdk-opt-${activeIndex}`);
+      list.querySelector(`[data-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+    };
+
+    const open = () => {
+      clearTimeout(closeTimer);
+      lastFocus = document.activeElement;
+      overlay.hidden = false;
+      input.value = '';
+      input.placeholder = placeholder();
+      fitToViewport();
+      activeIndex = 0;
+      render();
+      overlay.getBoundingClientRect();
+      overlay.classList.add('is-open');
+      input.focus();
+    };
+    const close = () => {
+      if (overlay.hidden) return;
+      overlay.classList.remove('is-open');
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => { overlay.hidden = true; }, motion.ms('--modal-close-dur'));
+      if (lastFocus?.focus) lastFocus.focus({ preventScroll: true });
+    };
+    const choose = async (item) => {
+      if (!item) return;
+      close();
+      if (item.kind === 'page') {
+        getEl(item.id)?.click();
+      } else if (item.kind === 'library') {
+        openLibrary({ category: item.cat });
+      } else if (item.kind === 'book') {
+        getEl('btn-book-home')?.click();
+      } else if (item.kind === 'scene') {
+        window.StoryPages?.openScene(item.index);
+      } else if (item.kind === 'flow') {
+        window.StoryPages?.openFlow(item.id);
+      } else if (item.kind === 'flow-card') {
+        window.StoryPages?.openFlowCard(item.id, item.i);
+      } else if (item.kind === 'link') {
+        window.open(item.href, '_blank', 'noopener');
+      } else {
+        await prepareForPageNavigation();
+        openEntityArticle(item.id);
+      }
+    };
+
+    trigger?.addEventListener('click', open);
+    getEl('cmdk-close')?.addEventListener('click', close);
+    // Phones: keep the panel above the on-screen keyboard.
+    const fitToViewport = () => {
+      const vv = window.visualViewport;
+      if (vv) overlay.style.setProperty('--cmdk-viewport', `${Math.round(vv.height)}px`);
+    };
+    window.visualViewport?.addEventListener('resize', () => { if (!overlay.hidden) fitToViewport(); });
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === overlay) close();
+    });
+    input.addEventListener('input', () => { activeIndex = 0; render(); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }
+      else if (e.key === 'Enter') { e.preventDefault(); choose(results[activeIndex]); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    });
+    list.addEventListener('mousemove', (e) => {
+      const item = e.target.closest('.cmdk-item');
+      if (item && Number(item.dataset.index) !== activeIndex) setActive(Number(item.dataset.index));
+    });
+    list.addEventListener('click', (e) => {
+      const item = e.target.closest('.cmdk-item');
+      if (item) choose(results[Number(item.dataset.index)]);
+    });
+    document.addEventListener('keydown', (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (overlay.hidden) open(); else close();
+      } else if (e.key === '/' && !typing && overlay.hidden) {
+        e.preventDefault();
+        open();
+      }
+    });
+    if (trigger && /Mac|iPhone|iPad/.test(navigator.platform)) {
+      const kbd = trigger.querySelector('.nav-search-kbd');
+      if (kbd) kbd.textContent = '⌘K';
+    }
+  }
+
+  // Footer links reuse the sidebar entries.
+  // The Readify links carry the border beam (libraries.dev) so the jump out
+  // to the full book is the most visible action on a page.
+  function initReadifyCtas() {
+    if (!window.BorderBeam) return;
+    document.querySelectorAll('.cta-beam').forEach((el) => window.BorderBeam.mount(el));
+  }
+
+  /* Readify apps. Fill in each store or download link here; an app with no
+     link yet stays listed but does nothing, and the header button falls back
+     to the web app. */
+  const READIFY_APPS = {
+    mac: '',
+    windows: '',
+    ios: 'https://apps.apple.com/us/app/readify-ai-audio-book-reader/id6783195818',
+    android: 'https://play.google.com/store/apps/details?id=com.readin.app',
+    extension: 'https://chromewebstore.google.com/detail/readin-lifelike-text-to-s/nnheobpfcpicnkfpdaafonmoaiehgmkj',
+    web: 'https://app.readifyai.com'
+  };
+
+  function detectReadifyPlatform() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.userAgentData?.platform || navigator.platform || '';
+    if (/iPhone|iPad|iPod/i.test(ua) || (/Mac/i.test(platform) && navigator.maxTouchPoints > 1)) return 'ios';
+    if (/Android/i.test(ua)) return 'android';
+    if (/Mac/i.test(platform) || /Macintosh/i.test(ua)) return 'mac';
+    if (/Win/i.test(platform) || /Windows/i.test(ua)) return 'windows';
+    return null;
+  }
+
+  function initReadifyApps() {
+    const device = detectReadifyPlatform();
+    document.querySelectorAll('[data-app]').forEach((link) => {
+      const url = READIFY_APPS[link.dataset.app];
+      if (url) {
+        link.href = url;
+      } else {
+        link.href = '#';
+        link.removeAttribute('target');
+        link.setAttribute('aria-disabled', 'true');
+        link.addEventListener('click', (e) => e.preventDefault());
+      }
+      if (link.dataset.app === device) {
+        link.classList.add('is-device');
+        const hint = link.querySelector('.apps-item-hint');
+        if (hint) hint.textContent = 'This device';
+      }
+    });
+
+    // The header button offers the download for the reader's own device.
+    const cta = getEl('nav-get-app');
+    const label = getEl('nav-get-app-label');
+    const labels = { mac: 'Download for Mac', windows: 'Download for Windows', ios: 'Get the app', android: 'Get the app' };
+    if (cta && label) {
+      if (device && READIFY_APPS[device] && labels[device]) {
+        cta.href = READIFY_APPS[device];
+        setGlowLabel(label, labels[device]);
+        // Show the platform's own mark (Apple, Windows, App Store, Android).
+        const glyph = document.querySelector(`.apps-item[data-app="${device}"] .brand-glyph`);
+        const icon = cta.querySelector('.nav-get-pro-icon');
+        if (glyph && icon) {
+          const mark = glyph.cloneNode(true);
+          mark.classList.add('nav-get-pro-icon');
+          icon.replaceWith(mark);
+        }
+      } else {
+        cta.href = READIFY_APPS.web;
+        setGlowLabel(label, 'Open Readify');
+        cta.classList.add('no-icon');
+      }
+      document.addEventListener('readipedia:lang', () => setGlowLabel(label, label.dataset.en || 'Open Readify'));
+    }
+
+    // Download menu: opens on hover or click, closes on leave, Esc or a click elsewhere.
+    const wrap = getEl('nav-apps');
+    const button = getEl('btn-nav-apps');
+    const panel = getEl('nav-apps-panel');
+    if (!wrap || !button || !panel) return;
+    let openTimer = 0;
+    let closeTimer = 0;
+    let settleTimer = 0;
+    const open = () => {
+      clearTimeout(closeTimer);
+      clearTimeout(settleTimer);
+      panel.classList.remove('is-closing');
+      panel.classList.add('is-open');
+      button.setAttribute('aria-expanded', 'true');
+    };
+    const close = () => {
+      clearTimeout(openTimer);
+      if (!panel.classList.contains('is-open')) return;
+      panel.classList.add('is-closing');
+      panel.classList.remove('is-open');
+      button.setAttribute('aria-expanded', 'false');
+      settleTimer = setTimeout(() => panel.classList.remove('is-closing'), motion.ms('--dropdown-close-dur'));
+    };
+    const canHover = window.matchMedia?.('(hover: hover)').matches;
+    if (canHover) {
+      wrap.addEventListener('pointerenter', () => {
+        clearTimeout(closeTimer);
+        openTimer = setTimeout(open, 80);
+      });
+      wrap.addEventListener('pointerleave', () => {
+        clearTimeout(openTimer);
+        closeTimer = setTimeout(close, 160);
+      });
+    }
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (panel.classList.contains('is-open')) close();
+      else open();
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('is-open')) {
+        close();
+        button.focus();
+      }
+    });
+  }
+
+  function initEntityBackLink() {
+    ['btn-entity-back', 'btn-continuum-back'].forEach((id) => {
+      getEl(id)?.addEventListener('click', (event) => {
+        event.preventDefault();
+        getEl('btn-book-home')?.click();
+      });
+    });
+  }
+
+  function initFooterLinks() {
+    document.querySelectorAll('[data-footer-nav]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        getEl(link.dataset.footerNav)?.click();
+      });
+    });
+  }
+
+  function activateEntityTocLink(entityId) {
+    const tocLink = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
+    if (tocLink) {
+      tocLink.classList.add('active');
+      let parentDetails = tocLink.closest('details');
+      while (parentDetails) {
+        parentDetails.open = true;
+        parentDetails.dataset.expanded = 'true';
+        parentDetails = parentDetails.parentElement?.closest('details');
+      }
+    }
+    return tocLink;
   }
 
   function openEntityArticle(entityId, options = {}) {
@@ -5135,29 +6659,20 @@
 
     // Highlight and scroll matching TOC link
     clearActiveNav();
-    const tocLink = document.querySelector(`.entity-toc-link[data-id="${entityId}"]`);
+    const tocLink = activateEntityTocLink(entityId);
     if (tocLink) {
-      tocLink.classList.add('active');
-      const parentDetails = tocLink.closest('details');
-      if (parentDetails) parentDetails.open = true;
       const sidebar = getEl('wiki-sidebar');
-      if (sidebar && sidebar.classList.contains('is-open')) {
-        tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (sidebar?.classList.contains('is-open')) {
+        tocLink.scrollIntoView({ behavior: scrollBehavior(), block: 'nearest' });
       }
     }
 
     const animateGraph = options.animateGraph === undefined
-      ? window.innerWidth > 768
+      ? !isMobileGraphViewport()
       : options.animateGraph;
     scheduleGraphForPage(createGraphContext('entity', entityId), { animate: animateGraph });
 
-    renderEntityArticleInto(model, {
-      category: getEl('view-entity-cat'),
-      title: getEl('view-entity-title'),
-      media: getEl('view-entity-media'),
-      image: getEl('view-entity-img'),
-      markdown: getEl('view-entity-markdown')
-    });
+    renderEntityPage(model);
 
     if (isMobileGraphViewport()) {
       deactivateMobileGraphContinuum();
@@ -5166,29 +6681,94 @@
     showArticleView('view-entity', { ...options, fromHistory: true });
   }
 
-  function toggleTheme() {
-    const newTheme = state.theme === 'dark' ? 'light' : 'dark';
-    state.theme = newTheme;
-    document.documentElement.setAttribute('data-theme', newTheme);
-    const themeIcon = getEl('icon-theme');
-    if (themeIcon) {
-      themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
-      if (window.lucide) window.lucide.createIcons();
+  // Theme preference: light, dark, or follow the system (the default).
+  const THEME_KEY = 'readipedia-theme';
+  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+  function readThemePref() {
+    try {
+      const value = localStorage.getItem(THEME_KEY);
+      if (value === 'light' || value === 'dark') return value;
+    } catch (e) { /* storage blocked */ }
+    return 'system';
+  }
+
+  function resolveTheme(pref) {
+    if (pref === 'light' || pref === 'dark') return pref;
+    return darkQuery && darkQuery.matches ? 'dark' : 'light';
+  }
+
+  function syncThemeButtons() {
+    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.setTheme === state.themePref));
+    });
+  }
+
+  function applyTheme(newTheme, animate = true) {
+    if (newTheme === state.theme && document.documentElement.getAttribute('data-theme') === newTheme) {
+      syncThemeButtons();
+      return;
     }
-    if (state.sidebarGraph) {
-      configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
-      if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+    const apply = () => {
+      state.theme = newTheme;
+      document.documentElement.setAttribute('data-theme', newTheme);
+      syncThemeButtons();
+      if (state.sidebarGraph) {
+        configureGraphPhysics(state.sidebarGraph, state.isGraphExpanded);
+        if (state.sidebarGraph.refresh) state.sidebarGraph.refresh();
+      }
+    };
+    // The whole page, graph canvas included, cross-fades between themes in one
+    // motion instead of each surface switching on its own.
+    if (animate && document.startViewTransition && !prefersReducedMotion()) {
+      document.startViewTransition(apply);
+    } else {
+      apply();
     }
   }
 
-  function toggleFont() {
-    state.font = state.font === 'sans' ? 'serif' : 'sans';
-    document.documentElement.setAttribute('data-font', state.font);
-    const fontBtn = getEl('btn-font-toggle');
-    if (fontBtn) {
-      const span = fontBtn.querySelector('span');
-      if (span) span.textContent = state.font === 'sans' ? 'Serif' : 'Sans';
-    }
+  function setThemePref(pref) {
+    state.themePref = pref;
+    try {
+      if (pref === 'system') localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, pref);
+    } catch (e) { /* storage blocked */ }
+    applyTheme(resolveTheme(pref));
+    syncThemeButtons();
+  }
+
+  function initTheme() {
+    state.themePref = readThemePref();
+    applyTheme(resolveTheme(state.themePref), false);
+    const onSystemChange = () => {
+      if (state.themePref === 'system') applyTheme(resolveTheme('system'));
+    };
+    if (darkQuery?.addEventListener) darkQuery.addEventListener('change', onSystemChange);
+    else if (darkQuery?.addListener) darkQuery.addListener(onSystemChange);
+  }
+
+  // Header app button label; kept in sync with the language by hand because
+  // the gradient text styling lives on this element.
+  function setGlowLabel(label, en) {
+    if (!label) return;
+    label.dataset.en = en;
+    label.textContent = t(en);
+  }
+
+  // Phone menu: language and theme live in the drawer, not the header.
+  function initDrawerSettings() {
+    document.querySelectorAll('[data-set-lang]').forEach((btn) => {
+      btn.addEventListener('click', () => setLanguage(btn.dataset.setLang));
+    });
+    document.querySelectorAll('[data-set-theme]').forEach((btn) => {
+      btn.addEventListener('click', () => setThemePref(btn.dataset.setTheme));
+    });
+    syncThemeButtons();
+  }
+
+  // Header button: flips between light and dark and remembers the choice.
+  function toggleTheme() {
+    setThemePref(state.theme === 'dark' ? 'light' : 'dark');
   }
 
   function closeMobileSidebar(options = {}) {
@@ -5263,7 +6843,7 @@
   function requestMobileSidebarState(desiredOpen) {
     const execute = () => {
       const sidebar = getEl('wiki-sidebar');
-      if (!sidebar || window.innerWidth > 1080) return Promise.resolve();
+      if (!sidebar || !isMobileGraphViewport()) return Promise.resolve();
 
       // User intent must never mutate the drawer halfway through a graph-host
       // transfer. Replay the explicit desired state after the current transfer;
@@ -5306,20 +6886,54 @@
 
   function toggleMobileSidebar() {
     const sidebar = getEl('wiki-sidebar');
-    const isMobile = window.innerWidth <= 1080;
     if (sidebar) {
-      if (isMobile) {
+      if (isMobileGraphViewport()) {
         return requestMobileSidebarState(!sidebar.classList.contains('is-open'));
-      } else {
-        sidebar.classList.toggle('collapsed');
       }
+      document.body.classList.toggle('sidebar-collapsed', sidebar.classList.toggle('collapsed'));
     }
   }
 
+  // The sidebar is fixed, so a wheel over any part of it that is not its own
+  // scrolling list (the graph preview, padding) would otherwise scroll the page.
+  function initSidebarScrollIsolation() {
+    const sidebar = getEl('wiki-sidebar');
+    if (!sidebar) return;
+    sidebar.addEventListener('wheel', (event) => {
+      if (isMobileGraphViewport() || event.ctrlKey) return;
+      if (!event.target.closest('.wiki-nav-hub')) event.preventDefault();
+    }, { passive: false });
+  }
+
   function initHeaderControls() {
+    initSidebarScrollIsolation();
     const btnToggleSidebar = getEl('btn-toggle-sidebar');
     if (btnToggleSidebar) {
       btnToggleSidebar.addEventListener('click', toggleMobileSidebar);
+      // transitions.dev menu button: the header stays above the open menu and
+      // the same button morphs from two lines into a cross, then back.
+      const drawer = getEl('wiki-sidebar');
+      const syncBurger = () => {
+        const open = Boolean(drawer?.classList.contains('is-open')) && isMobileGraphViewport();
+        document.body.classList.toggle('menu-open', open);
+        btnToggleSidebar.setAttribute('aria-expanded', String(open));
+        btnToggleSidebar.setAttribute('aria-label', t(open ? 'Close menu' : 'Open menu'));
+      };
+      if (drawer) new MutationObserver(syncBurger).observe(drawer, { attributes: true, attributeFilter: ['class'] });
+      document.addEventListener('readipedia:lang', syncBurger);
+      syncBurger();
+    }
+
+    // Desktop: the button left of the logo folds the sidebar away and back.
+    const btnCollapseSidebar = getEl('btn-collapse-sidebar');
+    if (btnCollapseSidebar) {
+      btnCollapseSidebar.addEventListener('click', () => {
+        toggleMobileSidebar();
+        const collapsed = getEl('wiki-sidebar')?.classList.contains('collapsed');
+        btnCollapseSidebar.setAttribute('aria-expanded', String(!collapsed));
+        btnCollapseSidebar.setAttribute('aria-label', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
+        btnCollapseSidebar.setAttribute('data-tooltip', t(collapsed ? 'Show sidebar' : 'Hide sidebar'));
+      });
     }
 
     const btnSidebarClose = getEl('btn-sidebar-close');
@@ -5337,7 +6951,8 @@
     if (wikiLogo) {
       wikiLogo.addEventListener('click', (e) => {
         e.preventDefault();
-        openBookOverview();
+        if (document.body.classList.contains('menu-open')) requestMobileSidebarState(false);
+        openLibrary();
       });
     }
 
@@ -5351,9 +6966,31 @@
     const langDropdown = getEl('lang-dropdown');
     
     if (btnLang && langDropdown && langContainer) {
+      let closeTimer = null;
+      const openLang = () => {
+        clearTimeout(closeTimer);
+        langDropdown.classList.remove('is-closing');
+        langDropdown.classList.add('is-open');
+        btnLang.setAttribute('aria-expanded', 'true');
+      };
+      // Menu dropdown close: shrink to 0.99 and fade, faster than it opened.
+      const closeLang = () => {
+        if (!langDropdown.classList.contains('is-open')) return;
+        langDropdown.classList.add('is-closing');
+        langDropdown.classList.remove('is-open');
+        btnLang.setAttribute('aria-expanded', 'false');
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => langDropdown.classList.remove('is-closing'), motion.ms('--dropdown-close-dur'));
+      };
+      btnLang.setAttribute('aria-haspopup', 'true');
+      btnLang.setAttribute('aria-expanded', 'false');
       btnLang.addEventListener('click', (e) => {
         e.stopPropagation();
-        langDropdown.classList.toggle('is-open');
+        if (langDropdown.classList.contains('is-open')) closeLang();
+        else openLang();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLang();
       });
       
       const langItems = langDropdown.querySelectorAll('.wiki-dropdown-item:not(.disabled)');
@@ -5362,19 +6999,17 @@
           e.stopPropagation();
           const selectedLang = item.getAttribute('data-lang');
           if (selectedLang !== state.lang) {
-            state.lang = selectedLang;
-            langItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            renderBookArticle();
+            setLanguage(selectedLang);
+            const view = Array.from(document.querySelectorAll('.wiki-article-view'))
+              .find((el) => el.style.display !== 'none' && el.offsetParent !== null);
+            if (view) playSoftSwap(Array.from(view.querySelectorAll('.article-h1, .reading-section > h2, .prose, .detail-sub')));
           }
-          langDropdown.classList.remove('is-open');
+          closeLang();
         });
       });
 
       document.addEventListener('click', (e) => {
-        if (!langContainer.contains(e.target)) {
-          langDropdown.classList.remove('is-open');
-        }
+        if (!langContainer.contains(e.target)) closeLang();
       });
     }
 

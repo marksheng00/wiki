@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Site root. Prerendered library pages (tools/prerender-library.js) set this to their way back up. -->
+  <base href="../" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All entries · Library — Readipedia</title>
+  <link rel="canonical" href="entries/" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+  <meta name="description" content="A pure, rectilinear, Claude-grade typographic reader edition of George Orwell's Nineteen Eighty-Four." />
+  
+  <!-- Inter, self-hosted (SIL OFL) -->
+  <link rel="preload" href="./assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="./assets/fonts/inter.css" />
+
+  <!-- Vendor Engines (Non-blocking Deferred Loading) -->
+  <script src="./assets/vendor/lucide.min.js" defer></script>
+  <script src="./assets/vendor/marked.min.js" defer></script>
+  <script src="./assets/vendor/force-graph.min.js" defer></script>
+
+  <script>
+    (function () {
+      var pref = 'system';
+      try { pref = localStorage.getItem('readipedia-theme') || 'system'; } catch (e) {}
+      var dark = pref === 'dark' || (pref === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
+  <link rel="stylesheet" href="./style.css?v=160" />
+  <link rel="stylesheet" href="./pro-gradient-text.css?v=1" />
+  <link rel="stylesheet" href="./story.css?v=28" />
+  <link rel="stylesheet" href="./library.css?v=18" />
+  <link rel="stylesheet" href="./promo-banner.css?v=11" />
+</head>
+<body>
+
+  <!-- Readipedia mark: a folded page with a window, defined once and reused by every logo. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="rp-mark" viewBox="0 0 300 400">
+        <path fill-rule="evenodd" fill="currentColor" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/>
+        <path fill="#9a9aa0" d="M204,0V96H300Z"/>
+      </symbol>
+    </defs>
+  </svg>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <!-- Promo card: copy, countdown and close live in promo-banner.js.
+       data-end is when the offer is billed as ending; the countdown hides after it. -->
+  <aside class="promo-bar" id="promo-bar" aria-label="Announcement" hidden data-end="2026-10-31T23:59:59+08:00">
+    <div class="promo-text">
+      <p class="promo-title"><span class="promo-title-long"></span><span class="promo-title-short"></span></p>
+      <p class="promo-sub"></p>
+    </div>
+    <span class="promo-rule" aria-hidden="true"></span>
+    <div class="promo-count">
+      <span class="promo-count-label"></span>
+      <span class="promo-count-time"></span>
+    </div>
+    <a class="promo-cta t-learn" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><span class="t-learn-chevron promo-cta-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8"/><path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12"/></svg></span></a>
+    <button class="promo-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </aside>
+
+  <!-- Site header: brand and product links on the left, search and settings on the right -->
+  <header class="wiki-header site-nav">
+    <div class="wiki-header-left">
+      <!-- One slot for the logo and the sidebar toggle: hovering the mark turns it into the toggle. -->
+      <div class="brand-combo">
+        <a href="books/" id="wiki-logo" class="wiki-logo brand" aria-label="Readipedia home">
+          <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M0,0H204L300,96V400H0Z M100,150V283.33H200V150Z"/><path class="rp-flap" fill="#9a9aa0" d="M204,0V96H300Z"/></svg></span>
+          <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
+        </a>
+        <button class="btn-sidebar-collapse" id="btn-collapse-sidebar" type="button" aria-label="Hide sidebar" data-tooltip="Hide sidebar" aria-expanded="true" aria-controls="wiki-sidebar">
+          <i data-lucide="menu" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+
+      <nav class="wiki-header-center site-nav-menu" aria-label="Readify apps">
+        <div class="nav-apps" id="nav-apps">
+          <button class="nav-pill" id="btn-nav-apps" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="nav-apps-panel">Download<i data-lucide="chevron-down" class="nav-pill-chevron"></i></button>
+          <div class="nav-apps-panel" id="nav-apps-panel">
+            <div class="apps-list">
+              <p class="apps-group-label">Desktop</p>
+              <a href="#" class="apps-item" data-app="mac" target="_blank" rel="noopener"><span class="apps-item-icon"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg></span><span class="apps-item-text"><span class="apps-item-name">macOS</span><span class="apps-item-hint">Apple silicon and Intel</span></span></a>
+              <a href="#" class="apps-item" data-app="windows" target="_blank" rel="noopener"><span class="apps-item-icon"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 2h9.5v9.5H2zM12.5 2H22v9.5h-9.5zM2 12.5h9.5V22H2zM12.5 12.5H22V22h-9.5z"/></svg></span><span class="apps-item-text"><span class="apps-item-name">Windows</span><span class="apps-item-hint">Windows 10 and later</span></span></a>
+              <p class="apps-group-label">Mobile</p>
+              <a href="#" class="apps-item" data-app="ios" target="_blank" rel="noopener"><span class="apps-item-icon"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.8086 14.9194l6.1107-11.0368c.0837-.1513.1682-.302.2437-.4584.0685-.142.1267-.2854.1646-.4403.0803-.3259.0588-.6656-.066-.9767-.1238-.3095-.3417-.5678-.6201-.7355a1.4175 1.4175 0 0 0-.921-.1924c-.3207.043-.6135.1935-.8443.4288-.1094.1118-.1996.2361-.2832.369-.092.1463-.175.2979-.259.4492l-.3864.6979-.3865-.6979c-.0837-.1515-.1667-.303-.2587-.4492-.0837-.1329-.1739-.2572-.2835-.369-.2305-.2353-.5233-.3857-.844-.429a1.4181 1.4181 0 0 0-.921.1926c-.2784.1677-.4964.426-.6203.7355-.1246.311-.1461.6508-.066.9767.038.155.0962.2984.1648.4403.0753.1564.1598.307.2437.4584l1.248 2.2543-4.8625 8.7825H2.0295c-.1676 0-.3351-.0007-.5026.0092-.1522.009-.3004.0284-.448.0714-.3108.0906-.5822.2798-.7783.548-.195.2665-.3006.5929-.3006.9279 0 .3352.1057.6612.3006.9277.196.2683.4675.4575.7782.548.1477.043.296.0623.4481.0715.1675.01.335.009.5026.009h13.0974c.0171-.0357.059-.1294.1-.2697.415-1.4151-.6156-2.843-2.0347-2.843zM3.113 18.5418l-.7922 1.5008c-.0818.1553-.1644.31-.2384.4705-.067.1458-.124.293-.1611.452-.0785.3346-.0576.6834.0645 1.0029.1212.3175.3346.583.607.7549.2727.172.5891.2416.9013.1975.3139-.044.6005-.1986.8263-.4402.1072-.1148.1954-.2424.2772-.3787.0902-.1503.1714-.3059.2535-.4612L6 19.4636c-.0896-.149-.9473-1.4704-2.887-.9218m20.5861-3.0056a1.4707 1.4707 0 0 0-.779-.5407c-.1476-.0425-.2961-.0616-.4483-.0705-.1678-.0099-.3352-.0091-.503-.0091H18.648l-4.3891-7.817c-.6655.7005-.9632 1.485-1.0773 2.1976-.1655 1.0333.0367 2.0934.546 3.0004l5.2741 9.3933c.084.1494.167.299.2591.4435.0837.131.1739.2537.2836.364.231.2323.5238.3809.8449.4232.3192.0424.643-.0244.9217-.1899.2784-.1653.4968-.4204.621-.7257.1246-.3072.146-.6425.0658-.9641-.0381-.1529-.0962-.2945-.165-.4346-.0753-.1543-.1598-.303-.2438-.4524l-1.216-2.1662h1.596c.1677 0 .3351.0009.5029-.009.1522-.009.3007-.028.4483-.0705a1.4707 1.4707 0 0 0 .779-.5407A1.5386 1.5386 0 0 0 24 16.452a1.539 1.539 0 0 0-.3009-.9158Z"/></svg></span><span class="apps-item-text"><span class="apps-item-name">iOS</span><span class="apps-item-hint">iPhone and iPad</span></span></a>
+              <a href="#" class="apps-item" data-app="android" target="_blank" rel="noopener"><span class="apps-item-icon"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></svg></span><span class="apps-item-text"><span class="apps-item-name">Android</span><span class="apps-item-hint">Phones and tablets</span></span></a>
+              <p class="apps-group-label">Browser</p>
+              <a href="#" class="apps-item" data-app="extension" target="_blank" rel="noopener"><span class="apps-item-icon"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-5.344 9.257c.206.01.413.016.621.016 6.627 0 12-5.373 12-12 0-1.54-.29-3.011-.818-4.364zM12 16.364a4.364 4.364 0 1 1 0-8.728 4.364 4.364 0 0 1 0 8.728Z"/></svg></span><span class="apps-item-text"><span class="apps-item-name">Extension</span><span class="apps-item-hint">Chrome and Edge</span></span></a>
+              <a href="#" class="apps-item" data-app="web" target="_blank" rel="noopener"><span class="apps-item-icon"><i data-lucide="globe"></i></span><span class="apps-item-text"><span class="apps-item-name">Web app</span><span class="apps-item-hint">Nothing to install</span></span></a>
+            </div>
+            <div class="apps-qr">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=333333&bgcolor=ffffff&data=https://app.readifyai.com" alt="QR code for the Readify app" class="qr-img" loading="lazy" />
+              <p class="apps-qr-title">On your phone?</p>
+              <p class="apps-qr-text">Scan to get Readify for iOS or Android.</p>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="wiki-header-right">
+      <button id="btn-search" class="nav-search" type="button" aria-label="Search (Ctrl K)">
+        <i data-lucide="search" style="width:16px;height:16px;"></i>
+        <span class="nav-search-label">Search</span>
+        <kbd class="nav-search-kbd">Ctrl K</kbd>
+      </button>
+      <a href="https://app.readifyai.com" class="nav-get-pro" id="nav-get-app" target="_blank" rel="noopener"><i data-lucide="arrow-down-to-line" class="nav-get-pro-icon"></i><span class="pro-gradient-text"><span id="nav-get-app-label" class="pro-gradient-text__ink">Open Readify</span></span></a>
+      <div class="wiki-lang-container" id="lang-menu-container">
+        <button id="btn-lang" class="icon-btn-pill" type="button" aria-label="Switch language">
+          <i data-lucide="languages" style="width:16px;height:16px;"></i>
+          <span id="lang-current-label">EN</span>
+        </button>
+        <div class="wiki-dropdown-menu" id="lang-dropdown">
+          <div class="wiki-dropdown-item active" data-lang="en">English</div>
+          <div class="wiki-dropdown-item" data-lang="zh">中文 (Chinese)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="ja">日本語 (Japanese)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="es">Español (Spanish)</div>
+          <div class="wiki-dropdown-item disabled" data-lang="fr">Français (French)</div>
+        </div>
+      </div>
+      <button id="btn-theme-toggle" class="wiki-icon-btn icon-btn" type="button" aria-label="Toggle theme">
+        <span class="icon-swap" aria-hidden="true">
+          <i data-lucide="moon" data-icon-state="light" style="width:16px;height:16px;"></i>
+          <i data-lucide="sun" data-icon-state="dark" style="width:16px;height:16px;"></i>
+        </span>
+      </button>
+      <button class="btn-sidebar-toggle icon-btn nav-burger" id="btn-toggle-sidebar" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="wiki-sidebar">
+        <span class="nav-burger-box" aria-hidden="true">
+          <span class="nav-burger-line nav-burger-line--top"></span>
+          <span class="nav-burger-line nav-burger-line--bottom"></span>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Wrap -->
+  <div class="wiki-body-wrap">
+    
+    <!-- Mobile Drawer Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- LEFT SIDEBAR: Pinned Stationary 100% Fixed / Mobile Full-Screen Navigation Hub -->
+    <aside class="wiki-sidebar" id="wiki-sidebar">
+      <div class="wiki-sidebar-sticky">
+        
+        <!-- Mobile-Only Fullscreen Navigation Header (Strict 52px Consistent Brand Header) -->
+        <div class="mobile-sidebar-header">
+          <span class="brand mobile-sidebar-title">
+            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
+            <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
+          </span>
+          <button class="btn-sidebar-close icon-btn" id="btn-sidebar-close" type="button" aria-label="Close menu">
+            <i data-lucide="x" style="width:18px;height:18px;"></i>
+          </button>
+        </div>
+
+        <!-- 1. BALANCED TOPOLOGY CANVAS -->
+        <div class="sidebar-graph-slot" id="sidebar-graph-slot">
+          <div class="sidebar-graph-container" id="sidebar-graph-container">
+            <button class="btn-graph-expand" id="btn-graph-expand" aria-label="Expand graph" aria-expanded="false">
+              <svg class="graph-expand-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M15.25 2A13.25 13.25 0 0 1 2 15.25" /></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="graph-control-desktop-l" d="M2.4 21.6h19.2V2.4" />
+                <g class="graph-control-mobile-morph">
+                  <line id="graph-control-morph-a" x1="14.1818" y1="22.9091" x2="22.9091" y2="22.9091" stroke-width="1.6364" />
+                  <line id="graph-control-morph-b" x1="22.9091" y1="14.1818" x2="22.9091" y2="22.9091" stroke-width="1.6364" />
+                </g>
+              </svg>
+            </button>
+            <div class="topology-pure-canvas" id="canvas-sidebar-graph"></div>
+          </div>
+        </div>
+
+        <!-- 2. NAVIGATION HUB -->
+        <nav class="wiki-nav-hub" id="wiki-nav-hub">
+          
+          <!-- Library navigation: shown on the books home and category pages (library.js) -->
+          <div class="library-nav" id="library-nav"><div class="docs-group-label">Library</div>
+      <a href="books/" class="nav-hub-item docs-link" data-lib-cat="all-books">
+      <span class="docs-link-label">All books</span><span class="docs-count">68</span></a>
+      <a href="entries/" class="nav-hub-item docs-link active" data-lib-cat="all-entries" aria-current="page">
+      <span class="docs-link-label">All entries</span><span class="docs-count">158</span></a>
+      <div class="docs-group-label lib-nav-group">Categories</div>
+      <a href="categories/fiction/" class="nav-hub-item docs-link" data-lib-cat="fiction">
+      <span class="docs-link-label">Fiction</span><span class="docs-count">13</span></a><a href="categories/literature/" class="nav-hub-item docs-link" data-lib-cat="literature">
+      <span class="docs-link-label">Literature</span><span class="docs-count">7</span></a><a href="categories/biography/" class="nav-hub-item docs-link" data-lib-cat="biography">
+      <span class="docs-link-label">Biography</span><span class="docs-count">7</span></a><a href="categories/self-help/" class="nav-hub-item docs-link" data-lib-cat="self-help">
+      <span class="docs-link-label">Self-help</span><span class="docs-count">3</span></a><a href="categories/psychology/" class="nav-hub-item docs-link" data-lib-cat="psychology">
+      <span class="docs-link-label">Psychology</span><span class="docs-count">3</span></a><a href="categories/history/" class="nav-hub-item docs-link" data-lib-cat="history">
+      <span class="docs-link-label">History</span><span class="docs-count">7</span></a><a href="categories/philosophy/" class="nav-hub-item docs-link" data-lib-cat="philosophy">
+      <span class="docs-link-label">Philosophy &amp; Religion</span><span class="docs-count">7</span></a><a href="categories/society/" class="nav-hub-item docs-link" data-lib-cat="society">
+      <span class="docs-link-label">Society &amp; Culture</span><span class="docs-count">5</span></a><a href="categories/politics/" class="nav-hub-item docs-link" data-lib-cat="politics">
+      <span class="docs-link-label">Politics &amp; Military</span><span class="docs-count">3</span></a><a href="categories/arts/" class="nav-hub-item docs-link" data-lib-cat="arts">
+      <span class="docs-link-label">Arts</span><span class="docs-count">3</span></a><a href="categories/science/" class="nav-hub-item docs-link" data-lib-cat="science">
+      <span class="docs-link-label">Science &amp; Technology</span><span class="docs-count">2</span></a><a href="categories/health/" class="nav-hub-item docs-link" data-lib-cat="health">
+      <span class="docs-link-label">Health &amp; Medicine</span><span class="docs-count">4</span></a><a href="categories/lifestyle/" class="nav-hub-item docs-link" data-lib-cat="lifestyle">
+      <span class="docs-link-label">Lifestyle</span><span class="docs-count">3</span></a><a href="categories/education/" class="nav-hub-item docs-link" data-lib-cat="education">
+      <span class="docs-link-label">Education</span><span class="docs-count">1</span></a></div>
+
+          <div class="docs-group-label">Book</div>
+          <a href="#" class="nav-hub-item docs-link active" id="btn-book-home" data-view="view-book">
+            <span class="docs-link-label">Overview</span>
+          </a>
+          <div class="book-toc is-open" id="book-toc">
+            <nav class="book-toc-inner" aria-label="On this page">
+              <span class="book-toc-indicator" aria-hidden="true"></span>
+              <a href="#sec-overview" class="book-toc-link is-current" data-target="sec-overview">Introduction</a>
+              <a href="#sec-plot" class="book-toc-link" data-target="sec-plot">Plot</a>
+              <a href="#sec-themes" class="book-toc-link" data-target="sec-themes">Themes</a>
+              <a href="#sec-background" class="book-toc-link" data-target="sec-background">Legacy</a>
+              <a href="#sec-author" class="book-toc-link" data-target="sec-author">Author</a>
+            </nav>
+          </div>
+          <a href="#" class="nav-hub-item docs-link" id="btn-storylines-hub" data-view="view-storyline">
+            <span class="docs-link-label">Storylines</span><span class="docs-count">89</span>
+          </a>
+          <a href="#" class="nav-hub-item docs-link" id="btn-storyflow-hub" data-view="view-storyflow">
+            <span class="docs-link-label">StoryFlow</span><span class="docs-count">3</span>
+          </a>
+
+          <details class="toc-group" id="grp-entities" open>
+            <summary class="toc-header docs-group-label">
+              <span class="toc-title">Entities</span><span class="docs-count">149</span>
+            </summary>
+            <div class="toc-items" id="toc-entities-items">
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Characters</span><span class='docs-count'>18</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-winston-smith-1910e4339629'>Winston Smith</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-julia-dd9a6077f139'>Julia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-o-brien-abeb498acd48'>O'Brien</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-big-brother-d634b662a3fc'>Big Brother</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-emmanuel-goldstein-f4210e83c600'>Emmanuel Goldstein</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-syme-b786520f0b1e'>Syme</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-parsons-ff784c804840'>Parsons</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-mrs-parsons-0e1126915b2d'>Mrs Parsons</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-mr-charrington-fedfab22da60'>Mr Charrington</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-katharine-252d3095acf3'>Katharine</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-ampleforth-a67df3ec6b21'>Ampleforth</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-tillotson-a505016ae14f'>Tillotson</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-wilsher-0f73619360fb'>Wilsher</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-martin-f5cb6653498c'>Martin</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-jones-ee532256d0d7'>Jones</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-aaronson-79a475e992f7'>Aaronson</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-rutherford-8a36207da47f'>Rutherford</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='character-recall-character-comrade-ogilvy-2f6809370799'>Comrade Ogilvy</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Locations</span><span class='docs-count'>17</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-chestnut-tree-caf-f86ba95a289a'>Chestnut Tree Café</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-ministry-of-truth-ef6e5f31d68c'>Ministry of Truth</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-ministry-of-love-2036b8f1ea56'>Ministry of Love</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-victory-mansions-398f0df569f9'>Victory Mansions</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-ministry-of-plenty-3a7a712bc41c'>Ministry of Plenty</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-ministry-of-peace-d2f4e3b138d7'>Ministry of Peace</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-room-101-ca8f1852ffa9'>Room 101</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-london-420923d4a60a'>London</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-airstrip-one-912e1b11d71d'>Airstrip One</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-oceania-215c56fb5182'>Oceania</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-eurasia-458cc736a4be'>Eurasia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-eastasia-a2356e498a45'>Eastasia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-the-golden-country-16c8d8c98cd8'>The Golden Country</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-victory-square-b9d348acaf31'>Victory Square</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-mr-charrington-s-sho-80f01040c06e'>Mr Charrington's shop</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-the-room-above-mr-ch-d996dc963c72'>The room above Mr Charrington's shop</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='location-recall-location-the-church-belfry-f3200ead5baa'>The church belfry</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Organizations</span><span class='docs-count'>10</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-records-departme-73f08ca85c0e'>Records Department</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-times-50540997508d'>Times</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-spies-a16a82283445'>Spies</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-youth-league-519605e1140b'>Youth League</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-junior-anti-sex-d68352dfece3'>Junior Anti-Sex League</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-fiction-departme-934b003c4bde'>Fiction Department</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-community-centre-822f7b350e84'>Community Centre</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-lottery-dbc8b0a94f92'>Lottery</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-music-department-0239850c78f0'>Music Department</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='organization-recall-organization-pornosec-5da49df5f175'>Pornosec</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Objects</span><span class='docs-count'>15</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-19b2503b779e'>Photograph of Jones, Aaronson and Rutherford</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-bdb0674f7790'>Chocolate Ration</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-09359ad9ee30'>Glass Paperweight</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-03b8460a8170'>Diary</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-1fc4ef50a491'>The Theory and Practice of Oligarchical Collectivism</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-54f77004acff'>two-way television</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-050301a147b1'>Speakwrite</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-302702295f72'>memory hole chute</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-ad581e034f70'>Victory Gin</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-8b8ff17a25ba'>Victory Cigarettes</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-c3eb4300acdb'>Rat Cage</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-f2f727990a57'>floating sea fortress</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-0e62433dbcf6'>Newspeak Dictionary</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-e7d123b60501'>Red Sash</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='object-recall-object-c6816b7887b9'>Big Brother Poster</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Events</span><span class='docs-count'>16</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-7bf6354302f1'>Arrest of Winston and Julia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-winston-smith-begins-wr-d27434d35a20'>Winston Smith begins writing a diary</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-6ae313e3df9f'>Two Minutes Hate Rally</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-d7a8b2bc6039'>Eye Contact Between Winston and O'Brien</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-fac8249e5894'>Winston buys a diary</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-c81928d3451f'>Encounter with a prostitute</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-5b78f02317e9'>Discovery of the photograph evidence</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-e28132a9a7de'>Julia passes Winston a love note</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-147e95a26508'>Meeting in the canteen</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-9a40472f05b1'>First love-making in the woods</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-392f470009de'>Renting the room above Mr Charrington's shop</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-7a0e7a15e62e'>Reading Goldstein's book</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-64d040314298'>Finger torture</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-101-ef1503d20653'>Betrayal in Room 101</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-59b1cd39c432'>Final meeting with Julia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='event-recall-event-c49ee49b5a01'>Winston loves Big Brother</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Actions</span><span class='docs-count'>4</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='action-recall-action-the-arrest-5843f1f12e2f'>The arrest</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='action-recall-action-first-love-making-in-t-80c85a56dcbb'>First love-making in the wood</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='action-recall-action-meeting-with-o-brien-561c93b8f7ee'>Meeting with O'Brien</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='action-recall-action-final-conversion-de154bfcfe5a'>Final conversion</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Concepts</span><span class='docs-count'>17</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-the-book-722f8de768cb'>The book</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-inner-party-ca526a51b799'>Inner Party</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-reality-control-728d5aa740a3'>Reality control</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-outer-party-06cffe1e3f30'>Outer Party</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-floating-fortress-656d0fd8836a'>Floating Fortress</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-unperson-e1d96434d280'>Unperson</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-vaporized-c01766255365'>Vaporized</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-duckspeak-f755d00be5fe'>Duckspeak</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-bellyfeel-ff22830307d5'>Bellyfeel</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-prolefeed-79e6ed1ab861'>Prolefeed</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-joycamp-eb0549da9ec6'>Joycamp</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-oldthink-1eb3844b3e56'>Oldthink</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-sanity-is-statistical-97514c1e2da3'>Sanity is statistical</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-the-place-where-there-bd0ac89a163a'>The place where there is no darkness</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-oligarchical-collecti-44323d3a01a2'>Oligarchical Collectivism</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-death-worship-814332379295'>Death-Worship</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='concept-recall-concept-neo-bolshevism-3b2c8883803c'>Neo-Bolshevism</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Rules</span><span class='docs-count'>28</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-doublethink-bc170022e80a'>Doublethink</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-creates-human-19c00cbb0372'>The Party creates human nature</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c'>The Party seeks power entirely for its own sake</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-freedom-is-slavery-81a94401abac'>Freedom is Slavery</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-who-controls-the-past-co-859dd13f2001'>Who controls the past controls the future: who controls the present controls the past</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-past-is-alterable-968e8fbd7210'>The past is alterable</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-ignorance-is-strength-9abdf0dff229'>Ignorance is Strength</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-thoughtcrime-da4c4792e6d9'>Thoughtcrime</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-crimestop-3a561a93b900'>Crimestop</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-blackwhite-3862fc7ba9d1'>Blackwhite</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-facecrime-be4317332bd9'>Facecrime</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-ownlife-11feeb074065'>Ownlife</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-goodthink-36da570716ad'>Goodthink</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-sexcrime-b4879d48e593'>Sexcrime</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-war-is-peace-b1bf67ef5931'>War is Peace</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-goodsex-3abc7fdf3884'>Goodsex</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-proles-and-animals-are-f-e54a25895e6d'>Proles and animals are free</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-is-infallible-d93b516ccb7b'>The Party is infallible</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-controls-all-r-d277086906d7'>The Party controls all records and memories</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc'>The object of power is power</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-is-immortal-9a52a5d72bdc'>The Party is immortal</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-individual-is-only-a-a93b61f512d5'>The individual is only a cell</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-does-not-permi-c9db362afdc2'>The Party does not permit divorce</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-all-marriages-between-pa-d6b8a87be328'>All marriages between Party members had to be approved by a committee</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-only-recognised-purp-96d216234eb5'>The only recognised purpose of marriage was to beget children for the service of the Party</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-was-trying-to-7d237877197f'>The Party was trying to kill the sex instinct</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4'>The Party taught that the proles were natural inferiors</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='rule-recall-rule-the-party-claimed-to-hav-130880c93f6e'>The Party claimed to have liberated the proles from bondage</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Time</span><span class='docs-count'>3</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='time-recall-time-1984-db6e36e8c14e'>1984</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='time-recall-time-ninth-three-year-plan-80ffb37b9938'>Ninth Three-Year Plan</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='time-recall-time-2050-3863f2627d00'>2050</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>States</span><span class='docs-count'>3</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='state-recall-state-49e18261d1ad'>Superstate of Oceania</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='state-recall-state-7a89c814c991'>Superstate of Eurasia</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='state-recall-state-ad61843aaf99'>Superstate of Eastasia</a>
+  </div>
+</details>
+<details class='toc-cat-details'>
+  <summary class='toc-cat-summary docs-fold-head'><span class='docs-link-label'>Expressions</span><span class='docs-count'>17</span></summary>
+  <div class='toc-cat-list'>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-ingsoc-bc301edf36cc'>Ingsoc</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-newspeak-2a062a72146b'>Newspeak</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-the-telescreen-8f1d3f00e7bf'>the telescreen</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-the-two-minutes-ha-e04f1b223bd4'>the Two Minutes Hate</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-do-it-to-julia-c234ebbf6693'>Do it to Julia!</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-big-brother-is-wat-9f63b2a5916e'>Big Brother is watching you</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-2-2-5-baf1cae1cb6e'>2+2=5</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-the-memory-hole-8b1cd4e23e4a'>the memory hole</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-under-the-spreadin-f6998db97286'>Under the spreading chestnut tree</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-oranges-and-lemons-43ac705ba9ef'>Oranges and lemons</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-who-controls-the-p-e47d9985e9ad'>Who controls the past controls the future</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-freedom-is-the-fre-e38557a8e351'>Freedom is the freedom to say that two plus two make four</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-we-are-the-dead-52620919e40a'>We are the dead</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-if-there-is-hope-i-0186c6832dd0'>If there is hope, it lies in the proles</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-sanity-is-not-stat-522a2b35c8bf'>Sanity is not statistical</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-imagine-a-boot-sta-76fb8e61c598'>Imagine a boot stamping on a human face - for ever</a>
+    <a href='#' class='toc-item docs-link docs-link--child entity-toc-link' data-id='expression-recall-expression-he-loved-big-broth-c26cf8274fbb'>He loved Big Brother</a>
+  </div>
+</details>
+
+            </div>
+          </details>
+
+          <div class="drawer-apps">
+            <div class="docs-group-label">Get Readify</div>
+          <a href="#" class="docs-link drawer-app" data-app="mac" target="_blank" rel="noopener"><span class="drawer-app-label"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>macOS</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="windows" target="_blank" rel="noopener"><span class="drawer-app-label"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 2h9.5v9.5H2zM12.5 2H22v9.5h-9.5zM2 12.5h9.5V22H2zM12.5 12.5H22V22h-9.5z"/></svg>Windows</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="ios" target="_blank" rel="noopener"><span class="drawer-app-label"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.8086 14.9194l6.1107-11.0368c.0837-.1513.1682-.302.2437-.4584.0685-.142.1267-.2854.1646-.4403.0803-.3259.0588-.6656-.066-.9767-.1238-.3095-.3417-.5678-.6201-.7355a1.4175 1.4175 0 0 0-.921-.1924c-.3207.043-.6135.1935-.8443.4288-.1094.1118-.1996.2361-.2832.369-.092.1463-.175.2979-.259.4492l-.3864.6979-.3865-.6979c-.0837-.1515-.1667-.303-.2587-.4492-.0837-.1329-.1739-.2572-.2835-.369-.2305-.2353-.5233-.3857-.844-.429a1.4181 1.4181 0 0 0-.921.1926c-.2784.1677-.4964.426-.6203.7355-.1246.311-.1461.6508-.066.9767.038.155.0962.2984.1648.4403.0753.1564.1598.307.2437.4584l1.248 2.2543-4.8625 8.7825H2.0295c-.1676 0-.3351-.0007-.5026.0092-.1522.009-.3004.0284-.448.0714-.3108.0906-.5822.2798-.7783.548-.195.2665-.3006.5929-.3006.9279 0 .3352.1057.6612.3006.9277.196.2683.4675.4575.7782.548.1477.043.296.0623.4481.0715.1675.01.335.009.5026.009h13.0974c.0171-.0357.059-.1294.1-.2697.415-1.4151-.6156-2.843-2.0347-2.843zM3.113 18.5418l-.7922 1.5008c-.0818.1553-.1644.31-.2384.4705-.067.1458-.124.293-.1611.452-.0785.3346-.0576.6834.0645 1.0029.1212.3175.3346.583.607.7549.2727.172.5891.2416.9013.1975.3139-.044.6005-.1986.8263-.4402.1072-.1148.1954-.2424.2772-.3787.0902-.1503.1714-.3059.2535-.4612L6 19.4636c-.0896-.149-.9473-1.4704-2.887-.9218m20.5861-3.0056a1.4707 1.4707 0 0 0-.779-.5407c-.1476-.0425-.2961-.0616-.4483-.0705-.1678-.0099-.3352-.0091-.503-.0091H18.648l-4.3891-7.817c-.6655.7005-.9632 1.485-1.0773 2.1976-.1655 1.0333.0367 2.0934.546 3.0004l5.2741 9.3933c.084.1494.167.299.2591.4435.0837.131.1739.2537.2836.364.231.2323.5238.3809.8449.4232.3192.0424.643-.0244.9217-.1899.2784-.1653.4968-.4204.621-.7257.1246-.3072.146-.6425.0658-.9641-.0381-.1529-.0962-.2945-.165-.4346-.0753-.1543-.1598-.303-.2438-.4524l-1.216-2.1662h1.596c.1677 0 .3351.0009.5029-.009.1522-.009.3007-.028.4483-.0705a1.4707 1.4707 0 0 0 .779-.5407A1.5386 1.5386 0 0 0 24 16.452a1.539 1.539 0 0 0-.3009-.9158Z"/></svg>iOS</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="android" target="_blank" rel="noopener"><span class="drawer-app-label"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></svg>Android</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="extension" target="_blank" rel="noopener"><span class="drawer-app-label"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-5.344 9.257c.206.01.413.016.621.016 6.627 0 12-5.373 12-12 0-1.54-.29-3.011-.818-4.364zM12 16.364a4.364 4.364 0 1 1 0-8.728 4.364 4.364 0 0 1 0 8.728Z"/></svg>Browser extension</span><span class="apps-item-badge">This device</span></a>
+          <a href="#" class="docs-link drawer-app" data-app="web" target="_blank" rel="noopener"><span class="drawer-app-label"><i data-lucide="globe"></i>Web app</span><span class="apps-item-badge">This device</span></a>
+          </div>
+
+          <div class="drawer-settings">
+            <div class="docs-group-label">Settings</div>
+            <div class="drawer-setting-row">
+              <span class="drawer-setting-label">Site language</span>
+              <div class="drawer-seg" role="group" aria-label="Language">
+                <button type="button" data-set-lang="en">EN</button>
+                <button type="button" data-set-lang="zh">中文</button>
+              </div>
+            </div>
+            <div class="drawer-setting-row">
+              <span class="drawer-setting-label">Theme</span>
+              <div class="drawer-seg" role="group" aria-label="Theme">
+                <button type="button" data-set-theme="light">Light</button>
+                <button type="button" data-set-theme="dark">Dark</button>
+                <button type="button" data-set-theme="system">System</button>
+              </div>
+            </div>
+          </div>
+
+        </nav>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT: Claude-Grade Pure Typographic Reading Area -->
+    <main class="wiki-main-article" id="main-content">
+      
+      <!-- 0. LIBRARY: the books home, rendered by library.js from data/library.js -->
+      <article id="view-library" class="wiki-article-view library-view active" aria-labelledby="library-title" data-lang="en"><h1 class="lib-sr-only" id="library-title">All entries</h1>
+      <div class="td-filters lib-filters" role="group" aria-label="Filter"><button type="button" class="td-filter" data-filter="all" data-active="true" aria-pressed="true">All</button><button type="button" class="td-filter" data-filter="character" data-active="false" aria-pressed="false">Characters</button><button type="button" class="td-filter" data-filter="location" data-active="false" aria-pressed="false">Locations</button><button type="button" class="td-filter" data-filter="organization" data-active="false" aria-pressed="false">Organizations</button><button type="button" class="td-filter" data-filter="event" data-active="false" aria-pressed="false">Events</button><button type="button" class="td-filter" data-filter="concept" data-active="false" aria-pressed="false">Concepts</button><button type="button" class="td-filter" data-filter="object" data-active="false" aria-pressed="false">Objects</button><button type="button" class="td-filter" data-filter="rule" data-active="false" aria-pressed="false">Rules</button><button type="button" class="td-filter" data-filter="expression" data-active="false" aria-pressed="false">Expressions</button><button type="button" class="td-filter" data-filter="state" data-active="false" aria-pressed="false">States</button><button type="button" class="td-filter" data-filter="action" data-active="false" aria-pressed="false">Actions</button><button type="button" class="td-filter" data-filter="time" data-active="false" aria-pressed="false">Times</button><button type="button" class="td-filter" data-filter="creature" data-active="false" aria-pressed="false">Creatures</button></div>
+      <div class="lib-entries"><a class="lib-entry" href="#character-recall-character-winston-smith-1910e4339629" data-lib-entity="character-recall-character-winston-smith-1910e4339629">
+        <span class="lib-entry-name">Winston Smith</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Charles%20Trask" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Charles Trask</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#character-recall-character-big-brother-d634b662a3fc" data-lib-entity="character-recall-character-big-brother-d634b662a3fc">
+        <span class="lib-entry-name">Big Brother</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/James%20Grew" target="_blank" rel="noopener">
+        <span class="lib-entry-name">James Grew</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#character-recall-character-o-brien-abeb498acd48" data-lib-entity="character-recall-character-o-brien-abeb498acd48">
+        <span class="lib-entry-name">O'Brien</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Salinas%20Ice%20Plant" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Salinas Ice Plant</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#character-recall-character-julia-dd9a6077f139" data-lib-entity="character-recall-character-julia-dd9a6077f139">
+        <span class="lib-entry-name">Julia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Alice%20Trask" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Alice Trask</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-truth-ef6e5f31d68c" data-lib-entity="location-recall-location-ministry-of-truth-ef6e5f31d68c">
+        <span class="lib-entry-name">Ministry of Truth</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Cathy%20Ames" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Cathy Ames</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-ingsoc-bc301edf36cc" data-lib-entity="expression-recall-expression-ingsoc-bc301edf36cc">
+        <span class="lib-entry-name">Ingsoc</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Mr.%20Bacon" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Mr. Bacon</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-love-2036b8f1ea56" data-lib-entity="location-recall-location-ministry-of-love-2036b8f1ea56">
+        <span class="lib-entry-name">Ministry of Love</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Adam%20Trask" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Adam Trask</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#character-recall-character-emmanuel-goldstein-f4210e83c600" data-lib-entity="character-recall-character-emmanuel-goldstein-f4210e83c600">
+        <span class="lib-entry-name">Emmanuel Goldstein</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Faye's%20Death" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Faye's Death</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-doublethink-bc170022e80a" data-lib-entity="rule-recall-rule-doublethink-bc170022e80a">
+        <span class="lib-entry-name">Doublethink</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="https://readifyai.com/en/books/East%20of%20Eden/wiki/Lee" target="_blank" rel="noopener">
+        <span class="lib-entry-name">Lee</span>
+        <span class="lib-entry-meta">East of Eden</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-newspeak-2a062a72146b" data-lib-entity="expression-recall-expression-newspeak-2a062a72146b">
+        <span class="lib-entry-name">Newspeak</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-telescreen-8f1d3f00e7bf" data-lib-entity="expression-recall-expression-the-telescreen-8f1d3f00e7bf">
+        <span class="lib-entry-name">the telescreen</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-plenty-3a7a712bc41c" data-lib-entity="location-recall-location-ministry-of-plenty-3a7a712bc41c">
+        <span class="lib-entry-name">Ministry of Plenty</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-oceania-215c56fb5182" data-lib-entity="location-recall-location-oceania-215c56fb5182">
+        <span class="lib-entry-name">Oceania</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-mr-charrington-fedfab22da60" data-lib-entity="character-recall-character-mr-charrington-fedfab22da60">
+        <span class="lib-entry-name">Mr Charrington</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-ministry-of-peace-d2f4e3b138d7" data-lib-entity="location-recall-location-ministry-of-peace-d2f4e3b138d7">
+        <span class="lib-entry-name">Ministry of Peace</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-two-minutes-ha-e04f1b223bd4" data-lib-entity="expression-recall-expression-the-two-minutes-ha-e04f1b223bd4">
+        <span class="lib-entry-name">the Two Minutes Hate</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-room-101-ca8f1852ffa9" data-lib-entity="location-recall-location-room-101-ca8f1852ffa9">
+        <span class="lib-entry-name">Room 101</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-victory-mansions-398f0df569f9" data-lib-entity="location-recall-location-victory-mansions-398f0df569f9">
+        <span class="lib-entry-name">Victory Mansions</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-records-departme-73f08ca85c0e" data-lib-entity="organization-recall-organization-records-departme-73f08ca85c0e">
+        <span class="lib-entry-name">Records Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-rutherford-8a36207da47f" data-lib-entity="character-recall-character-rutherford-8a36207da47f">
+        <span class="lib-entry-name">Rutherford</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-aaronson-79a475e992f7" data-lib-entity="character-recall-character-aaronson-79a475e992f7">
+        <span class="lib-entry-name">Aaronson</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-jones-ee532256d0d7" data-lib-entity="character-recall-character-jones-ee532256d0d7">
+        <span class="lib-entry-name">Jones</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-parsons-ff784c804840" data-lib-entity="character-recall-character-parsons-ff784c804840">
+        <span class="lib-entry-name">Parsons</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-room-above-mr-ch-d996dc963c72" data-lib-entity="location-recall-location-the-room-above-mr-ch-d996dc963c72">
+        <span class="lib-entry-name">The room above Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-junior-anti-sex-d68352dfece3" data-lib-entity="organization-recall-organization-junior-anti-sex-d68352dfece3">
+        <span class="lib-entry-name">Junior Anti-Sex League</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-the-book-722f8de768cb" data-lib-entity="concept-recall-concept-the-book-722f8de768cb">
+        <span class="lib-entry-name">The book</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-09359ad9ee30" data-lib-entity="object-recall-object-09359ad9ee30">
+        <span class="lib-entry-name">Glass Paperweight</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-19b2503b779e" data-lib-entity="object-recall-object-19b2503b779e">
+        <span class="lib-entry-name">Photograph of Jones, Aaronson and Rutherford</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-chestnut-tree-caf-f86ba95a289a" data-lib-entity="location-recall-location-chestnut-tree-caf-f86ba95a289a">
+        <span class="lib-entry-name">Chestnut Tree Café</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-airstrip-one-912e1b11d71d" data-lib-entity="location-recall-location-airstrip-one-912e1b11d71d">
+        <span class="lib-entry-name">Airstrip One</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-london-420923d4a60a" data-lib-entity="location-recall-location-london-420923d4a60a">
+        <span class="lib-entry-name">London</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-inner-party-ca526a51b799" data-lib-entity="concept-recall-concept-inner-party-ca526a51b799">
+        <span class="lib-entry-name">Inner Party</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-03b8460a8170" data-lib-entity="object-recall-object-03b8460a8170">
+        <span class="lib-entry-name">Diary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-katharine-252d3095acf3" data-lib-entity="character-recall-character-katharine-252d3095acf3">
+        <span class="lib-entry-name">Katharine</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-times-50540997508d" data-lib-entity="organization-recall-organization-times-50540997508d">
+        <span class="lib-entry-name">Times</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-7bf6354302f1" data-lib-entity="event-recall-event-7bf6354302f1">
+        <span class="lib-entry-name">Arrest of Winston and Julia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-syme-b786520f0b1e" data-lib-entity="character-recall-character-syme-b786520f0b1e">
+        <span class="lib-entry-name">Syme</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-eurasia-458cc736a4be" data-lib-entity="location-recall-location-eurasia-458cc736a4be">
+        <span class="lib-entry-name">Eurasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-spies-a16a82283445" data-lib-entity="organization-recall-organization-spies-a16a82283445">
+        <span class="lib-entry-name">Spies</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-reality-control-728d5aa740a3" data-lib-entity="concept-recall-concept-reality-control-728d5aa740a3">
+        <span class="lib-entry-name">Reality control</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-crimestop-3a561a93b900" data-lib-entity="rule-recall-rule-crimestop-3a561a93b900">
+        <span class="lib-entry-name">Crimestop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-sexcrime-b4879d48e593" data-lib-entity="rule-recall-rule-sexcrime-b4879d48e593">
+        <span class="lib-entry-name">Sexcrime</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-blackwhite-3862fc7ba9d1" data-lib-entity="rule-recall-rule-blackwhite-3862fc7ba9d1">
+        <span class="lib-entry-name">Blackwhite</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c" data-lib-entity="rule-recall-rule-the-party-seeks-power-en-7b5cfb17337c">
+        <span class="lib-entry-name">The Party seeks power entirely for its own sake</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-thoughtcrime-da4c4792e6d9" data-lib-entity="rule-recall-rule-thoughtcrime-da4c4792e6d9">
+        <span class="lib-entry-name">Thoughtcrime</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-mrs-parsons-0e1126915b2d" data-lib-entity="character-recall-character-mrs-parsons-0e1126915b2d">
+        <span class="lib-entry-name">Mrs Parsons</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-eastasia-a2356e498a45" data-lib-entity="location-recall-location-eastasia-a2356e498a45">
+        <span class="lib-entry-name">Eastasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-mr-charrington-s-sho-80f01040c06e" data-lib-entity="location-recall-location-mr-charrington-s-sho-80f01040c06e">
+        <span class="lib-entry-name">Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-bellyfeel-ff22830307d5" data-lib-entity="concept-recall-concept-bellyfeel-ff22830307d5">
+        <span class="lib-entry-name">Bellyfeel</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-bdb0674f7790" data-lib-entity="object-recall-object-bdb0674f7790">
+        <span class="lib-entry-name">Chocolate Ration</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-freedom-is-slavery-81a94401abac" data-lib-entity="rule-recall-rule-freedom-is-slavery-81a94401abac">
+        <span class="lib-entry-name">Freedom is Slavery</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-who-controls-the-past-co-859dd13f2001" data-lib-entity="rule-recall-rule-who-controls-the-past-co-859dd13f2001">
+        <span class="lib-entry-name">Who controls the past controls the future: who controls the present controls the past</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-ignorance-is-strength-9abdf0dff229" data-lib-entity="rule-recall-rule-ignorance-is-strength-9abdf0dff229">
+        <span class="lib-entry-name">Ignorance is Strength</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-past-is-alterable-968e8fbd7210" data-lib-entity="rule-recall-rule-the-past-is-alterable-968e8fbd7210">
+        <span class="lib-entry-name">The past is alterable</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-creates-human-19c00cbb0372" data-lib-entity="rule-recall-rule-the-party-creates-human-19c00cbb0372">
+        <span class="lib-entry-name">The Party creates human nature</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-only-recognised-purp-96d216234eb5" data-lib-entity="rule-recall-rule-the-only-recognised-purp-96d216234eb5">
+        <span class="lib-entry-name">The only recognised purpose of marriage was to beget children for the service of the Party</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-goodsex-3abc7fdf3884" data-lib-entity="rule-recall-rule-goodsex-3abc7fdf3884">
+        <span class="lib-entry-name">Goodsex</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-the-arrest-5843f1f12e2f" data-lib-entity="action-recall-action-the-arrest-5843f1f12e2f">
+        <span class="lib-entry-name">The arrest</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#creature-recall-creature-rat-d16ef86cfb69" data-lib-entity="creature-recall-creature-rat-d16ef86cfb69">
+        <span class="lib-entry-name">Rat</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-d7a8b2bc6039" data-lib-entity="event-recall-event-d7a8b2bc6039">
+        <span class="lib-entry-name">Eye Contact Between Winston and O'Brien</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-7a0e7a15e62e" data-lib-entity="event-recall-event-7a0e7a15e62e">
+        <span class="lib-entry-name">Reading Goldstein's book</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-death-worship-814332379295" data-lib-entity="concept-recall-concept-death-worship-814332379295">
+        <span class="lib-entry-name">Death-Worship</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-prolefeed-79e6ed1ab861" data-lib-entity="concept-recall-concept-prolefeed-79e6ed1ab861">
+        <span class="lib-entry-name">Prolefeed</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-neo-bolshevism-3b2c8883803c" data-lib-entity="concept-recall-concept-neo-bolshevism-3b2c8883803c">
+        <span class="lib-entry-name">Neo-Bolshevism</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-0e62433dbcf6" data-lib-entity="object-recall-object-0e62433dbcf6">
+        <span class="lib-entry-name">Newspeak Dictionary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-c3eb4300acdb" data-lib-entity="object-recall-object-c3eb4300acdb">
+        <span class="lib-entry-name">Rat Cage</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-302702295f72" data-lib-entity="object-recall-object-302702295f72">
+        <span class="lib-entry-name">memory hole chute</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-8b8ff17a25ba" data-lib-entity="object-recall-object-8b8ff17a25ba">
+        <span class="lib-entry-name">Victory Cigarettes</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-all-marriages-between-pa-d6b8a87be328" data-lib-entity="rule-recall-rule-all-marriages-between-pa-d6b8a87be328">
+        <span class="lib-entry-name">All marriages between Party members had to be approved by a committee</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-war-is-peace-b1bf67ef5931" data-lib-entity="rule-recall-rule-war-is-peace-b1bf67ef5931">
+        <span class="lib-entry-name">War is Peace</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc" data-lib-entity="rule-recall-rule-the-object-of-power-is-p-5e7a28a920dc">
+        <span class="lib-entry-name">The object of power is power</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-infallible-d93b516ccb7b" data-lib-entity="rule-recall-rule-the-party-is-infallible-d93b516ccb7b">
+        <span class="lib-entry-name">The Party is infallible</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-goodthink-36da570716ad" data-lib-entity="rule-recall-rule-goodthink-36da570716ad">
+        <span class="lib-entry-name">Goodthink</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-was-trying-to-7d237877197f" data-lib-entity="rule-recall-rule-the-party-was-trying-to-7d237877197f">
+        <span class="lib-entry-name">The Party was trying to kill the sex instinct</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-is-immortal-9a52a5d72bdc" data-lib-entity="rule-recall-rule-the-party-is-immortal-9a52a5d72bdc">
+        <span class="lib-entry-name">The Party is immortal</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-freedom-is-the-fre-e38557a8e351" data-lib-entity="expression-recall-expression-freedom-is-the-fre-e38557a8e351">
+        <span class="lib-entry-name">Freedom is the freedom to say that two plus two make four</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-2-2-5-baf1cae1cb6e" data-lib-entity="expression-recall-expression-2-2-5-baf1cae1cb6e">
+        <span class="lib-entry-name">2+2=5</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-meeting-with-o-brien-561c93b8f7ee" data-lib-entity="action-recall-action-meeting-with-o-brien-561c93b8f7ee">
+        <span class="lib-entry-name">Meeting with O'Brien</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-6ae313e3df9f" data-lib-entity="event-recall-event-6ae313e3df9f">
+        <span class="lib-entry-name">Two Minutes Hate Rally</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-oligarchical-collecti-44323d3a01a2" data-lib-entity="concept-recall-concept-oligarchical-collecti-44323d3a01a2">
+        <span class="lib-entry-name">Oligarchical Collectivism</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-floating-fortress-656d0fd8836a" data-lib-entity="concept-recall-concept-floating-fortress-656d0fd8836a">
+        <span class="lib-entry-name">Floating Fortress</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-c6816b7887b9" data-lib-entity="object-recall-object-c6816b7887b9">
+        <span class="lib-entry-name">Big Brother Poster</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-050301a147b1" data-lib-entity="object-recall-object-050301a147b1">
+        <span class="lib-entry-name">Speakwrite</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4" data-lib-entity="rule-recall-rule-the-party-taught-that-th-48eba2a5b2e4">
+        <span class="lib-entry-name">The Party taught that the proles were natural inferiors</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-imagine-a-boot-sta-76fb8e61c598" data-lib-entity="expression-recall-expression-imagine-a-boot-sta-76fb8e61c598">
+        <span class="lib-entry-name">Imagine a boot stamping on a human face - for ever</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-sanity-is-not-stat-522a2b35c8bf" data-lib-entity="expression-recall-expression-sanity-is-not-stat-522a2b35c8bf">
+        <span class="lib-entry-name">Sanity is not statistical</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-do-it-to-julia-c234ebbf6693" data-lib-entity="expression-recall-expression-do-it-to-julia-c234ebbf6693">
+        <span class="lib-entry-name">Do it to Julia!</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-who-controls-the-p-e47d9985e9ad" data-lib-entity="expression-recall-expression-who-controls-the-p-e47d9985e9ad">
+        <span class="lib-entry-name">Who controls the past controls the future</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-final-conversion-de154bfcfe5a" data-lib-entity="action-recall-action-final-conversion-de154bfcfe5a">
+        <span class="lib-entry-name">Final conversion</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#time-recall-time-ninth-three-year-plan-80ffb37b9938" data-lib-entity="time-recall-time-ninth-three-year-plan-80ffb37b9938">
+        <span class="lib-entry-name">Ninth Three-Year Plan</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-comrade-ogilvy-2f6809370799" data-lib-entity="character-recall-character-comrade-ogilvy-2f6809370799">
+        <span class="lib-entry-name">Comrade Ogilvy</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-victory-square-b9d348acaf31" data-lib-entity="location-recall-location-victory-square-b9d348acaf31">
+        <span class="lib-entry-name">Victory Square</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-fiction-departme-934b003c4bde" data-lib-entity="organization-recall-organization-fiction-departme-934b003c4bde">
+        <span class="lib-entry-name">Fiction Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-youth-league-519605e1140b" data-lib-entity="organization-recall-organization-youth-league-519605e1140b">
+        <span class="lib-entry-name">Youth League</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-59b1cd39c432" data-lib-entity="event-recall-event-59b1cd39c432">
+        <span class="lib-entry-name">Final meeting with Julia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-e28132a9a7de" data-lib-entity="event-recall-event-e28132a9a7de">
+        <span class="lib-entry-name">Julia passes Winston a love note</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-fac8249e5894" data-lib-entity="event-recall-event-fac8249e5894">
+        <span class="lib-entry-name">Winston buys a diary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-64d040314298" data-lib-entity="event-recall-event-64d040314298">
+        <span class="lib-entry-name">Finger torture</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-392f470009de" data-lib-entity="event-recall-event-392f470009de">
+        <span class="lib-entry-name">Renting the room above Mr Charrington's shop</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-101-ef1503d20653" data-lib-entity="event-recall-event-101-ef1503d20653">
+        <span class="lib-entry-name">Betrayal in Room 101</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-sanity-is-statistical-97514c1e2da3" data-lib-entity="concept-recall-concept-sanity-is-statistical-97514c1e2da3">
+        <span class="lib-entry-name">Sanity is statistical</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-joycamp-eb0549da9ec6" data-lib-entity="concept-recall-concept-joycamp-eb0549da9ec6">
+        <span class="lib-entry-name">Joycamp</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-oldthink-1eb3844b3e56" data-lib-entity="concept-recall-concept-oldthink-1eb3844b3e56">
+        <span class="lib-entry-name">Oldthink</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-outer-party-06cffe1e3f30" data-lib-entity="concept-recall-concept-outer-party-06cffe1e3f30">
+        <span class="lib-entry-name">Outer Party</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-ownlife-11feeb074065" data-lib-entity="rule-recall-rule-ownlife-11feeb074065">
+        <span class="lib-entry-name">Ownlife</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-facecrime-be4317332bd9" data-lib-entity="rule-recall-rule-facecrime-be4317332bd9">
+        <span class="lib-entry-name">Facecrime</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-proles-and-animals-are-f-e54a25895e6d" data-lib-entity="rule-recall-rule-proles-and-animals-are-f-e54a25895e6d">
+        <span class="lib-entry-name">Proles and animals are free</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-does-not-permi-c9db362afdc2" data-lib-entity="rule-recall-rule-the-party-does-not-permi-c9db362afdc2">
+        <span class="lib-entry-name">The Party does not permit divorce</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-claimed-to-hav-130880c93f6e" data-lib-entity="rule-recall-rule-the-party-claimed-to-hav-130880c93f6e">
+        <span class="lib-entry-name">The Party claimed to have liberated the proles from bondage</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-party-controls-all-r-d277086906d7" data-lib-entity="rule-recall-rule-the-party-controls-all-r-d277086906d7">
+        <span class="lib-entry-name">The Party controls all records and memories</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-he-loved-big-broth-c26cf8274fbb" data-lib-entity="expression-recall-expression-he-loved-big-broth-c26cf8274fbb">
+        <span class="lib-entry-name">He loved Big Brother</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-if-there-is-hope-i-0186c6832dd0" data-lib-entity="expression-recall-expression-if-there-is-hope-i-0186c6832dd0">
+        <span class="lib-entry-name">If there is hope, it lies in the proles</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-the-memory-hole-8b1cd4e23e4a" data-lib-entity="expression-recall-expression-the-memory-hole-8b1cd4e23e4a">
+        <span class="lib-entry-name">the memory hole</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-oranges-and-lemons-43ac705ba9ef" data-lib-entity="expression-recall-expression-oranges-and-lemons-43ac705ba9ef">
+        <span class="lib-entry-name">Oranges and lemons</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#state-recall-state-49e18261d1ad" data-lib-entity="state-recall-state-49e18261d1ad">
+        <span class="lib-entry-name">Superstate of Oceania</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#time-recall-time-2050-3863f2627d00" data-lib-entity="time-recall-time-2050-3863f2627d00">
+        <span class="lib-entry-name">2050</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-ampleforth-a67df3ec6b21" data-lib-entity="character-recall-character-ampleforth-a67df3ec6b21">
+        <span class="lib-entry-name">Ampleforth</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-tillotson-a505016ae14f" data-lib-entity="character-recall-character-tillotson-a505016ae14f">
+        <span class="lib-entry-name">Tillotson</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-martin-f5cb6653498c" data-lib-entity="character-recall-character-martin-f5cb6653498c">
+        <span class="lib-entry-name">Martin</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-c49ee49b5a01" data-lib-entity="event-recall-event-c49ee49b5a01">
+        <span class="lib-entry-name">Winston loves Big Brother</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-winston-smith-begins-wr-d27434d35a20" data-lib-entity="event-recall-event-winston-smith-begins-wr-d27434d35a20">
+        <span class="lib-entry-name">Winston Smith begins writing a diary</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-c81928d3451f" data-lib-entity="event-recall-event-c81928d3451f">
+        <span class="lib-entry-name">Encounter with a prostitute</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-147e95a26508" data-lib-entity="event-recall-event-147e95a26508">
+        <span class="lib-entry-name">Meeting in the canteen</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-ad581e034f70" data-lib-entity="object-recall-object-ad581e034f70">
+        <span class="lib-entry-name">Victory Gin</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#rule-recall-rule-the-individual-is-only-a-a93b61f512d5" data-lib-entity="rule-recall-rule-the-individual-is-only-a-a93b61f512d5">
+        <span class="lib-entry-name">The individual is only a cell</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#state-recall-state-ad61843aaf99" data-lib-entity="state-recall-state-ad61843aaf99">
+        <span class="lib-entry-name">Superstate of Eastasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#time-recall-time-1984-db6e36e8c14e" data-lib-entity="time-recall-time-1984-db6e36e8c14e">
+        <span class="lib-entry-name">1984</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-golden-country-16c8d8c98cd8" data-lib-entity="location-recall-location-the-golden-country-16c8d8c98cd8">
+        <span class="lib-entry-name">The Golden Country</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#location-recall-location-the-church-belfry-f3200ead5baa" data-lib-entity="location-recall-location-the-church-belfry-f3200ead5baa">
+        <span class="lib-entry-name">The church belfry</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-pornosec-5da49df5f175" data-lib-entity="organization-recall-organization-pornosec-5da49df5f175">
+        <span class="lib-entry-name">Pornosec</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-unperson-e1d96434d280" data-lib-entity="concept-recall-concept-unperson-e1d96434d280">
+        <span class="lib-entry-name">Unperson</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-duckspeak-f755d00be5fe" data-lib-entity="concept-recall-concept-duckspeak-f755d00be5fe">
+        <span class="lib-entry-name">Duckspeak</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-vaporized-c01766255365" data-lib-entity="concept-recall-concept-vaporized-c01766255365">
+        <span class="lib-entry-name">Vaporized</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#concept-recall-concept-the-place-where-there-bd0ac89a163a" data-lib-entity="concept-recall-concept-the-place-where-there-bd0ac89a163a">
+        <span class="lib-entry-name">The place where there is no darkness</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-1fc4ef50a491" data-lib-entity="object-recall-object-1fc4ef50a491">
+        <span class="lib-entry-name">The Theory and Practice of Oligarchical Collectivism</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-54f77004acff" data-lib-entity="object-recall-object-54f77004acff">
+        <span class="lib-entry-name">two-way television</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-e7d123b60501" data-lib-entity="object-recall-object-e7d123b60501">
+        <span class="lib-entry-name">Red Sash</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-under-the-spreadin-f6998db97286" data-lib-entity="expression-recall-expression-under-the-spreadin-f6998db97286">
+        <span class="lib-entry-name">Under the spreading chestnut tree</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-big-brother-is-wat-9f63b2a5916e" data-lib-entity="expression-recall-expression-big-brother-is-wat-9f63b2a5916e">
+        <span class="lib-entry-name">Big Brother is watching you</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#expression-recall-expression-we-are-the-dead-52620919e40a" data-lib-entity="expression-recall-expression-we-are-the-dead-52620919e40a">
+        <span class="lib-entry-name">We are the dead</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#state-recall-state-7a89c814c991" data-lib-entity="state-recall-state-7a89c814c991">
+        <span class="lib-entry-name">Superstate of Eurasia</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#character-recall-character-wilsher-0f73619360fb" data-lib-entity="character-recall-character-wilsher-0f73619360fb">
+        <span class="lib-entry-name">Wilsher</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-lottery-dbc8b0a94f92" data-lib-entity="organization-recall-organization-lottery-dbc8b0a94f92">
+        <span class="lib-entry-name">Lottery</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-community-centre-822f7b350e84" data-lib-entity="organization-recall-organization-community-centre-822f7b350e84">
+        <span class="lib-entry-name">Community Centre</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-5b78f02317e9" data-lib-entity="event-recall-event-5b78f02317e9">
+        <span class="lib-entry-name">Discovery of the photograph evidence</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#event-recall-event-9a40472f05b1" data-lib-entity="event-recall-event-9a40472f05b1">
+        <span class="lib-entry-name">First love-making in the woods</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#action-recall-action-first-love-making-in-t-80c85a56dcbb" data-lib-entity="action-recall-action-first-love-making-in-t-80c85a56dcbb">
+        <span class="lib-entry-name">First love-making in the wood</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#organization-recall-organization-music-department-0239850c78f0" data-lib-entity="organization-recall-organization-music-department-0239850c78f0">
+        <span class="lib-entry-name">Music Department</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a><a class="lib-entry" href="#object-recall-object-f2f727990a57" data-lib-entity="object-recall-object-f2f727990a57">
+        <span class="lib-entry-name">floating sea fortress</span>
+        <span class="lib-entry-meta">Nineteen Eighty-Four</span>
+      </a></div></article>
+
+      <!-- 1. MASTER BOOK VIEW -->
+      <article id="view-book" class="wiki-article-view" style="display:none;">
+        
+        <header class="article-masthead detail-head" id="sec-root">
+          <div class="detail-title-row">
+            <h1 class="article-h1 detail-title" id="article-h1">Nineteen Eighty-Four</h1>
+          </div>
+        </header>
+
+        <!-- Book stage: cover, facts and the Readify link -->
+        <aside class="wiki-infobox detail-stage book-stage">
+          <div class="entity-media-stack book-media-stack">
+            <div class="infobox-media">
+              <img src="./assets/images/book-doc-books-001-1984-4b9fbb7c4955-cover.jpg" alt="Nineteen Eighty-Four original cover" fetchpriority="high" decoding="async" />
+            </div>
+          </div>
+          <div class="book-stage-side">
+          <div class="infobox-meta">
+            <div class="infobox-meta-row"><span>Author</span><strong>George Orwell</strong></div>
+            <div class="infobox-meta-row"><span>Country</span><strong>United Kingdom</strong></div>
+            <div class="infobox-meta-row"><span>Language</span><strong>English</strong></div>
+            <div class="infobox-meta-row"><span>Genre</span><strong>Dystopian, Satire</strong></div>
+            <div class="infobox-meta-row"><span>Published</span><strong>8 June 1949</strong></div>
+          </div>
+            <span class="cta-beam entity-cta-beam book-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
+          </div>
+        </aside>
+
+        <!-- Chapter Sections -->
+        <section id="sec-overview" class="reading-section">
+          <h2>Overview</h2>
+          <div class="prose" id="text-overview"></div>
+        </section>
+
+        <section id="sec-plot" class="reading-section">
+          <h2>Plot</h2>
+          <div class="prose" id="text-plot"></div>
+        </section>
+
+        <section id="sec-themes" class="reading-section">
+          <h2>Themes</h2>
+          <div class="prose" id="text-themes"></div>
+        </section>
+
+        <section id="sec-background" class="reading-section">
+          <h2>Background and Legacy</h2>
+          <div class="prose" id="text-background"></div>
+        </section>
+
+        <section id="sec-author" class="reading-section">
+          <h2>About the Author</h2>
+          <div class="author-block">
+            <div class="author-lead-name">George Orwell (Eric Arthur Blair, 1903 – 1950)</div>
+            <div class="prose" id="text-author"></div>
+          </div>
+        </section>
+
+      </article>
+
+      <!-- 2. DYNAMIC ENTITY DOSSIER ARTICLE -->
+      <article id="view-entity" class="wiki-article-view" style="display:none;">
+        <header class="article-masthead detail-head">
+          <div class="detail-title-row">
+            <h1 class="article-h1 detail-title" id="view-entity-title"></h1>
+            <div class="detail-arrows">
+              <button class="detail-arrow" id="btn-entity-prev" type="button" aria-label="Previous entry"><i data-lucide="arrow-left" style="width:16px;height:16px;"></i></button>
+              <button class="detail-arrow" id="btn-entity-next" type="button" aria-label="Next entry"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Entity stage: the still, centred on a grey stage like a live preview -->
+        <aside class="entity-floating-media detail-stage" id="view-entity-media" style="display:none;">
+          <div class="entity-media-stack">
+            <div class="entity-media-wrap">
+              <img id="view-entity-img" src="" alt="Entity visual still" decoding="async" loading="lazy" />
+            </div>
+            <span class="cta-beam entity-cta-beam"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
+            <a href="#" class="detail-back t-learn" id="btn-entity-back"><span class="t-learn-chevron t-learn-chevron--back detail-back-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M10 4L6 8"/><path class="t-learn-arm t-learn-arm-bot" d="M6 8L10 12"/></svg></span><span>Back to Nineteen Eighty-Four</span></a>
+          </div>
+        </aside>
+
+        <div class="prose markdown-prose" id="view-entity-markdown"></div>
+      </article>
+
+      <!-- 3. STORYLINES (Fused Cinematic Media & Narrative Viewport) -->
+      <article id="view-storyline" class="wiki-article-view" style="display:none;">
+        <div class="liblib-theater-stage">
+          <div class="liblib-fused-viewport sl-viewport" id="sl-stage">
+            <img id="storyline-hero-img" src="" alt="" decoding="async" draggable="false" />
+            <div class="liblib-fused-overlay">
+              <div class="liblib-narrative-scrollbox" id="liblib-narrative-scrollbox">
+                <div class="liblib-fused-meta"><span class="liblib-date" id="storyline-hero-date"></span></div>
+                <h2 class="liblib-hero-title" id="storyline-hero-title"></h2>
+                <div class="liblib-hero-desc" id="storyline-hero-desc"></div>
+              </div>
+            </div>
+          </div>
+          <div class="liblib-filmstrip-wrap"><div class="liblib-filmstrip-track" id="liblib-filmstrip-track"></div></div>
+        </div>
+      </article>
+
+      <!-- 4. STORYFLOW (Thematic Pathways Portal) -->
+      <article id="view-storyflow" class="wiki-article-view" style="display:none;">
+        <header class="article-masthead detail-head">
+          <div class="detail-title-row">
+            <h1 class="article-h1 detail-title">StoryFlow</h1>
+          </div>
+        </header>
+        <section class="cards storyflow-editorial-catalog">
+          <article class="card storyflow-editorial-row">
+            <div class="card-stage storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-1-87b0ec8f36ec.jpg" alt="Winston Smith's Rebellion and Fall" loading="lazy" />
+            </div>
+            <div class="card-meta storyflow-row-content">
+              <h2 class="card-title storyflow-row-title">Winston Smith's Rebellion and Fall</h2>
+              <p class="card-subtitle storyflow-row-desc">Traces Winston's journey from the first illegal diary entry to his total submission in the Ministry of Love.</p>
+            </div>
+            <a href="#" class="card-copy" aria-label="Explore Winston Smith's Rebellion and Fall"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          </article>
+          <article class="card storyflow-editorial-row">
+            <div class="card-stage storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-2-1f158cedb3a4.jpg" alt="The Brotherhood Trap" loading="lazy" />
+            </div>
+            <div class="card-meta storyflow-row-content">
+              <h2 class="card-title storyflow-row-title">The Brotherhood Trap</h2>
+              <p class="card-subtitle storyflow-row-desc">Follows the thread in which O'Brien masquerades as a leader of the underground and lures Winston into a false dream of resistance.</p>
+            </div>
+            <a href="#" class="card-copy" aria-label="Explore The Brotherhood Trap"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          </article>
+          <article class="card storyflow-editorial-row">
+            <div class="card-stage storyflow-row-media">
+              <img src="./assets/images/story-flow-doc-books-001-1984-3-c77bef829093.jpg" alt="The Ministry of Truth's Falsification Machine" loading="lazy" />
+            </div>
+            <div class="card-meta storyflow-row-content">
+              <h2 class="card-title storyflow-row-title">The Ministry of Truth's Falsification Machine</h2>
+              <p class="card-subtitle storyflow-row-desc">Shows how the Records Department continuously rewrites the past and manufactures lies, and how Winston becomes both a worker and a victim of that system.</p>
+            </div>
+            <a href="#" class="card-copy" aria-label="Explore The Ministry of Truth's Falsification Machine"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          </article>
+        </section>
+      </article>
+
+
+      <!-- 6. ONE STORYFLOW (story.js) -->
+      <article id="view-story-flow" class="wiki-article-view story-flow-view" style="display:none;">
+        <header class="article-masthead detail-head">
+          <div class="detail-title-row">
+            <h1 class="article-h1 detail-title" id="flow-title"></h1>
+          </div>
+        </header>
+        <div class="prose" id="flow-lead"></div>
+        <div class="sf-canvas" id="flow-canvas">
+          <div class="sf-board" id="flow-board"></div>
+        </div>
+        <div class="sf-sheet-overlay" id="sf-sheet" hidden>
+          <div class="sf-sheet-frame">
+          <div class="sf-sheet" role="dialog" aria-modal="true" aria-labelledby="sf-sheet-title" tabindex="-1">
+            <div class="sf-sheet-grab" aria-hidden="true"></div>
+            <div class="sf-sheet-scroll" id="sf-sheet-scroll">
+              <div class="sf-sheet-media" id="sf-sheet-media"><img id="sf-sheet-img" src="" alt="" decoding="async" /></div>
+              <div class="sf-sheet-body">
+                <h2 class="sf-sheet-title" id="sf-sheet-title"></h2>
+                <div class="prose markdown-prose" id="sf-sheet-text" lang="en"></div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </article>
+
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <a href="books/" class="brand footer-logo" data-footer-nav="wiki-logo">
+            <span class="brand-mark" aria-hidden="true"><svg class="rp-mark" viewBox="0 0 300 400" focusable="false"><use href="#rp-mark"/></svg></span>
+            <span class="brand-word"><span class="brand-word-strong">Readi</span><span class="brand-word-dim">pedia</span></span>
+          </a>
+          <p class="footer-tagline">Read the book as a living encyclopedia.</p>
+          <a class="footer-made-by" href="https://readifyai.com" target="_blank" rel="noopener">Made by Readify</a>
+        </div>
+        <nav class="footer-cols" aria-label="Footer">
+          <div class="footer-col">
+            <p class="footer-col-title">Product</p>
+            <a href="https://apps.apple.com/us/app/readify-ai-audio-book-reader/id6783195818" target="_blank" rel="noopener">iOS App</a>
+            <a href="https://play.google.com/store/apps/details?id=com.readin.app" target="_blank" rel="noopener">Android App</a>
+            <a href="#" data-app="mac" target="_blank" rel="noopener">macOS App</a>
+            <a href="#" data-app="windows" target="_blank" rel="noopener">Windows App</a>
+            <a href="https://app.readifyai.com" target="_blank" rel="noopener">Web App</a>
+            <a href="https://chromewebstore.google.com/detail/readin-lifelike-text-to-s/nnheobpfcpicnkfpdaafonmoaiehgmkj" target="_blank" rel="noopener">Chrome Extension</a>
+            <a href="https://file-tk.readifyai.com/install/android/readify.apk" target="_blank" rel="noopener">Download Android APK</a>
+          </div>
+          <div class="footer-col">
+            <p class="footer-col-title">Readify</p>
+            <a href="https://readifyai.com" target="_blank" rel="noopener">About</a>
+            <a href="https://app.readifyai.com/contactus" target="_blank" rel="noopener">Contact</a>
+            <a href="https://readifyai.com/blog" target="_blank" rel="noopener">Blog</a>
+            <a href="https://readifyai.com/resources" target="_blank" rel="noopener">Resources</a>
+            <a href="https://readifyai.com/pricing" target="_blank" rel="noopener">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <p class="footer-col-title">Legal</p>
+            <a href="https://readifyai.com/privacy-policy-global.html" target="_blank" rel="noopener">Privacy</a>
+            <a href="https://readifyai.com/terms-of-use-global.html" target="_blank" rel="noopener">Terms</a>
+          </div>
+          <div class="footer-col">
+            <p class="footer-col-title">Free tools</p>
+            <span>Free Ebook Converter</span>
+            <span>Free Doc Converter</span>
+            <span>Free Audio Converter</span>
+            <span>Free Text to Speech</span>
+          </div>
+        </nav>
+        <div class="footer-bottom">
+          <p class="footer-copy">© 2026 Readify. All rights reserved.</p>
+          <div class="footer-socials">
+            <a class="footer-social" href="https://discord.gg/FddmKD4pV5" target="_blank" rel="noopener" aria-label="Readify on Discord"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
+            <a class="footer-social" href="https://x.com/JulianAust39381" target="_blank" rel="noopener" aria-label="Readify on X"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+            <a class="footer-social" href="https://www.instagram.com/readify_ai" target="_blank" rel="noopener" aria-label="Readify on Instagram"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg></a>
+            <a class="footer-social" href="https://www.youtube.com/@Readify_AI" target="_blank" rel="noopener" aria-label="Readify on YouTube"><svg class="brand-glyph" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Mobile graph and entity article share one reversible vertical space. -->
+  <section id="mobile-graph-continuum" class="mobile-graph-continuum" aria-hidden="true">
+    <div id="mobile-graph-continuum-stage" class="mobile-graph-continuum-stage">
+      <div id="mobile-graph-continuum-graph-slot" class="mobile-graph-continuum-graph-slot"></div>
+    </div>
+
+    <article id="mobile-graph-continuum-article" class="mobile-graph-continuum-article" aria-hidden="true">
+      <header class="article-masthead detail-head mobile-continuum-masthead">
+        <div class="detail-title-row">
+          <h1 id="mobile-continuum-title" class="article-h1 detail-title mobile-continuum-title"></h1>
+        </div>
+      </header>
+
+      <aside id="mobile-continuum-media" class="entity-floating-media detail-stage mobile-continuum-media">
+        <div class="entity-media-stack">
+          <div class="entity-media-wrap mobile-continuum-media-wrap">
+            <img id="mobile-continuum-image" alt="" decoding="async" loading="eager" />
+          </div>
+          <span class="cta-beam entity-cta-beam mobile-continuum-cta"><a href="https://app.readifyai.com" class="readify-cta" target="_blank" rel="noopener"><i data-lucide="book-open" class="readify-cta-icon"></i><span>Read the book in Readify</span><i data-lucide="arrow-up-right" class="readify-cta-arrow"></i></a></span>
+          <a href="#" class="detail-back t-learn" id="btn-continuum-back"><span class="t-learn-chevron t-learn-chevron--back detail-back-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M10 4L6 8"/><path class="t-learn-arm t-learn-arm-bot" d="M6 8L10 12"/></svg></span><span>Back to Nineteen Eighty-Four</span></a>
+        </div>
+      </aside>
+
+      <div id="mobile-continuum-markdown" class="prose markdown-prose mobile-continuum-markdown"></div>
+    </article>
+  </section>
+
+  <button id="btn-back-to-top" class="btn-top" aria-label="Back to top">
+    <i data-lucide="arrow-up" style="width:18px;height:18px;"></i>
+  </button>
+
+  <!-- Mobile Quick Floating Graph Launcher Button -->
+  <button id="btn-mobile-graph-launcher" class="btn-mobile-graph-launcher" aria-label="Open Knowledge Graph">
+    <i data-lucide="network" style="width:16px;height:16px;"></i>
+  </button>
+
+  <!-- Search palette (Ctrl K) -->
+  <div class="cmdk-overlay" id="cmdk" hidden>
+    <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Search">
+      <div class="cmdk-search">
+        <i data-lucide="search" class="cmdk-search-ic"></i>
+        <input class="cmdk-input" id="cmdk-input" type="text" placeholder="Search entries and pages..." autocomplete="off" spellcheck="false" aria-controls="cmdk-list" />
+        <button type="button" class="cmdk-esc" id="cmdk-close" aria-label="Close"><span class="cmdk-esc-key">esc</span><span class="cmdk-esc-touch">Cancel</span></button>
+      </div>
+      <div class="cmdk-list" id="cmdk-list" role="listbox"></div>
+    </div>
+  </div>
+
+  <!-- Precompiled Store & Controller -->
+  <script src="./data/wiki_store.js?v=41" defer></script>
+  <script src="./data/wiki_store_zh.js?v=2" defer></script>
+  <script src="./assets/vendor/border-beam.js?v=2" defer></script>
+  <script src="./data/storyflows_complete.js?v=2" defer></script>
+  <script src="./data/entity_storyflows.js?v=1" defer></script>
+  <script src="./story.js?v=27" defer></script>
+  <script src="./data/library.js?v=4" defer></script>
+  <script src="./library.js?v=26" defer></script>
+  <script src="./app.js?v=145" defer></script>
+  <script src="./promo-banner.js?v=9" defer></script>
+</body>
+</html>

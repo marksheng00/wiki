@@ -1036,23 +1036,24 @@
   const MOBILE_CONTINUUM_CLOSE_COMMIT_PROGRESS = 0.68;
   const MOBILE_CONTINUUM_SPRING_FREQUENCY = 14;
   const MOBILE_GRAPH_CONTROL_SHAPES = {
-    // The corner geometry is the desktop 10px L mapped into the bottom-right
-    // of a fixed 22px icon viewport, including its 1.5px rendered stroke.
+    // Each stroke is a quadratic curve: [x1, y1, cx, cy, x2, y2]. The corner
+    // is the desktop rounded corner (13.25px radius, 1.5px stroke) drawn in
+    // the 22px icon viewport, split into two halves of one quarter arc.
     corner: {
-      first: [14.1818, 22.9091, 22.9091, 22.9091],
-      second: [22.9091, 14.1818, 22.9091, 22.9091],
+      first: [8.4545, 22.9091, 14.4421, 22.9091, 18.6755, 18.6755],
+      second: [22.9091, 8.4545, 22.9091, 14.4421, 18.6755, 18.6755],
       strokeWidth: 1.6364
     },
     // Lucide's canonical X geometry, matching the 22px sidebar close icon.
     close: {
-      first: [6, 6, 18, 18],
-      second: [18, 6, 6, 18],
+      first: [6, 6, 12, 12, 18, 18],
+      second: [18, 6, 12, 12, 6, 18],
       strokeWidth: 1.8
     },
     // Upward-pointing Chevron indicating folding/sliding back up to the article floor
     chevronUp: {
-      first: [6, 14, 12, 8],
-      second: [12, 8, 18, 14],
+      first: [6, 14, 9, 11, 12, 8],
+      second: [18, 14, 15, 11, 12, 8],
       strokeWidth: 2.0
     }
   };
@@ -3550,12 +3551,10 @@
       || (state.currentEntityId && getEl('view-entity') && getEl('view-entity').style.display === 'block')
     );
     const to = hasArticle ? MOBILE_GRAPH_CONTROL_SHAPES.chevronUp : MOBILE_GRAPH_CONTROL_SHAPES.close;
-    const attributes = ['x1', 'y1', 'x2', 'y2'];
     const applyStroke = (stroke, start, end) => {
       if (!stroke) return;
-      attributes.forEach((attribute, index) => {
-        stroke.setAttribute(attribute, String(start[index] + (end[index] - start[index]) * normalized));
-      });
+      const p = start.map((v, i) => +(v + (end[i] - v) * normalized).toFixed(4));
+      stroke.setAttribute('d', `M${p[0]} ${p[1]}Q${p[2]} ${p[3]} ${p[4]} ${p[5]}`);
       stroke.setAttribute(
         'stroke-width',
         String(from.strokeWidth + (to.strokeWidth - from.strokeWidth) * normalized)

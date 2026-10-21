@@ -226,3 +226,8 @@ html.sf-sheet-open { overflow: hidden; }
 /* The StoryFlow cards lead somewhere now. */
 #view-storyflow .storyflow-editorial-row { cursor: pointer; }
 
+
+/* Phones: no floating graph button on the Storylines and StoryFlow pages. */
+@media (max-width: 768px) {
+  body:has(#view-storyline.active, #view-storyflow.active, #view-story-flow.active) .btn-mobile-graph-launcher { display: none; }
+}

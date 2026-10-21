@@ -3720,3 +3720,17 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   .wiki-sidebar .wiki-nav-hub > .drawer-settings { order: -1; margin: 24px 0 24px; padding-bottom: 0; }
   .drawer-seg button { white-space: nowrap; }
 }
+
+/* Logo hover: the dog-ear flips flat across its crease (desktop, sidebar open). */
+.rp-flap {
+  transform-box: view-box;
+  transform-origin: 252px 48px;
+  transform: rotate(45deg) scaleY(1) rotate(-45deg);
+}
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .rp-flap { transition: transform var(--duration-fast) var(--ease-smooth-out); }
+  body:not(.sidebar-collapsed) .wiki-logo:hover .rp-flap {
+    transform: rotate(45deg) scaleY(-1) rotate(-45deg);
+    transition-duration: var(--duration-slow, 400ms);
+  }
+}

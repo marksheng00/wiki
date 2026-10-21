@@ -27,12 +27,17 @@
       try { pref = localStorage.getItem('readipedia-theme') || 'system'; } catch (e) {}
       var dark = pref === 'dark' || (pref === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      // The markup opens on the book page. Until app.js has routed, hide it on
+      // any other page, and show the library sidebar on library pages.
+      var route = location.hash.replace(/^#/, '');
+      if (route !== 'book' && route !== 'view-book') document.documentElement.classList.add('is-routing');
+      if (/^(|view-library|books|entries|all-(books|entries)(\/\d+)?|categories\/[a-z-]+(\/\d+)?)$/.test(route)) document.documentElement.classList.add('is-routing-library');
     })();
   </script>
-  <link rel="stylesheet" href="./style.css?v=160" />
+  <link rel="stylesheet" href="./style.css?v=161" />
   <link rel="stylesheet" href="./pro-gradient-text.css?v=1" />
   <link rel="stylesheet" href="./story.css?v=28" />
-  <link rel="stylesheet" href="./library.css?v=18" />
+  <link rel="stylesheet" href="./library.css?v=19" />
   <link rel="stylesheet" href="./promo-banner.css?v=11" />
 </head>
 <body>
@@ -775,7 +780,7 @@
   </div>
 
   <!-- Precompiled Store & Controller -->
-  <script src="./data/wiki_store.js?v=41" defer></script>
+  <script src="./data/wiki_store.js?v=42" defer></script>
   <script src="./data/wiki_store_zh.js?v=2" defer></script>
   <script src="./assets/vendor/border-beam.js?v=2" defer></script>
   <script src="./data/storyflows_complete.js?v=2" defer></script>

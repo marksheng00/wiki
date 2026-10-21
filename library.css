@@ -10,13 +10,25 @@
   display: none;
   flex-direction: column;
 }
-body.is-library .library-nav {
+body.is-library .library-nav,
+.is-routing-library body .library-nav {
   display: flex;
 }
 body.is-library #wiki-nav-hub > :not(.library-nav):not(.drawer-apps):not(.drawer-settings),
 body.is-library .sidebar-graph-slot,
-body.is-library .btn-mobile-graph-launcher {
+body.is-library .btn-mobile-graph-launcher,
+.is-routing-library #wiki-nav-hub > :not(.library-nav):not(.drawer-apps):not(.drawer-settings),
+.is-routing-library .sidebar-graph-slot,
+.is-routing-library .btn-mobile-graph-launcher {
   display: none !important;
+}
+/* Until app.js routes, the book page stays hidden on other pages (see the
+   inline script in <head>). */
+.is-routing #view-book {
+  display: none !important;
+}
+.is-routing .site-footer {
+  visibility: hidden;
 }
 .lib-nav-group {
   margin-top: 16px;

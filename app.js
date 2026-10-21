@@ -474,6 +474,7 @@
     initSearchPalette();
     initFooterLinks();
     initReadifyCtas();
+    initLiteMotion();
     initReadifyApps();
     initEntityBackLink();
     initDrawerSettings();
@@ -488,8 +489,11 @@
 
     // A fresh visit lands on the library; a refresh restores the page in the URL.
     if (initialRoute.id === 'view-library') {
-      initBalancedTopologyGraph(createGraphContext('overview'));
+      // Library pages hide the graph, so it is built the first time another
+      // page opens (ensureSidebarGraph) and only its portraits are warmed here.
+      graphState.deferredForLibrary = true;
       openLibrary({ fromHistory: true, category: state.libraryCategory });
+      warmOverviewGraphImages();
     } else if (initialRoute.type === 'view') {
       initBalancedTopologyGraph(createGraphContext('overview'));
       showArticleView(initialRoute.id, { fromHistory: true });
@@ -502,6 +506,7 @@
     } else {
       openBookOverview({ fromHistory: true });
     }
+    document.documentElement.classList.remove('is-routing', 'is-routing-library');
   }
 
   /* Interface icons, drawn on a 16px grid with a 1.5px line so they stay
@@ -696,6 +701,7 @@
 
   // Apply the overview graph immediately, discarding any deferred page graph.
   function showOverviewGraphNow() {
+    ensureSidebarGraph();
     const overviewContext = createGraphContext('overview');
     state.graphContext = overviewContext;
     graphState.pendingGraphContext = null;
@@ -1667,21 +1673,21 @@
   }
 
   function createGraphNode(raw, isPrimary, degree, x, y) {
-    let localImg = null;
-    if (raw.imageUrl) {
-      const fileName = raw.imageUrl.split('/').pop();
-      localImg = `./assets/images/${fileName}`;
-      if (!graphState.imgCache.has(localImg)) {
-        const imgObj = new Image();
-        imgObj.src = localImg;
-        graphState.imgCache.set(localImg, imgObj);
-      }
+    // Nodes draw a 256px copy of the portrait; the full image is fetched
+    // only when a node is drawn larger than that (see getGraphNodeImage).
+    const localImg = getGraphThumbSrc(raw);
+    if (localImg && !graphState.imgCache.has(localImg)) {
+      const imgObj = new Image();
+      imgObj.decoding = 'async';
+      imgObj.src = localImg;
+      graphState.imgCache.set(localImg, imgObj);
     }
     const nodeObj = {
       id: raw.id,
       label: raw.label,
       type: raw.type || 'Concepts',
       imgSrc: localImg,
+      imgFullSrc: localImg ? `./assets/images/${raw.imageUrl.split('/').pop()}` : null,
       isPrimary: !!isPrimary,
       val: getGraphNodeValue(isPrimary, degree),
       transitionAlpha: 1,
@@ -1693,6 +1699,31 @@
     nodeObj.vx = 0;
     nodeObj.vy = 0;
     return nodeObj;
+  }
+
+  const GRAPH_THUMB_PX = 256;
+
+  function getGraphThumbSrc(raw) {
+    if (!raw?.imageUrl) return null;
+    return `./assets/images/graph/${raw.imageUrl.split('/').pop()}`;
+  }
+
+  // The portrait to draw for a node whose circle is `devicePx` pixels across.
+  function getGraphNodeImage(node, devicePx) {
+    const ready = (img) => img && img.complete && img.naturalWidth > 0;
+    const thumb = node.imgSrc && graphState.imgCache.get(node.imgSrc);
+    if (node.imgFullSrc && devicePx > GRAPH_THUMB_PX) {
+      let full = graphState.imgCache.get(node.imgFullSrc);
+      if (!full) {
+        full = new Image();
+        full.decoding = 'async';
+        full.onload = () => requestGraphRedraw(state.sidebarGraph);
+        full.src = node.imgFullSrc;
+        graphState.imgCache.set(node.imgFullSrc, full);
+      }
+      if (ready(full)) return full;
+    }
+    return ready(thumb) ? thumb : null;
   }
 
   function drawGraphImageCover(ctx, img, x, y, size) {
@@ -1713,8 +1744,12 @@
       && state.graphPhase === 'expanded';
   }
 
+  // Read on every node of every graph frame, so the width is cached: reading
+  // window.innerWidth can force a layout in the middle of drawing.
+  let viewportWidth = window.innerWidth;
+  window.addEventListener('resize', () => { viewportWidth = window.innerWidth; }, { capture: true, passive: true });
   function isMobileGraphViewport() {
-    return window.innerWidth <= 768;
+    return viewportWidth <= 768;
   }
 
   function clamp01(value) {
@@ -3105,6 +3140,38 @@
     tooltip.style.transform = `translate(${left - clientX}px, ${top - clientY}px)`;
   }
 
+  // A visit that starts on the library builds the graph only when a page
+  // that shows it opens, exactly as a visit that starts there would.
+  function ensureSidebarGraph() {
+    if (!graphState.deferredForLibrary) return;
+    graphState.deferredForLibrary = false;
+    initBalancedTopologyGraph(createGraphContext('overview'));
+  }
+
+  // While the library is open, fetch the overview graph's small portraits in
+  // the background so the graph shows them as soon as it first appears.
+  function warmOverviewGraphImages() {
+    const warm = () => {
+      if (!graphState.deferredForLibrary) return;
+      const index = getKnowledgeIndex();
+      if (!index) return;
+      selectOverviewGraphNodes(index, createGraphContext('overview').budget).forEach((id) => {
+        const src = getGraphThumbSrc(index.nodesById.get(id));
+        if (src && !graphState.imgCache.has(src)) {
+          const img = new Image();
+          img.decoding = 'async';
+          img.src = src;
+          graphState.imgCache.set(src, img);
+        }
+      });
+    };
+    const idle = () => (typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback(warm, { timeout: 4000 })
+      : window.setTimeout(warm, 1500));
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle, { once: true });
+  }
+
   function initBalancedTopologyGraph(graphContext, options = {}) {
     const container = getEl('canvas-sidebar-graph');
     if (!window.ForceGraph || !container) return;
@@ -3260,8 +3327,8 @@
 
           // Draw a borderless circular portrait when the image is ready,
           // otherwise a flat category-colored dot.
-          const img = node.imgSrc && graphState.imgCache.get(node.imgSrc);
-          if (img?.complete && img.naturalWidth > 0) {
+          const img = getGraphNodeImage(node, radius * 2 * scale * (window.devicePixelRatio || 1));
+          if (img) {
             ctx.save();
             ctx.beginPath();
             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
@@ -5552,12 +5619,13 @@
   }
 
   function showArticleView(targetViewId, options = {}) {
+    if (targetViewId !== 'view-library') ensureSidebarGraph();
     if (targetViewId !== 'view-entity') {
       state.currentEntityId = null;
       graphState.continuumEntityId = null;
       graphState.focusedNode = null;
       graphState.hoverNode = null;
-      scheduleGraphForPage(createGraphContext('overview'));
+      if (!graphState.deferredForLibrary) scheduleGraphForPage(createGraphContext('overview'));
       if (isMobileGraphViewport()) {
         deactivateMobileGraphContinuum();
       }
@@ -6489,6 +6557,81 @@
     document.querySelectorAll('.cta-beam').forEach((el) => window.BorderBeam.mount(el));
   }
 
+  /* Slow devices. When a device shows it cannot keep up, <html> gets
+     .is-lite: the always-running motion (the Readify beam, the "Open Readify"
+     gradient) holds still and the search backdrop drops its blur (see the end
+     of style.css). Fast devices never get the class, so nothing changes for
+     them. Signals, any one is enough:
+       - a very small device (2 cores or 2 GB of memory at most);
+       - frames slower than ~45fps while the page sits idle after loading;
+       - repeated long frames (100ms+) where the browser reports them. */
+  function initLiteMotion() {
+    const KEY = 'readipedia-lite';
+    const root = document.documentElement;
+    const goLite = () => {
+      if (root.classList.contains('is-lite')) return;
+      root.classList.add('is-lite');
+      try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* storage blocked */ }
+    };
+    try { if (sessionStorage.getItem(KEY) === '1') { goLite(); return; } } catch (e) { /* storage blocked */ }
+    if ((navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2)
+      || (navigator.deviceMemory && navigator.deviceMemory <= 2)) {
+      goLite();
+      return;
+    }
+
+    // Idle frame rate, sampled twice: shortly after load and 10s later.
+    let samples = [];
+    let last = 0;
+    let windows = 0;
+    const sample = (t) => {
+      if (root.classList.contains('is-lite')) return;
+      if (document.visibilityState === 'visible' && last && t - last < 250) samples.push(t - last);
+      last = t;
+      if (samples.length < 90) {
+        requestAnimationFrame(sample);
+        return;
+      }
+      const sorted = samples.sort((a, b) => a - b);
+      if (sorted[sorted.length >> 1] > 22) {
+        goLite();
+        return;
+      }
+      windows += 1;
+      samples = [];
+      last = 0;
+      if (windows < 2) window.setTimeout(() => requestAnimationFrame(sample), 10000);
+    };
+
+    // Long frames (Chromium): five of 100ms+ within ten seconds.
+    const watchLongFrames = () => {
+      const type = (PerformanceObserver.supportedEntryTypes || []).includes('long-animation-frame')
+        ? 'long-animation-frame'
+        : null;
+      if (!type) return;
+      const recent = [];
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          if (entry.duration < 100) return;
+          recent.push(entry.startTime);
+          while (recent.length && entry.startTime - recent[0] > 10000) recent.shift();
+          if (recent.length >= 5) {
+            goLite();
+            observer.disconnect();
+          }
+        });
+      });
+      try { observer.observe({ type, buffered: false }); } catch (e) { /* unsupported */ }
+    };
+
+    const start = () => window.setTimeout(() => {
+      requestAnimationFrame(sample);
+      if (window.PerformanceObserver) watchLongFrames();
+    }, 1500);
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+  }
+
   /* Readify apps. Fill in each store or download link here; an app with no
      link yet stays listed but does nothing, and the header button falls back
      to the web app. */
@@ -6637,6 +6780,7 @@
   }
 
   function openEntityArticle(entityId, options = {}) {
+    ensureSidebarGraph();
     const model = getEntityArticleModel(entityId);
     if (!model) {
       openBookOverview(options);

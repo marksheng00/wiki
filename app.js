@@ -5938,7 +5938,7 @@
     if (!row) {
       row = document.createElement('nav');
       row.id = rowId;
-      row.className = 'entity-siblings';
+      row.className = 'entity-siblings td-filters';
       const onPick = options.onPick || openEntityArticle;
       row.addEventListener('click', (event) => {
         const link = event.target.closest('a[data-id]');
@@ -5952,7 +5952,7 @@
     const siblings = entry ? entries.filter((e) => e.category === entry.category) : [];
     row.hidden = siblings.length < 2;
     row.innerHTML = siblings.map((e) => (
-      `<a href="#${e.id}" class="entity-sibling" data-id="${e.id}"${e.id === entry.id ? ' aria-current="page"' : ''}>${e.label.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</a>`
+      `<a href="#${e.id}" class="entity-sibling td-filter" data-id="${e.id}"${e.id === entry.id ? ' aria-current="page"' : ''}>${e.label.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</a>`
     )).join('');
     requestAnimationFrame(() => {
       const current = row.querySelector('[aria-current="page"]');

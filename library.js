@@ -229,8 +229,8 @@
   // filled. It filters in place; paging starts again from page 1.
   function filterBar(options, c) {
     if (options.length < 2) return '';
-    const pill = (key, label) => `<button type="button" class="lib-filter" data-filter="${esc(key)}" data-active="${filter === key}" aria-pressed="${filter === key}">${esc(label)}</button>`;
-    return `<div class="lib-filters" role="group" aria-label="${esc(c.filterLabel)}">${pill('all', c.all)}${options.map((o) => pill(o.key, o.label)).join('')}</div>`;
+    const pill = (key, label) => `<button type="button" class="td-filter" data-filter="${esc(key)}" data-active="${filter === key}" aria-pressed="${filter === key}">${esc(label)}</button>`;
+    return `<div class="td-filters lib-filters" role="group" aria-label="${esc(c.filterLabel)}">${pill('all', c.all)}${options.map((o) => pill(o.key, o.label)).join('')}</div>`;
   }
   const applyFilter = (items, keyOf) => (filter === 'all' ? items : items.filter((x) => keyOf(x) === filter));
 
@@ -418,7 +418,7 @@
   }
 
   function onFilter(e) {
-    const pill = e.target.closest('.lib-filter');
+    const pill = e.target.closest('.td-filter');
     if (!pill) return false;
     const next = pill.dataset.filter;
     if (next === filter) return true;

@@ -1,5 +1,6 @@
 /* ==========================================================================
-   Library: books home (#books) and category pages (#categories/<id>).
+   Library: popular books (#books), popular entries (#entries) and category
+   pages (#categories/<id>[/<page>]).
    Same docs layout as the rest of the site (transitions.dev): sidebar of
    rows on the left, detail head and library cards in the reading column.
    ========================================================================== */
@@ -32,82 +33,20 @@ body.is-library .btn-mobile-graph-launcher {
   color: var(--text-muted);
 }
 
-/* ---------- Sections ---------- */
-.lib-section {
-  margin-top: 48px;
-}
-.lib-section--first {
-  margin-top: 0;
-}
-.lib-section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 32px;
-  margin-bottom: 12px;
-}
-.lib-h2 {
-  font-family: var(--font-sans);
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  color: var(--text-primary);
-  margin: 0;
-}
-.lib-h2 a {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  color: inherit;
-  text-decoration: none;
-}
-.lib-h2 a .lib-icon {
-  width: 14px;
-  height: 14px;
-  color: var(--text-label);
-  transition: transform var(--duration-fast) var(--ease-smooth-out);
-}
-@media (hover: hover) {
-  .lib-h2 a:hover .lib-icon { transform: translateX(2px); }
-}
-.lib-h2 a:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--link-decoration);
-  text-underline-offset: 3px;
-}
-
-/* Quiet text action: muted label, grey chip on hover (the nav pill). */
-.lib-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 32px;
-  padding: 0 10px 0 12px;
-  margin-right: -10px;
-  border-radius: var(--radius-pill);
-  font-size: var(--text-ui);
-  font-weight: 500;
-  line-height: var(--leading-ui);
-  color: var(--text-secondary);
-  text-decoration: none;
+/* Popular books has no visible heading; this one is for screen readers and
+   search engines. */
+.lib-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--motion-hover), color var(--motion-hover);
+  border: 0;
 }
-.lib-more .lib-icon {
-  width: 14px;
-  height: 14px;
-}
-.lib-more:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-.lib-foot {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
+#view-library[data-page="all"] .lib-books { padding-top: 8px; }
 
 /* ---------- Books: cover, title, author. No frames. ---------- */
 .lib-books {
@@ -297,59 +236,71 @@ body.is-library .btn-mobile-graph-launcher {
   color: var(--text-label);
 }
 
-/* ---------- Sort: a third round button beside the category arrows ----------
-   It opens the site's dropdown and stays pressed while the menu is open. */
-.lib-sort[aria-expanded="true"] { background: var(--bg-pressed); }
-
-.lib-sort-anchor {
-  position: relative;
-  flex: none;
+/* ---------- Pager: category pages ----------
+   Round arrow buttons at the ends (the site's detail arrows) and the page
+   numbers as transitions.dev filter capsules, the current one filled. */
+.lib-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 48px;
+}
+.lib-pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+.lib-page {
   display: inline-flex;
-}
-.lib-sort-menu {
-  width: 180px;
-}
-.lib-sort-opt {
-  width: 100%;
-  justify-content: space-between;
-  border: 0;
-  background: none;
-  text-align: left;
-}
-.lib-sort-opt .lib-icon { visibility: hidden; }
-.lib-sort-opt[aria-checked="true"] .lib-icon { visibility: visible; }
-
-/* Prev/next category: the entry arrows, as links. */
-#view-library .detail-arrow {
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 48px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(196, 196, 196, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: rgba(38, 38, 38, 0.8);
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-quick) var(--ease-smooth-out), color var(--duration-quick) var(--ease-smooth-out);
 }
-/* Book pages drop their arrows on phones; a category keeps sort and arrows. */
-@media (max-width: 768px) {
-  #view-library .detail-arrows { display: flex !important; }
+.lib-page:hover { background: #f7f7f7; }
+.lib-page.is-current { background: #f1f1f1; color: #080808; }
+.lib-page:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
+[data-theme="dark"] .lib-page {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(251, 251, 251, 0.8);
+  box-shadow:
+    0 1px 1px 0 rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .lib-page:hover { background: rgba(255, 255, 255, 0.08); }
+[data-theme="dark"] .lib-page.is-current { background: rgba(255, 255, 255, 0.14); color: #fbfbfb; }
+.lib-page-step { text-decoration: none; flex: none; }
+.lib-page-step.is-disabled { opacity: 0.4; pointer-events: none; }
 
 /* ---------- Phones ---------- */
 @media (max-width: 768px) {
-  .lib-section { margin-top: 40px; }
-  .lib-section--first { margin-top: 0; }
   .lib-books {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 12px;
   }
-  .lib-books--row {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: 30%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
-    margin: 0 calc(var(--m-gutter) * -1);
-    padding: 4px var(--m-gutter) 4px;
-    scroll-padding: 0 var(--m-gutter);
-  }
-  .lib-books--row::-webkit-scrollbar { display: none; }
-  .lib-books--row > .lib-book { scroll-snap-align: start; }
   .lib-book-cover { margin-bottom: 10px; }
   .lib-book-title { font-size: 12px; line-height: 16px; }
   .lib-book-out { display: none; }
@@ -365,25 +316,5 @@ body.is-library .btn-mobile-graph-launcher {
   .lib-cover { transition: none; }
   .lib-book:hover .lib-cover { transform: none; }
   .lib-book-out { transition: none; }
-  .lib-sort { transition: none; }
+  .lib-page { transition: none; }
 }
-
-/* Entry count beside a section title. */
-.lib-h2-count {
-  margin-left: 8px;
-  font-size: var(--text-ui-small);
-  font-weight: 400;
-  color: var(--text-label);
-}
-/* The entries page opens straight on its first kind. */
-/* Entries page: a book's entries grouped by kind under a small label,
-   the same label as the sidebar's group labels. */
-.lib-kind + .lib-kind { margin-top: 24px; }
-.lib-kind-label {
-  margin: 0 0 4px;
-  font-size: var(--text-ui-small);
-  font-weight: 400;
-  line-height: 16px;
-  color: var(--text-label);
-}
-.lib-kind-label .lib-h2-count { margin-left: 6px; }

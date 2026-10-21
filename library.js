@@ -11,7 +11,6 @@
   'use strict';
 
   const READIFY = 'https://readifyai.com';
-  const HOME_PER_CATEGORY = 6;
   const ICON = {
     out: '<svg class="lib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>',
     right: '<svg class="lib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
@@ -27,8 +26,10 @@
       categories: 'Categories',
       popular: 'Popular books',
       entries: 'Popular entries',
-      moreOnReadify: 'More on Readify',
-      type: { character: 'Character', location: 'Location', event: 'Event' },
+      pages: 'Pages',
+      pageN: (n) => `Page ${n}`,
+      prevPage: 'Previous page',
+      nextPage: 'Next page',
       openBook: (t) => `Open the ${t} wiki`,
       openReadify: (t) => `Open ${t} on Readify`,
       title: (page) => `${page} — Readipedia`,
@@ -39,8 +40,10 @@
       categories: '分类',
       popular: '热门书籍',
       entries: '热门词条',
-      moreOnReadify: '在 Readify 查看更多',
-      type: { character: '人物', location: '地点', event: '事件' },
+      pages: '分页',
+      pageN: (n) => `第 ${n} 页`,
+      prevPage: '上一页',
+      nextPage: '下一页',
       openBook: (t) => `进入《${t}》百科`,
       openReadify: (t) => `在 Readify 打开《${t}》`,
       title: (page) => `${page} — Readipedia`,
@@ -49,6 +52,7 @@
   };
 
   let page = 'all';
+  let pageNum = 1;
 
   // Follows the site language. Until app.js reports a switch, read the same
   // stored choice it starts from.
@@ -153,20 +157,12 @@
   // On phones a home-page row scrolls sideways instead of wrapping.
   const cards = (books, l, c, row = false) => `<div class="lib-books${row ? ' lib-books--row' : ''}">${books.map((b) => bookCard(b, l, c)).join('')}</div>`;
 
-  function sectionHead(title, action, id) {
-    return `<div class="lib-section-head">
-      <h2 class="lib-h2" id="${id}">${title}</h2>
-      ${action || ''}
-    </div>`;
-  }
-
   /* ---------- Pages ---------- */
 
   // Entries of the book hosted here, which link within the site. Kinds go
   // people first, then places and groups, then ideas; within a kind the best
   // connected entry comes first.
   const KIND_ORDER = ['Characters', 'Locations', 'Organizations', 'Events', 'Concepts', 'Objects', 'Rules', 'Expressions', 'States', 'Actions', 'Time', 'Creatures'];
-  const HOME_PER_KIND = 4;
   function localKinds(l) {
     const nodes = Object.values(window.WIKI_STORE?.master?.knowledge_graph?.all_nodes || {}).filter((n) => n?.id && n.label);
     const zh = window.WIKI_STORE_ZH || {};
@@ -180,10 +176,9 @@
       return {
         key,
         label: l === 'zh' ? (zh.category_names?.[key] || type) : type,
-        typeLabel: l === 'zh' ? (zh.category_names?.[key] || '') : key.charAt(0).toUpperCase() + key.slice(1),
         entries: nodes.filter((n) => (n.type || 'Concepts') === type)
           .sort((a, b) => degree(b) - degree(a))
-          .map((n) => ({ id: n.id, name: l === 'zh' ? (zh.graph_labels?.[n.id] || n.label) : n.label }))
+          .map((n) => ({ id: n.id, rank: degree(n), name: l === 'zh' ? (zh.graph_labels?.[n.id] || n.label) : n.label }))
       };
     }).filter((k) => k.entries.length);
   }
@@ -199,13 +194,7 @@
   }
   const dotted = (...parts) => parts.filter(Boolean).map(esc).join('<span class="lib-dot" aria-hidden="true">·</span>');
 
-  function readifyEntryRows(l, c, withBook = true) {
-    const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
-    return data().entries.map((e) => {
-      const book = bySlug.get(e.book);
-      return entryRow(entryHref(e, book, l), e[l][0], withBook ? dotted(book[l][0], c.type[e.type] || e.type) : dotted(c.type[e.type] || e.type));
-    }).join('');
-  }
+
 
   function entryCount() {
     return localKinds('en').reduce((n, k) => n + k.entries.length, 0) + data().entries.length;
@@ -213,87 +202,72 @@
 
   // The popular entries page: every entry of the hosted book by kind, then
   // the popular entries on Readify.
+  // Popular entries across books, one flat list: each row is the entry and
+  // its book. Books take turns, best entries first, so no book fills a run.
   function entriesPage(l, c) {
     const local = data().local[l].title;
-    const kinds = localKinds(l);
-    const readifyBook = allBooks().find((b) => b.slug === data().entries[0]?.book);
-    const localTotal = kinds.reduce((n, k) => n + k.entries.length, 0);
-    // Grouped by book, then by kind; the kind label replaces a per-row field.
-    const groups = kinds.map((k) => `<div class="lib-kind">
-          <h3 class="lib-kind-label" id="lib-kind-${k.key}">${esc(k.label)}<span class="lib-h2-count">${k.entries.length}</span></h3>
-          <div class="lib-entries" aria-labelledby="lib-kind-${k.key}">${k.entries.map((e) => entryRow(`#${e.id}`, e.name, '', e.id)).join('')}</div>
-        </div>`).join('');
+    const localRows = localKinds(l)
+      .flatMap((k) => k.entries.map((e) => ({ rank: e.rank, html: entryRow(`#${e.id}`, e.name, dotted(local), e.id) })))
+      .sort((a, b) => b.rank - a.rank)
+      .map((r) => r.html);
+    const bySlug = new Map(allBooks().map((b) => [b.slug, b]));
+    const readifyRows = data().entries.map((e) => {
+      const book = bySlug.get(e.book);
+      return entryRow(entryHref(e, book, l), e[l][0], dotted(book[l][0]));
+    });
+    const rows = [];
+    for (let i = 0; i < Math.max(localRows.length, readifyRows.length); i += 1) {
+      if (localRows[i]) rows.push(localRows[i]);
+      if (readifyRows[i]) rows.push(readifyRows[i]);
+    }
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.entries)}</h1></div>
       </header>
-      <section class="lib-section lib-section--first" aria-labelledby="lib-book-local">
-        ${sectionHead(`<a href="#book" data-lib-book>${esc(local)}</a><span class="lib-h2-count">${localTotal}</span>`, '', 'lib-book-local')}
-        ${groups}
-      </section>
-      <section class="lib-section" aria-labelledby="lib-readify-entries">
-        ${sectionHead(`${esc(readifyBook ? readifyBook[l][0] : 'Readify')}<span class="lib-h2-count">${data().entries.length}</span>`, `<a class="lib-more" href="${READIFY}/${l}/hot-entries" target="_blank" rel="noopener">${esc(c.moreOnReadify)}${ICON.out}</a>`, 'lib-readify-entries')}
-        <div class="lib-entries">${readifyEntryRows(l, c, false)}</div>
-      </section>
+      <div class="lib-entries">${rows.join('')}</div>
     `;
   }
 
 
+
+  // Popular books: just the books, laid out flat. The heading is for screen
+  // readers and search engines only; the sidebar already names the page.
   function homePage(l, c) {
-    const cats = categoriesWithBooks();
-    const total = allBooks().length;
-    const books = allBooks();
-    const bySlug = new Map(books.map((b) => [b.slug, b]));
-
-    const title = data().local[l].title;
-    const entries = localKinds(l)
-      .flatMap((k) => k.entries.slice(0, HOME_PER_KIND).map((e) => entryRow(`#${e.id}`, e.name, dotted(title, k.typeLabel), e.id)))
-      .join('') + readifyEntryRows(l, c);
-
-    const catSections = cats.map((cat) => {
-      return `<section class="lib-section" aria-labelledby="lib-cat-${cat.id}">
-        ${sectionHead(`<a href="${catHash(cat.id)}" data-lib-cat="${cat.id}">${esc(cat[l])}${ICON.chevron}</a>`, '', `lib-cat-${cat.id}`)}
-        ${cards(cat.books.slice(0, HOME_PER_CATEGORY), l, c, true)}
-      </section>`;
-    }).join('');
-
     return `
-      <header class="article-masthead detail-head">
-        <div class="detail-title-row"><h1 class="article-h1 detail-title" id="library-title">${esc(c.library)}</h1></div>
-      </header>
-
-      <section class="lib-section lib-section--first" aria-labelledby="lib-popular-h">
-        ${sectionHead(esc(c.popular), '', 'lib-popular-h')}
-        ${cards(popularBooks(), l, c, true)}
-      </section>
-
-      <section class="lib-section" aria-labelledby="lib-entries-h">
-        ${sectionHead(`<a href="#entries" data-lib-cat="entries">${esc(c.entries)}${ICON.chevron}</a>`, '', 'lib-entries-h')}
-        <div class="lib-entries">${entries}</div>
-      </section>
-
-      ${catSections}
+      <h1 class="lib-sr-only" id="library-title">${esc(c.popular)}</h1>
+      ${cards(popularBooks(), l, c)}
     `;
+  }
+
+  // A category is paged; page 1 lives at #categories/<id>, the rest at
+  // #categories/<id>/<n>, so every page is its own link.
+  const PER_PAGE = 12;
+  const pageHash = (id, n) => (n > 1 ? `${catHash(id)}/${n}` : catHash(id));
+
+  function pager(id, current, total, c) {
+    if (total < 2) return '';
+    const link = (n, label, cls, aria) => `<a class="${cls}" href="${pageHash(id, n)}" data-lib-cat="${id}${n > 1 ? `/${n}` : ''}"${aria}>${label}</a>`;
+    const pages = Array.from({ length: total }, (_, i) => i + 1).map((n) => (n === current
+      ? `<span class="lib-page is-current" aria-current="page">${n}</span>`
+      : link(n, n, 'lib-page', ` aria-label="${esc(c.pageN(n))}"`))).join('');
+    const prev = current > 1 ? link(current - 1, ICON.left, 'detail-arrow lib-page-step', ` aria-label="${esc(c.prevPage)}"`) : `<span class="detail-arrow lib-page-step is-disabled" aria-hidden="true">${ICON.left}</span>`;
+    const next = current < total ? link(current + 1, ICON.right, 'detail-arrow lib-page-step', ` aria-label="${esc(c.nextPage)}"`) : `<span class="detail-arrow lib-page-step is-disabled" aria-hidden="true">${ICON.right}</span>`;
+    return `<nav class="lib-pager" aria-label="${esc(c.pages)}">${prev}<div class="lib-pages">${pages}</div>${next}</nav>`;
   }
 
   function categoryPage(id, l, c) {
-    const cats = categoriesWithBooks();
-    const index = cats.findIndex((cat) => cat.id === id);
-    const cat = cats[index];
-
+    const cat = categoriesWithBooks().find((x) => x.id === id);
+    const total = Math.max(1, Math.ceil(cat.books.length / PER_PAGE));
+    const current = Math.min(Math.max(1, pageNum), total);
+    const shown = cat.books.slice((current - 1) * PER_PAGE, current * PER_PAGE);
     return `
       <header class="article-masthead detail-head">
         <div class="detail-title-row">
           <h1 class="article-h1 detail-title" id="library-title">${esc(cat[l])}</h1>
         </div>
       </header>
-
-      <section class="lib-section lib-section--first" aria-labelledby="library-title">
-        ${cards(cat.books, l, c)}
-        <div class="lib-foot">
-          <a class="lib-more" href="${READIFY}/${l}/categories/${cat.id}" target="_blank" rel="noopener">${esc(c.moreOnReadify)}${ICON.out}</a>
-        </div>
-      </section>
+      ${cards(shown, l, c)}
+      ${pager(id, current, total, c)}
     `;
   }
 
@@ -361,7 +335,7 @@
     if (!view?.classList.contains('active')) return;
     const c = COPY[lang()];
     const cat = categoriesWithBooks().find((x) => x.id === page);
-    const name = page === 'entries' ? c.entries : cat ? cat[lang()] : null;
+    const name = page === 'entries' ? c.entries : cat ? (pageNum > 1 ? `${cat[lang()]} · ${c.pageN(pageNum)}` : cat[lang()]) : c.popular;
     document.title = c.title(name ? `${name} · ${c.library}` : c.library);
   }
 
@@ -400,8 +374,9 @@
     document.getElementById('library-nav')?.addEventListener('click', onClick);
 
     document.addEventListener('readipedia:library', (e) => {
-      const next = e.detail?.category || 'all';
+      const [next, n] = String(e.detail?.category || 'all').split('/');
       page = next;
+      pageNum = Number(n) || 1;
       render({ inPlace: e.detail?.inPlace });
     });
     document.addEventListener('readipedia:lang', () => {

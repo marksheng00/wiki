@@ -717,7 +717,7 @@
   function libraryCategoryFromHash(hash) {
     if (hash === '' || hash === 'books' || hash === 'view-library') return 'all';
     if (hash === 'entries') return 'entries';
-    const match = /^categories\/([a-z-]+)$/.exec(hash);
+    const match = /^categories\/([a-z-]+(?:\/\d+)?)$/.exec(hash);
     return match ? match[1] : null;
   }
   const isLibraryHash = (hash) => libraryCategoryFromHash(hash) !== null;

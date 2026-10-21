@@ -238,7 +238,7 @@
     img.alt = n.title;
     el('sf-sheet-media').hidden = !n.image;
     overlay.hidden = false;
-    overlay.scrollTop = 0;
+    el('sf-sheet-scroll').scrollTop = 0;
     document.documentElement.classList.add('sf-sheet-open');
     if (!reduceMotion()) {
       sheet.style.transition = 'none';

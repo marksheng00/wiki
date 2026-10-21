@@ -5368,8 +5368,10 @@
             showArticleView(hash, { fromHistory: true });
           } else if (window.StoryPages?.isRoute(hash)) {
             window.StoryPages.route(hash, { fromHistory: true });
-          } else if (hash && hash !== 'book' && hash !== 'view-book' && hash !== 'view-entity') {
-            openEntityArticle(hash, { fromHistory: true });
+          } else if (getRouteFromHash().type === 'entity') {
+            // A typed or linked hash: decode it and accept a name as well as
+            // an id, the same as on first load; anything else is the book.
+            openEntityArticle(getRouteFromHash().id, { fromHistory: true });
           } else {
             openBookOverview({ fromHistory: true });
           }
@@ -5567,6 +5569,13 @@
     }
     document.body.classList.toggle('is-library', targetViewId === 'view-library');
     if (targetViewId === 'view-library') clearActiveNav();
+    // Keep the sidebar in step when a page opens from the address bar or
+    // history, not only from its own sidebar link.
+    const hubItem = { 'view-book': 'btn-book-home', 'view-storyline': 'btn-storylines-hub', 'view-storyflow': 'btn-storyflow-hub' }[targetViewId];
+    if (hubItem) {
+      clearActiveNav();
+      getEl(hubItem)?.classList.add('active');
+    }
     getEl('book-toc')?.__sync?.(targetViewId === 'view-book');
     if (targetViewId !== 'view-entity') getEl('entity-toc')?.__sync?.(false);
 

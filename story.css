@@ -45,7 +45,6 @@
 #flow-lead { margin-bottom: 32px; }
 #flow-lead p { margin: 0; }
 .story-flow-view .lang-fallback-note { margin-top: 12px; }
-.sf-links { display: none; }
 .sf-board {
   position: relative;
   display: grid;

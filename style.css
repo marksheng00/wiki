@@ -315,13 +315,6 @@ svg.lucide, i[data-lucide] {
   vertical-align: middle;
   stroke-width: var(--icon-stroke);
 }
-.nav-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-  stroke-width: var(--icon-stroke);
-}
 
 /* ==========================================================================
    Header (transitions.dev site nav: brand, text pills, search and settings)
@@ -431,9 +424,7 @@ svg.lucide, i[data-lucide] {
   transition: background-color var(--motion-hover), color var(--motion-hover);
 }
 .nav-pill:hover,
-.nav-pill.is-active,
-.wiki-qr-container:focus-within > .nav-pill,
-.wiki-qr-container:hover > .nav-pill {
+.nav-pill.is-active {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
@@ -618,62 +609,11 @@ svg.lucide, i[data-lucide] {
   cursor: not-allowed;
 }
 
-.wiki-qr-container {
-  position: relative;
-  display: inline-block;
-}
-.wiki-qr-popover {
-  position: absolute;
-  top: 100%;
-  right: 50%;
-  /* Hover popover: a tooltip-style delayed appear, instant leave. */
-  translate: 50% 0;
-  transform-origin: top center;
-  scale: var(--tt-scale);
-  margin-top: 6px;
-  background: var(--tt-bg);
-  color: var(--tt-fg);
-  border: none;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--tt-shadow);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    opacity var(--tt-out-dur) var(--tt-out-ease),
-    scale var(--tt-out-dur) var(--tt-out-ease),
-    visibility 0s linear var(--tt-out-dur);
-  z-index: 1000;
-}
-.wiki-qr-container:hover .wiki-qr-popover,
-.wiki-qr-container:focus-within .wiki-qr-popover {
-  opacity: 1;
-  scale: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition:
-    opacity var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
-    scale var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
-    visibility 0s linear var(--tt-delay);
-}
 .qr-img {
   width: 120px;
   height: 120px;
   border-radius: 8px;
   display: block;
-}
-.qr-label {
-  font-family: var(--font-sans);
-  font-size: var(--text-ui-small);
-  line-height: var(--leading-ui);
-  color: var(--text-secondary);
-  font-weight: 400;
-  white-space: nowrap;
 }
 
 
@@ -1121,104 +1061,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
   cursor: default;
 }
 
-/* Action row: sliding tabs on the left, outlined pill buttons on the right. */
-.detail-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.detail-tabs {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 3px;
-  border-radius: 48px;
-  background: var(--tabs-bg);
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.detail-tabs::-webkit-scrollbar {
-  display: none;
-}
-.detail-tab {
-  position: relative;
-  z-index: 1;
-  height: 30px;
-  padding: 4px 12px;
-  border: 0;
-  border-radius: 48px;
-  background: transparent;
-  font-family: var(--font-sans);
-  font-size: var(--text-ui);
-  font-weight: 500;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: color var(--tabs-dur) var(--tabs-ease);
-}
-.detail-tab[aria-selected="true"] {
-  color: var(--text-primary);
-}
-.detail-tabs-indicator {
-  position: absolute;
-  top: 3px;
-  left: 0;
-  height: 30px;
-  width: 0;
-  border-radius: 48px;
-  background: var(--tabs-indicator);
-  box-shadow: var(--tabs-indicator-shadow);
-  transition:
-    transform var(--tabs-dur) var(--tabs-ease),
-    width var(--tabs-dur) var(--tabs-ease);
-  pointer-events: none;
-}
 
-/* Outlined pill button (Remix / Copy prompt). */
-.detail-prompt,
-.infobox-cta-link,
-.entity-cta-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--surface-btn-bg);
-  box-shadow: var(--surface-btn-shadow);
-  font-family: var(--font-sans);
-  font-size: var(--text-ui);
-  font-weight: 500;
-  line-height: 14px;
-  color: var(--text-primary);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--motion-hover), transform var(--motion-hover);
-}
-.detail-prompt:hover,
-.infobox-cta-link:hover,
-.entity-cta-link:hover {
-  background: var(--surface-btn-hover);
-  color: var(--text-primary);
-  text-decoration: none;
-}
-.detail-prompt:active,
-.infobox-cta-link:active,
-.entity-cta-link:active {
-  transform: scale(var(--scale-medium));
-}
-.detail-prompt-icon {
-  width: 16px;
-  height: 16px;
-}
 
 /* Stage: the grey preview panel every detail page is built around. */
 .detail-stage,
@@ -1535,24 +1378,6 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
   align-items: center;
   gap: 8px;
   margin-top: 16px;
-}
-.filmstrip-arrow-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--chip-bg);
-  border: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 0;
-  border-radius: var(--radius-pill);
-  flex-shrink: 0;
-  transition: color var(--motion-hover), background-color var(--motion-hover), transform var(--motion-hover);
-}
-.filmstrip-arrow-btn:hover {
-  background: var(--bg-hover);
 }
 
 .liblib-filmstrip-track {
@@ -2138,13 +1963,6 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
     gap: 8px;
     margin-top: 1px;
   }
-  .detail-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .detail-actions .cta-beam {
-    align-self: flex-start;
-  }
   .detail-stage,
   .entity-floating-media {
     min-height: 0;
@@ -2376,8 +2194,7 @@ details.toc-cat-details[open]:not([data-expanded]) > summary::after {
 
 /* Press feedback for small controls. */
 .btn-sidebar-toggle:active,
-.wiki-icon-btn:active,
-.filmstrip-arrow-btn:active {
+.wiki-icon-btn:active {
   transform: scale(var(--scale-large));
 }
 
@@ -3341,7 +3158,6 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 
 /* Phones, closer to the original mobile edition: a quiet header (logo left,
    menu at the far right), no prev/next arrows, and full-width media. */
-.drawer-search,
 .drawer-settings { display: none; }
 @media (max-width: 768px) {
   /* transitions.dev mobile header: search, the app pill, menu at the far right. */

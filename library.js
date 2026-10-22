@@ -495,7 +495,8 @@
       kind: b.local ? 'book' : 'link',
       href: bookHref(b, l),
       label: b[l][0],
-      alt: [b[other][0], b[l][1], b[other][1]].join(' '),
+      alt: b[other][0],
+      by: [b[l][1], b[other][1]].join(' '),
       hint: b[l][1]
     }));
     const zh = window.WIKI_STORE_ZH || {};

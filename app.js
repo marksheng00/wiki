@@ -218,7 +218,7 @@
     'Free Audio Converter': '免费音频转换',
     'Free Text to Speech': '免费文字转语音',
     '© 2026 Readify. All rights reserved.': '© 2026 Readify. 保留所有权利。',
-    'Read the book as a living encyclopedia.': '把一本书读成一部活的百科。',
+    'Read the book as a living encyclopedia.': '把一本书读成一部活的百科',
     'Made by Readify': '由 Readify 出品',
     'Apps': '应用',
     'Read the original': '阅读原著',
@@ -449,6 +449,8 @@
     initDetailsAnimation();
     initMobileGraphContinuum();
     initMobileGestures();
+    initViewportBreakpointSync();
+    initReadingAnchor();
     // story.js renders the storyline and StoryFlow pages through these.
     window.ReadipediaBridge = {
       setScene: (pos) => setStorylineScene(pos),
@@ -4435,7 +4437,16 @@
 
     const isInMobileHost = mobileSlot.contains(container);
     if (isMobileGraphViewport()) {
-      if (!continuum.classList.contains('is-active')) activateMobileGraphContinuum();
+      if (!continuum.classList.contains('is-active')) {
+        activateMobileGraphContinuum();
+        // Folding a phone while the desktop graph is open lands on the same
+        // graph a phone opens: the article being read waits under it.
+        const entityView = getEl('view-entity');
+        if (state.currentEntityId && entityView && entityView.style.display === 'block') {
+          showMobileGraphContinuumArticle({ id: state.currentEntityId });
+          graphState.continuumPosition = 0;
+        }
+      }
       if (!isInMobileHost) mobileSlot.appendChild(container);
       stabilizeMobileGraphContinuum();
       return;
@@ -5001,9 +5012,10 @@
    * handled here, so navigation gestures never compete with graph gestures.
    */
   function initMobileGestures() {
-    // Strictly mobile-only gesture engine (<= 768px)
-    const isMobileDevice = isMobileGraphViewport() || ('ontouchstart' in window && window.innerWidth <= 1080);
-    if (!isMobileDevice) return;
+    // Phone and small-tablet gestures. The width is read when the finger lifts,
+    // not once at load, so a foldable that opens wide and then folds still
+    // gets them (touch events never fire on a mouse-only screen).
+    const touchLayout = () => isMobileGraphViewport() || window.innerWidth <= 1080;
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -5073,6 +5085,7 @@
         if (!isSidebarTouching || e.changedTouches.length !== 1) return;
         isSidebarTouching = false;
 
+        if (!touchLayout()) return;
         const deltaY = e.changedTouches[0].clientY - sbTouchStartY;
         const deltaX = e.changedTouches[0].clientX - sbTouchStartX;
         const elapsed = Date.now() - sbTouchTime;
@@ -5110,6 +5123,7 @@
 
       graphContainer.addEventListener('touchend', (e) => {
         if (!state.isGraphExpanded || e.changedTouches.length !== 1) return;
+        if (!touchLayout()) return;
         if (isMobileGraphContinuumActive()) return;
         if (performance.now() < graphState.mobileNodeGestureUntil) return;
         const deltaY = e.changedTouches[0].clientY - graphTouchStartY;
@@ -7051,6 +7065,85 @@
       if (isMobileGraphViewport() || event.ctrlKey) return;
       if (!event.target.closest('.wiki-nav-hub')) event.preventDefault();
     }, { passive: false });
+  }
+
+  // Unfolding a phone crosses into the desktop layout, where the drawer does
+  // not exist. Close it there, so folding back does not reopen it.
+  function initViewportBreakpointSync() {
+    const query = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    if (!query) return;
+    const onChange = () => {
+      if (query.matches) return;
+      const sidebar = getEl('wiki-sidebar');
+      if (sidebar?.classList.contains('is-open')) closeMobileSidebar({ animate: false });
+    };
+    if (query.addEventListener) query.addEventListener('change', onChange);
+    else if (query.addListener) query.addListener(onChange);
+  }
+
+  // Folding or unfolding a phone changes the width and reflows the page. Keep
+  // the line the reader was on at the same place on screen instead of the same
+  // pixel offset, which lands somewhere else in a longer or shorter page.
+  function initReadingAnchor() {
+    const BLOCKS = 'h1, h2, h3, h4, p, li, blockquote, figure, pre, table, .lib-book, .lib-entry';
+    let anchor = null;
+    let lastWidth = window.innerWidth;
+    let settleUntil = 0;
+    let captureFrame = 0;
+    let timers = [];
+
+    const readingTop = () => {
+      const header = document.querySelector('.wiki-header');
+      const bottom = header ? header.getBoundingClientRect().bottom : 0;
+      return Math.max(0, Math.min(bottom, window.innerHeight / 3));
+    };
+    const canAnchor = () => !state.isGraphExpanded
+      && !document.body.classList.contains('menu-open');
+
+    const capture = () => {
+      captureFrame = 0;
+      if (performance.now() < settleUntil) return;
+      if (!canAnchor() || window.scrollY < 1) { anchor = null; return; }
+      const main = getEl('main-content');
+      if (!main) return;
+      const box = main.getBoundingClientRect();
+      const top = readingTop();
+      for (const dy of [4, 24, 48, 80, 120]) {
+        for (const dx of [24, 48, box.width / 4, box.width / 2]) {
+          const hit = document.elementFromPoint(box.left + dx, top + dy);
+          const block = hit && main.contains(hit) ? hit.closest(BLOCKS) : null;
+          if (!block || !main.contains(block)) continue;
+          const rect = block.getBoundingClientRect();
+          if (rect.height <= 0) continue;
+          anchor = { el: block, ratio: (top - rect.top) / rect.height };
+          return;
+        }
+      }
+    };
+
+    const restore = () => {
+      if (!anchor || !anchor.el.isConnected || !canAnchor()) return;
+      const rect = anchor.el.getBoundingClientRect();
+      if (rect.height <= 0) return;
+      const target = window.scrollY + rect.top + anchor.ratio * rect.height - readingTop();
+      if (Math.abs(target - window.scrollY) < 1) return;
+      window.scrollTo({ top: Math.max(0, target), behavior: 'instant' });
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!captureFrame) captureFrame = requestAnimationFrame(capture);
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      // Height-only changes are the browser bar sliding; leave the page alone.
+      if (Math.abs(window.innerWidth - lastWidth) < 2) return;
+      lastWidth = window.innerWidth;
+      settleUntil = performance.now() + 800;
+      timers.forEach(clearTimeout);
+      requestAnimationFrame(restore);
+      // Again after the sidebar and column widths finish their transitions.
+      timers = [120, 400, 700].map((ms) => setTimeout(restore, ms));
+    }, { passive: true });
   }
 
   function initHeaderControls() {

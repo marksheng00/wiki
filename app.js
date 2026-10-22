@@ -226,6 +226,7 @@
     'Search entries and pages...': '搜索词条和页面…',
     'Search books and entries...': '搜索书籍和词条…',
     'Books': '书籍',
+    'Other books': '其他书籍',
     'Story': '故事',
     'Cancel': '取消',
     'Close': '关闭',
@@ -6386,7 +6387,8 @@
     const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     // In the library the palette searches the whole library: its pages,
-    // every book and every entry. Elsewhere it searches this book.
+    // every book and every entry. Elsewhere it searches this book first and
+    // lists matches from the other books after it.
     const inLibrary = () => Boolean(getEl('view-library')?.classList.contains('active') && window.ReadipediaLibrary?.searchItems);
     const placeholder = () => t(inLibrary() ? 'Search books and entries...' : 'Search entries and pages...');
 
@@ -6408,6 +6410,15 @@
         ...story.scenes.map((s) => ({ ...s, hint: `${t('Storylines')} · ${s.date}`, icon: 'film' }))
       ];
       return rank(items.filter(match), query).slice(0, 30);
+    };
+
+    // Books and entries from the rest of the library. They open on Readify.
+    const otherBookHits = (query, match) => {
+      const lib = query && window.ReadipediaLibrary?.searchItems?.();
+      if (!lib) return [];
+      const books = lib.books.filter((b) => b.kind === 'link').map((b) => ({ ...b, icon: 'book-open' }));
+      const entries = lib.entries.filter((e) => e.kind === 'link').map((e) => ({ ...e, icon: 'shapes' }));
+      return rank(books.filter(match), query).concat(rank(entries.filter(match), query)).slice(0, 20);
     };
 
     const groupsFor = (query, match) => {
@@ -6433,15 +6444,18 @@
         .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
         .filter(match);
       const entityHits = rank(entities.filter(match), query).slice(0, query ? 60 : 12);
-      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)]];
+      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)], [t('Other books'), otherBookHits(query, match)]];
     };
 
     const render = () => {
       const query = input.value.trim().toLowerCase();
+      // A book's hint is its author. Authors match from two characters on,
+      // so a single character does not list every book whose author has it.
+      const has = (text) => Boolean(text) && text.toLowerCase().includes(query);
       const match = (item) => !query
-        || item.label.toLowerCase().includes(query)
-        || (item.alt && item.alt.toLowerCase().includes(query))
-        || item.hint.toLowerCase().includes(query);
+        || has(item.label)
+        || has(item.alt)
+        || (item.by ? query.length > 1 && has(item.by) : has(item.hint));
       const groups = groupsFor(query, match);
       results = groups.flatMap(([, items]) => items);
       activeIndex = Math.min(activeIndex, Math.max(0, results.length - 1));
@@ -6459,7 +6473,9 @@
           html += `<div class="cmdk-item" role="option" id="cmdk-opt-${i}" data-index="${i}" aria-selected="${i === activeIndex}">`
             + `<i data-lucide="${item.icon}" class="cmdk-item-ic"></i>`
             + `<span class="cmdk-item-label">${escapeHtml(item.label)}</span>`
-            + `<span class="cmdk-item-hint">${escapeHtml(item.hint)}</span></div>`;
+            + `<span class="cmdk-item-hint">${escapeHtml(item.hint)}</span>`
+            + (item.kind === 'link' ? '<i data-lucide="arrow-up-right" class="cmdk-item-ext"></i>' : '')
+            + '</div>';
           i += 1;
         });
       });

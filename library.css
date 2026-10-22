@@ -171,6 +171,11 @@ body.is-library .btn-mobile-graph-launcher {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2px 16px;
+}
+/* Narrow desktop columns (unfolded foldables, small tablets): two rows of
+   names that fit instead of three that are cut off. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .lib-entries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   margin: 0 -12px;
 }
 .lib-entry {
@@ -271,8 +276,10 @@ body.is-library .btn-mobile-graph-launcher {
     padding: 2px var(--m-gutter);
     margin: -2px calc(var(--m-gutter) * -1) 20px;
   }
+  /* Columns follow the width: two on a folded cover screen, three on most
+     phones, more on wide phones and spanned dual screens. */
   .lib-books {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
     gap: 24px 12px;
   }
   .lib-book-cover { margin-bottom: 6px; }

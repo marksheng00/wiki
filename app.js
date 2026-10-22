@@ -6587,79 +6587,73 @@
     document.querySelectorAll('.cta-beam').forEach((el) => window.BorderBeam.mount(el));
   }
 
-  /* Slow devices. When a device shows it cannot keep up, <html> gets
-     .is-lite: the always-running motion (the Readify beam, the "Open Readify"
-     gradient) holds still and the search backdrop drops its blur (see the end
-     of style.css). Fast devices never get the class, so nothing changes for
-     them. Signals, any one is enough:
-       - a very small device (2 cores or 2 GB of memory at most);
-       - frames slower than ~45fps while the page sits idle after loading;
-       - repeated long frames (100ms+) where the browser reports them. */
+  /* Slow devices. Only a device that visibly struggles with the Readify
+     beam gets html.is-lite: the beam and the "Open Readify" gradient then
+     hold still, as with reduced motion, and the search backdrop drops its
+     blur (see the end of style.css). The test runs only while a beam is on
+     screen and animating, so the display is refreshing at full speed: two
+     separate 2-second samples must both run below ~25fps. Hardware figures,
+     idle frame rates (phones lower their refresh rate on a still screen) and
+     one-off long frames while a page loads say nothing about this and are
+     not used. Reduced motion is handled by CSS on its own. */
   function initLiteMotion() {
-    const KEY = 'readipedia-lite';
     const root = document.documentElement;
-    const goLite = () => {
-      if (root.classList.contains('is-lite')) return;
-      root.classList.add('is-lite');
-      try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* storage blocked */ }
-    };
-    try { if (sessionStorage.getItem(KEY) === '1') { goLite(); return; } } catch (e) { /* storage blocked */ }
-    if ((navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2)
-      || (navigator.deviceMemory && navigator.deviceMemory <= 2)) {
-      goLite();
-      return;
-    }
+    if (!window.IntersectionObserver) return;
+    const visible = new Set();
+    let slowWindows = 0;
+    let sampling = false;
+    let timer = null;
 
-    // Idle frame rate, sampled twice: shortly after load and 10s later.
-    let samples = [];
-    let last = 0;
-    let windows = 0;
-    const sample = (t) => {
-      if (root.classList.contains('is-lite')) return;
-      if (document.visibilityState === 'visible' && last && t - last < 250) samples.push(t - last);
-      last = t;
-      if (samples.length < 90) {
-        requestAnimationFrame(sample);
-        return;
-      }
-      const sorted = samples.sort((a, b) => a - b);
-      if (sorted[sorted.length >> 1] > 22) {
-        goLite();
-        return;
-      }
-      windows += 1;
-      samples = [];
-      last = 0;
-      if (windows < 2) window.setTimeout(() => requestAnimationFrame(sample), 10000);
-    };
+    const beamOnScreen = () => document.visibilityState === 'visible'
+      && Array.from(visible).some((el) => el.hasAttribute('data-active') && el.offsetParent !== null);
 
-    // Long frames (Chromium): five of 100ms+ within ten seconds.
-    const watchLongFrames = () => {
-      const type = (PerformanceObserver.supportedEntryTypes || []).includes('long-animation-frame')
-        ? 'long-animation-frame'
-        : null;
-      if (!type) return;
-      const recent = [];
-      const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
-          if (entry.duration < 100) return;
-          recent.push(entry.startTime);
-          while (recent.length && entry.startTime - recent[0] > 10000) recent.shift();
-          if (recent.length >= 5) {
-            goLite();
-            observer.disconnect();
+    const sampleWindow = () => {
+      timer = null;
+      if (sampling || root.classList.contains('is-lite') || !beamOnScreen()) return;
+      sampling = true;
+      const frames = [];
+      let last = 0;
+      const frame = (t) => {
+        if (!beamOnScreen()) {
+          sampling = false;
+          return;
+        }
+        if (last && t - last < 250) frames.push(t - last);
+        last = t;
+        if (frames.length < 60 && frames.reduce((a, b) => a + b, 0) < 2000) {
+          requestAnimationFrame(frame);
+          return;
+        }
+        sampling = false;
+        const sorted = frames.sort((a, b) => a - b);
+        const median = sorted[sorted.length >> 1] || 0;
+        if (frames.length >= 8 && median > 40) {
+          slowWindows += 1;
+          if (slowWindows >= 2) {
+            root.classList.add('is-lite');
+            return;
           }
-        });
-      });
-      try { observer.observe({ type, buffered: false }); } catch (e) { /* unsupported */ }
+        } else {
+          slowWindows = 0;
+        }
+        schedule(6000);
+      };
+      requestAnimationFrame(frame);
+    };
+    const schedule = (delay) => {
+      if (timer || sampling || root.classList.contains('is-lite')) return;
+      timer = window.setTimeout(sampleWindow, delay);
     };
 
-    const start = () => window.setTimeout(() => {
-      requestAnimationFrame(sample);
-      if (window.PerformanceObserver) watchLongFrames();
-    }, 1500);
-    if (document.readyState === 'complete') start();
-    else window.addEventListener('load', start, { once: true });
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      });
+      // Let the page that brought the beam into view finish opening first.
+      if (visible.size) schedule(2000);
+    });
+    document.querySelectorAll('.cta-beam').forEach((el) => observer.observe(el));
   }
 
   /* Readify apps. Fill in each store or download link here; an app with no

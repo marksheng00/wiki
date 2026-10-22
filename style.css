@@ -2482,6 +2482,8 @@ img[data-reveal="pending"].is-swapping {
   .footer-bottom { flex-basis: auto; width: 100%; flex-direction: column-reverse; align-items: flex-start; }
   .footer-socials { margin-left: -8px; }
   .footer-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px; }
+  /* The header hides the wordmark on phones; the footer keeps it. */
+  .footer-logo .brand-word { display: inline; }
 }
 
 /* ==========================================================================

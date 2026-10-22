@@ -3173,7 +3173,11 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
     width: 100%;
     height: auto;
     aspect-ratio: 3 / 4;
+    /* Wide phones and folded dual screens: the text still starts on the
+       first screen. Ordinary phones never reach this height. */
+    max-height: 60svh;
   }
+  #view-book .infobox-media img { object-position: center 30%; }
   #view-entity .entity-media-wrap img,
   .mobile-continuum-media-wrap img { width: 100%; height: 100%; object-fit: cover; }
   .book-stage-side,
@@ -3631,4 +3635,14 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .t-tt { transition: none !important; }
+}
+
+/* Dual-screen devices spanning both screens (Surface Duo): the hinge splits
+   the page in two. The sidebar stays on the left screen and the reading
+   column moves to the right one, so no line of text runs under the hinge. */
+@media (min-width: 769px) and (horizontal-viewport-segments: 2) {
+  body,
+  body.sidebar-collapsed {
+    --main-left: calc(env(viewport-segment-left 1 0) + var(--page-inset));
+  }
 }

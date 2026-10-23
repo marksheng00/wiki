@@ -2401,11 +2401,15 @@ img[data-reveal="pending"].is-swapping {
 .footer-logo .brand-mark {
   color: var(--text-secondary);
 }
-/* Line the text up with the mark's glyph, which sits centred in its 24px box. */
+/* Line footer content up with the mark's glyph, which sits centred in its
+   24px box. The columns take it as padding so it only shows once they wrap
+   under the brand; on the right they stay put. */
+.site-footer { --footer-inset: calc((24px - 15px) / 2); }
 .footer-tagline,
 .footer-made-by {
-  margin-left: calc((24px - 15px) / 2);
+  margin-left: var(--footer-inset);
 }
+.footer-cols { padding-left: var(--footer-inset); }
 .footer-tagline {
   font-size: var(--text-ui);
   line-height: 18.2px;
@@ -2463,7 +2467,7 @@ img[data-reveal="pending"].is-swapping {
   border-top: 1px solid var(--border-hairline);
 }
 .footer-copy {
-  margin: 0;
+  margin: 0 0 0 var(--footer-inset);
   font-size: var(--text-ui);
   line-height: 18.2px;
   color: var(--text-label);
@@ -2485,7 +2489,8 @@ img[data-reveal="pending"].is-swapping {
 @media (max-width: 768px) {
   .site-footer { flex-wrap: nowrap; row-gap: 32px; }
   .footer-bottom { flex-basis: auto; width: 100%; flex-direction: column-reverse; align-items: flex-start; }
-  .footer-socials { margin-left: -8px; }
+  /* The glyph sits 8.5px inside its 32px button. */
+  .footer-socials { margin-left: calc(var(--footer-inset) - 8.5px); }
   .footer-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px; }
   /* The header hides the wordmark on phones; the footer keeps it. */
   .footer-logo .brand-word { display: inline; }

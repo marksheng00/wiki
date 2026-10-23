@@ -2401,6 +2401,11 @@ img[data-reveal="pending"].is-swapping {
 .footer-logo .brand-mark {
   color: var(--text-secondary);
 }
+/* Line the text up with the mark's glyph, which sits centred in its 24px box. */
+.footer-tagline,
+.footer-made-by {
+  margin-left: calc((24px - 15px) / 2);
+}
 .footer-tagline {
   font-size: var(--text-ui);
   line-height: 18.2px;

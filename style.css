@@ -2594,6 +2594,9 @@ img[data-reveal="pending"].is-swapping {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Visual balance: lowercase "esc" has no capitals or ascenders, so centring
+   its line box leaves the letters 1px low in the key. Lift them by that. */
+.cmdk-esc-key { display: inline-block; translate: 0 -1px; }
 .cmdk-esc-touch { display: none; }
 /* Touch screens have no Esc key: the same spot is a Cancel button. */
 @media (hover: none) and (pointer: coarse) {
@@ -3714,3 +3717,35 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
+
+/* ==========================================================================
+   Visual balance (视觉对齐)
+   Geometric centring is exact, but some shapes don't look centred: their
+   weight sits off to one side, or a round edge reads as shorter than a
+   straight one. Each icon below is nudged by about half the distance between
+   its ink's centre of mass and its box centre (measured at 8x), which is
+   what the eye reads as centred. `translate` stacks on top of any transform
+   the icon already animates with.
+   ========================================================================== */
+/* Crescent moon: its weight is low and to the left. */
+.ui-icon-moon { translate: 0.65px -0.65px; }
+/* Network triangle: two of its three nodes sit at the bottom. */
+.btn-mobile-graph-launcher .ui-icon-network { translate: -0.4px -1px; }
+/* Sidebar panel icon: the divider makes the left side heavier. */
+.btn-sidebar-collapse .ui-icon { translate: 0.4px 0; }
+/* Magnifier: the lens is heavier than the handle, up and to the left. */
+.nav-search .ui-icon-search { translate: 0.3px 0.1px; }
+/* Arrows in round buttons: the head outweighs the tail, so each arrow is
+   pulled back towards its tail. */
+.detail-arrow .ui-icon-arrow-right,
+.card-copy .ui-icon-arrow-right { translate: -0.55px 0; }
+.detail-arrow .ui-icon-arrow-left { translate: 0.55px 0; }
+.lib-page-step .lib-icon { translate: 0.8px 0; }
+.lib-page-step:last-child .lib-icon { translate: -0.8px 0; }
+.btn-top .ui-icon-arrow-up { translate: 0 0.6px; }
+/* Circles on an edge: a circle touches a straight edge at one point, so it
+   looks set in from it. Round buttons at the right end of the header and of
+   a title row overshoot the edge by 1px, like the round letters of a font
+   overshoot the baseline. */
+.wiki-header-right { margin-right: -1px; }
+.detail-arrows { margin-right: -1px; }

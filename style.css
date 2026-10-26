@@ -2401,10 +2401,12 @@ img[data-reveal="pending"].is-swapping {
 .footer-logo .brand-mark {
   color: var(--text-secondary);
 }
-/* Line footer content up with the mark's glyph, which sits centred in its
-   24px box. The columns take it as padding so it only shows once they wrap
-   under the brand; on the right they stay put. */
-.site-footer { --footer-inset: calc((24px - 15px) / 2); }
+/* The mark's glyph sits 4.5px inside its 24px box, so the logo hangs out by
+   that much and its ink lands on the column edge with the rest of the footer
+   (and the hairline above the copyright). --footer-inset stays as the hook
+   for per-line optical nudges. */
+.site-footer { --footer-inset: 0px; }
+.footer-logo { margin-left: calc((15px - 24px) / 2); }
 .footer-tagline,
 .footer-made-by {
   margin-left: var(--footer-inset);
@@ -2478,6 +2480,9 @@ img[data-reveal="pending"].is-swapping {
   color: var(--text-label);
 }
 .footer-socials { display: flex; gap: 4px; }
+/* Ghost buttons: the last glyph's ink, 8.5px inside its 32px button, ends on
+   the hairline's right end. */
+@media (min-width: 769px) { .footer-socials { margin-right: -8.5px; } }
 .footer-social {
   display: inline-flex;
   align-items: center;
@@ -2610,7 +2615,9 @@ img[data-reveal="pending"].is-swapping {
   max-height: 340px;
 }
 .cmdk-group-label {
-  padding: 10px 8px 4px;
+  /* Starts where the row icons' ink starts (10px row padding plus the
+     icons' own 2px inset), not at their boxes. */
+  padding: 10px 12px 4px;
   font-size: 11px;
   font-weight: 500;
   line-height: 14px;
@@ -3065,17 +3072,30 @@ img[data-reveal="pending"].is-swapping {
    row spans the same column as the sidebar. Sidebar closed: only the logo
    shows; hovering its mark turns it into the toggle. Phones use the menu
    button on the right instead. */
-.brand-combo { position: relative; display: flex; align-items: center; }
+.brand-combo {
+  /* The mark's glyph is 15px wide in a 24px box. */
+  --brand-ink-inset: calc((24px - 15px) / 2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: calc(var(--brand-ink-inset) * -1);
+}
 .btn-sidebar-collapse { display: none; }
 @media (min-width: 769px) {
+  /* Optical alignment: the header lines up by ink, not by boxes. The mark's
+     glyph sits 4.5px inside its 24px box, the toggle's icon 10.4px inside
+     its 36px button and the Download label 13px inside its ghost pill, so
+     each one hangs out by that much: the mark lands on the sidebar's left
+     edge, the toggle icon on its right edge and the label on the reading
+     column. */
   .brand-combo {
-    width: var(--sidebar-w);
-    margin-right: calc(var(--sidebar-gap) - 33px);
+    width: calc(var(--sidebar-w) + var(--brand-ink-inset));
+    margin-right: calc(var(--sidebar-gap) - 33px - 13px);
   }
   body.sidebar-collapsed .brand-combo { width: auto; margin-right: 0; }
   .btn-sidebar-collapse {
     position: absolute;
-    right: 0;
+    right: -10.4px;
     top: 50%;
     z-index: 1;
     display: inline-flex;
@@ -3098,9 +3118,10 @@ img[data-reveal="pending"].is-swapping {
   .btn-sidebar-collapse:focus-visible { background: var(--bg-hover); color: var(--text-primary); }
   .btn-sidebar-collapse:active { background: var(--bg-pressed); }
 
+  /* Centred on the mark it stands in for. */
   body.sidebar-collapsed .btn-sidebar-collapse {
     right: auto;
-    left: -4px;
+    left: -6px;
     color: var(--text-primary);
     opacity: 0;
   }

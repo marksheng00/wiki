@@ -55,14 +55,18 @@
   padding-top: 40px;
   margin-bottom: 64px;
   counter-reset: sf;
+  /* The number circles sit on the pictures' left edge (and the text's on
+     phones). A circle only touches that edge at one point and looks set in,
+     so it overshoots by 0.75px, and the line through the circles follows. */
+  --sf-num-overshoot: 0.75px;
 }
 /* The line runs from the first number to the last. */
 .sf-board::before {
   content: "";
   position: absolute;
   top: 11px;
-  left: 12px;
-  right: calc((100% - 80px) / 5 - 12px);
+  left: calc(12px - var(--sf-num-overshoot));
+  right: calc((100% - 80px) / 5 - 12px + var(--sf-num-overshoot));
   height: 1px;
   background: var(--text-muted);
   opacity: 0.3;
@@ -87,7 +91,7 @@
 .sf-card::before {
   content: counter(sf);
   position: absolute;
-  left: 0;
+  left: calc(var(--sf-num-overshoot) * -1);
   top: -40px;
   width: 23px;
   height: 23px;
@@ -126,13 +130,13 @@
   .sf-board::before {
     top: 24px;
     bottom: 40px;
-    left: 11px;
+    left: calc(11px - var(--sf-num-overshoot));
     right: auto;
     width: 1px;
     height: auto;
   }
   .sf-card { margin: 0 0 32px; }
-  .sf-card::before { left: -36px; top: 0; }
+  .sf-card::before { left: calc(-36px - var(--sf-num-overshoot)); top: 0; }
   .sf-card .card-stage { aspect-ratio: 16 / 10; }
 }
 

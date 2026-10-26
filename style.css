@@ -2410,6 +2410,11 @@ img[data-reveal="pending"].is-swapping {
   margin-left: var(--footer-inset);
 }
 .footer-cols { padding-left: var(--footer-inset); }
+/* Chinese glyphs carry their own side bearings: 把 sits about 0.7px inside
+   the 24px box's text edge and 由 about 1.7px, measured against the icon's
+   ink edge in Chinese mode. Pull each line back by that much. */
+:root:lang(zh) .footer-tagline { margin-left: calc(var(--footer-inset) - 0.7px); }
+:root:lang(zh) .footer-made-by { margin-left: calc(var(--footer-inset) - 1.7px); }
 .footer-tagline {
   font-size: var(--text-ui);
   line-height: 18.2px;

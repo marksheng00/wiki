@@ -3091,6 +3091,14 @@ img[data-reveal="pending"].is-swapping {
     width: calc(var(--sidebar-w) + var(--brand-ink-inset));
     margin-right: calc(var(--sidebar-gap) - 33px - 13px);
   }
+  /* Visual alignment: the solid black mark reads as sticking out when it
+     sits on the sidebar's box edge, because the eye follows the menu text
+     12px further in. Start the mark's ink on that text edge instead. */
+  body:not(.sidebar-collapsed) .brand-combo {
+    --brand-text-inset: 12px;
+    margin-left: calc(var(--brand-text-inset) - var(--brand-ink-inset));
+    width: calc(var(--sidebar-w) - var(--brand-text-inset) + var(--brand-ink-inset));
+  }
   body.sidebar-collapsed .brand-combo { width: auto; margin-right: 0; }
   .btn-sidebar-collapse {
     position: absolute;

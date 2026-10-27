@@ -2906,12 +2906,6 @@ img[data-reveal="pending"].is-swapping {
 .book-media-stack .infobox-media { margin-bottom: 0; }
 .book-toc:not(.is-open) .book-toc-inner { visibility: hidden; transition: visibility 0s var(--acc-collapse); }
 .entity-section-toc .book-toc-inner { margin-left: 30px; }
-/* Book page: the infobox starts level with the book title, not with the
-   first section heading. Wide enough screens only, so the title never runs
-   into it. */
-@media (min-width: 1024px) {
-  .wiki-infobox.detail-stage { margin-top: calc(4px - 67px); }
-}
 
 /* Download menu: every Readify app grouped by where you read, with a QR code
    for phones. The reader's own device is marked. */
@@ -3749,3 +3743,61 @@ html:lang(zh-CN) .article-h1 { letter-spacing: 0; }
    overshoot the baseline. */
 .wiki-header-right { margin-right: -1px; }
 .detail-arrows { margin-right: -1px; }
+
+/* ==========================================================================
+   Visual alignment: page (视觉对齐：整页)
+   Boxes line up already; these line up what the eye sees. Values come from
+   ink measured at 4x. Latin is Inter (self-hosted, so the same everywhere);
+   the Chinese values depend on the system CJK font and are marked zh.
+   ========================================================================== */
+:root {
+  /* From the top of a 36px/42px title line to the top of its capitals. */
+  --title-cap: 7.5px;
+  /* Half the height of the title's ink: capitals to baseline. */
+  --title-ink-mid: 13.5px;
+  /* From the top of a body or h2 line to the top of its capitals. */
+  --prose-cap: 6px;
+}
+:root:lang(zh) {
+  --title-cap: 4.25px;   /* zh: ideographs reach higher than capitals */
+  --title-ink-mid: 17.5px;
+  --prose-cap: 5px;
+}
+/* Big titles: a 36px capital carries about 0.04em of side bearing, so the
+   title looked set in from the text under it. Hang it back. */
+.article-h1,
+.detail-title { margin-left: -0.04em; }
+:root:lang(zh) .article-h1,
+:root:lang(zh) .detail-title { margin-left: -0.02em; }
+
+@media (min-width: 769px) {
+  /* On book pages the sidebar starts with the graph card, a shape whose top
+     is the page's first line. The title's capitals sat 11.5px below it (the
+     4px head padding plus the room above the capitals in the line), and the
+     cover in between. Lift the title so its ink starts on that line; the
+     cover follows it (above). Library pages keep their title, which already
+     sits level with the sidebar's first label. */
+  :is(#view-book, #view-entity, #view-storyflow, #view-story-flow) > .detail-head { padding-top: 0; }
+  :is(#view-book, #view-entity, #view-storyflow, #view-story-flow) > .detail-head .detail-title { margin-top: calc(var(--title-cap) * -1); }
+  /* Prev/next circles centre on the middle of the title's ink, not on its
+     line box: they read 5px high before. */
+  #view-entity .detail-arrows { margin-top: calc(var(--title-ink-mid) - 18px); }
+  /* A picture floated beside text starts at the first line's capitals, not
+     at the top of its line box. */
+  .wiki-infobox.detail-stage,
+  #view-entity .entity-floating-media { margin-top: var(--prose-cap); }
+}
+
+@media (min-width: 1024px) {
+  /* Wide screens: the book cover rises beside the title instead, its top on
+     the title's first line of ink (the head is 42px of title line, less the
+     lift, plus a 21px gap). */
+  .wiki-infobox.detail-stage { margin-top: calc(var(--title-cap) - 63px); }
+}
+
+/* Footer: the logo's top lines up with the top of the column titles' ink. */
+.footer-brand { margin-top: -2.5px; }
+:root:lang(zh) .footer-brand { margin-top: -4px; } /* zh */
+@media (max-width: 768px) {
+  .footer-brand { margin-top: 0; }
+}

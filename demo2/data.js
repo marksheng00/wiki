@@ -173,6 +173,27 @@
         ev(ID.room101, 'it is where the Party gets inside', '正是在这里，党深入了人心'),
         ev(ID.winston, 'he had won the victory over himself, and he loved Big Brother.', '他赢得了对自己的胜利，他爱老大哥。')
       ],
+      graph: {
+        nodes: [
+          { id: ID.charrington, x: 0.5, y: 0, side: 'right' },
+          { id: ID.obrien, x: 0.98, y: 0.3 },
+          { id: ID.julia, x: 0.02, y: 0.5 },
+          { id: ID.winston, x: 0.5, y: 0.5, primary: true },
+          { id: ID.bigBrother, x: 0.02, y: 0.96 },
+          { id: ID.rat, x: 0.5, y: 0.96 },
+          { id: ID.room101, x: 0.98, y: 0.96 }
+        ],
+        edges: [
+          { source: ID.julia, target: ID.winston, label: { en: 'betrays him too', zh: '也出卖了他' }, cite: 17, curve: 0.22 },
+          { source: ID.winston, target: ID.julia, label: { en: '"Do it to Julia!"', zh: '“去咬朱莉娅！”' }, cite: 14, curve: 0.22 },
+          { source: ID.charrington, target: ID.winston, label: { en: 'landlord, Thought Police', zh: '房东，实为思想警察' }, cite: 8 },
+          { source: ID.obrien, target: ID.winston, label: { en: 'remakes him', zh: '亲手改造' }, cite: 10 },
+          { source: ID.obrien, target: ID.room101, label: { en: 'brings the cage', zh: '带来鼠笼' }, cite: 13 },
+          { source: ID.room101, target: ID.rat, label: { en: 'holds', zh: '存放' }, cite: 12 },
+          { source: ID.rat, target: ID.winston, label: { en: 'worst fear', zh: '最深的恐惧' }, cite: 12 },
+          { source: ID.winston, target: ID.bigBrother, label: { en: 'comes to love', zh: '最终爱上' }, cite: 20 }
+        ]
+      },
       chain: [
         { entity: ID.julia, cite: 3, label: { en: 'Julia slips him a note', zh: '朱莉娅递来纸条' } },
         { entity: ID.roomAbove, cite: 5, label: { en: 'A room with no telescreen', zh: '租下没有电幕的屋子' } },
@@ -219,6 +240,21 @@
         ev(ID.winston, 'holding up four fingers, he demands that Winston see five', '奥布莱恩伸出四根手指，要温斯顿说出看到的是五根'),
         ev(ID.winston, 'there are no martyrdoms in this place, and that the Party does not destroy its enemies but changes them', '这里没有殉道者，党也不消灭敌人，而是改造他们')
       ],
+      graph: {
+        nodes: [
+          { id: ID.winston, x: 0.02, y: 0.5, primary: true },
+          { id: ID.obrien, x: 0.42, y: 0.5 },
+          { id: ID.goldstein, x: 0.98, y: 0.04 },
+          { id: ID.innerParty, x: 0.98, y: 0.5 },
+          { id: ID.love, x: 0.98, y: 0.96 }
+        ],
+        edges: [
+          { source: ID.winston, target: ID.obrien, label: { en: 'trusts', zh: '信任' }, cite: 1 },
+          { source: ID.obrien, target: ID.goldstein, label: { en: 'toasts, falsely', zh: '假意举杯' }, cite: 3 },
+          { source: ID.obrien, target: ID.innerParty, label: { en: 'serves', zh: '效忠' }, cite: 4 },
+          { source: ID.obrien, target: ID.love, label: { en: 're-educates him here', zh: '在此改造他' }, cite: 5 }
+        ]
+      },
       chain: [
         { entity: ID.hate, cite: 1, label: { en: 'A glance at the Hate', zh: '仇恨会上的对视' } },
         { entity: ID.obrien, cite: 2, label: { en: 'He leaves his address', zh: '留下地址' } },
@@ -268,6 +304,22 @@
         ev(ID.winston, "He traces '2 + 2 = 5' in the dust on the café table", '他用手指在咖啡馆桌子的灰尘上画下“2 + 2 = 5”'),
         ev(ID.winston, 'he had won the victory over himself, and he loved Big Brother.', '他赢得了对自己的胜利，他爱老大哥。')
       ],
+      graph: {
+        nodes: [
+          { id: ID.freedom, x: 0.04, y: 0.14, side: 'above', name: { en: '"Two plus two make four"', zh: '“二加二等于四”' } },
+          { id: ID.winston, x: 0.04, y: 0.92, primary: true },
+          { id: ID.twoPlusTwo, x: 0.52, y: 0.5 },
+          { id: ID.obrien, x: 0.96, y: 0.14, side: 'above' },
+          { id: ID.doublethink, x: 0.96, y: 0.92 }
+        ],
+        edges: [
+          { source: ID.winston, target: ID.freedom, label: { en: 'writes in his diary', zh: '写进日记' }, cite: 1 },
+          { source: ID.twoPlusTwo, target: ID.freedom, label: { en: 'negates', zh: '否定' }, cite: 4 },
+          { source: ID.obrien, target: ID.twoPlusTwo, label: { en: 'makes him see', zh: '逼他看见' }, cite: 2 },
+          { source: ID.twoPlusTwo, target: ID.doublethink, label: { en: 'puts into practice', zh: '体现' }, cite: 3 },
+          { source: ID.winston, target: ID.twoPlusTwo, label: { en: 'finally writes', zh: '最终写下' }, cite: 5 }
+        ]
+      },
       chain: [
         { entity: ID.diary, cite: 1, label: { en: 'Two plus two make four', zh: '日记：二加二等于四' } },
         { entity: ID.love, cite: 2, label: { en: 'Four fingers', zh: '四根手指' } },

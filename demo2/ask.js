@@ -116,6 +116,12 @@
       const follow = e.target.closest('.askp-follow');
       if (follow) ask(follow.dataset.q);
     });
+    el.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const cite = e.target.closest('.askp-cite');
+      const turn = e.target.closest('.askp-turn');
+      if (turn?.querySelector('.askp-graph')) lightCite(turn, cite ? Number(cite.dataset.cite) : null, true);
+    });
     window.addEventListener('readipedia:lang', () => { if (el) { el.querySelector('.askp-chat').innerHTML = ''; turns = 0; stack.length = 0; showChat(); syncHead(); close(); } });
     syncHead();
     return el;
@@ -266,6 +272,13 @@
     lead.className = 'askp-lead';
     turn.appendChild(lead);
     if (!await stream(lead, answer.lead[lang()], alive)) return;
+    // Right under the conclusion, a map of who did what to whom, so the
+    // sections below read against it. Edges carry the citation numbers and
+    // light up with them.
+    turn.insertAdjacentHTML('beforeend', '<div class="askp-graph rg"></div>');
+    answerGraph(turn.querySelector('.askp-graph'), answer);
+    await wait(260);
+    if (!alive()) return;
     for (const section of answer.sections) {
       turn.insertAdjacentHTML('beforeend', `<h3 class="askp-h">${esc(section.h[lang()])}</h3>`);
       const p = document.createElement('p');
@@ -294,6 +307,44 @@
       </div>
       ${followHtml(answer.follow)}`);
     scrollDown(chat);
+  }
+
+  function answerGraph(host, answer) {
+    const W = host.clientWidth;
+    const H = host.clientHeight;
+    const padX = W < 400 ? 40 : 52;
+    const padTop = answer.graph.nodes.some((n) => n.side === 'above') ? 40 : 22;
+    const padBottom = 44;
+    const nodes = answer.graph.nodes.map((n) => ({
+      id: n.id,
+      name: n.name?.[lang()],
+      x: padX + n.x * (W - padX * 2),
+      y: padTop + n.y * (H - padTop - padBottom),
+      r: n.primary ? 20 : 16,
+      primary: n.primary,
+      labelSide: n.side || 'below',
+      key: ''
+    }));
+    const edges = answer.graph.edges.map((e) => ({
+      key: `k${e.cite}`, source: e.source, target: e.target, label: e.label[lang()], showLabel: true, curvature: e.curve ?? 0.14
+    }));
+    D().drawGraph(host, { nodes, edges }, {
+      onHover: (key) => lightCite(host.closest('.askp-turn'), key ? Number(key.slice(1)) : null),
+      onPick: (key, id) => {
+        if (key) {
+          const c = answer.cites[Number(key.slice(1)) - 1];
+          if (c) push(c.entity, c[lang()]);
+        } else if (id) push(id);
+      }
+    });
+  }
+
+  // A citation and its relation light up together.
+  function lightCite(turn, n, fromText) {
+    if (!turn) return;
+    turn.querySelectorAll('.askp-cite').forEach((c) => c.classList.toggle('is-hover', n !== null && Number(c.dataset.cite) === n));
+    const host = turn.querySelector('.askp-graph');
+    if (fromText && host) D().lightKey(host, n !== null ? `k${n}` : null, 'is-hover');
   }
 
   function followHtml(ids) {

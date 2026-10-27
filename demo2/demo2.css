@@ -400,8 +400,17 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 }
 .askp-cite:hover { background: var(--text-primary); color: var(--bg-page); }
 
+/* The relations an answer rests on. */
+.askp-graph {
+  height: 360px;
+  margin: 16px 0 4px;
+  animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both;
+}
+.askp-graph .rg-text { max-width: 110px; }
+.askp-cite.is-hover { background: var(--text-primary); color: var(--bg-page); }
+
 /* Story order and sources, both folded until asked for. */
-.askp-more { margin-top: 18px; border-top: 1px solid var(--border-hairline); animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both; }
+.askp-more { margin-top: 14px; border-top: 1px solid var(--border-hairline); animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both; }
 .askp-toggle {
   display: flex;
   align-items: center;
@@ -565,7 +574,7 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rg-node, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
+  .rg-node, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-graph, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
 }
 
 /* Phones: fan layout, one relation per row. */

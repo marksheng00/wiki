@@ -2920,7 +2920,9 @@ img[data-reveal="pending"].is-swapping {
 .nav-apps-panel {
   position: absolute;
   top: 100%;
-  left: -8px;
+  /* The menu's first column (group labels and icon tiles) starts under the
+     Download label's ink, so the two read as one edge. */
+  left: -3px;
   z-index: 1000;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 168px;

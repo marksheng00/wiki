@@ -464,6 +464,7 @@
       showView: showArticleView,
       pushHistory: (id) => updateNavHistory('story', id),
       openEntity: (id) => openEntityArticle(id),
+      articleModel: (id) => getEntityArticleModel(id),
       renderMarkdown
     };
     const initialRoute = getRouteFromHash();
@@ -6395,14 +6396,6 @@
     const inLibrary = () => Boolean(getEl('view-library')?.classList.contains('active') && window.ReadipediaLibrary?.searchItems);
     // 2.0 demo: outside the library the same field also takes questions.
     const placeholder = () => t(inLibrary() ? 'Search books and entries...' : (window.ReadipediaAsk ? 'Search or ask...' : 'Search entries and pages...'));
-    const panel = overlay.querySelector('.cmdk-panel');
-    let answering = false;
-    const askCtx = () => ({ list, input, panel, close });
-    const stopAsking = () => {
-      if (!answering) return;
-      answering = false;
-      window.ReadipediaAsk?.reset(askCtx());
-    };
 
     const rank = (items, query) => (query
       ? items.slice().sort((a, b) => (a.label.toLowerCase().startsWith(query) ? 0 : 1) - (b.label.toLowerCase().startsWith(query) ? 0 : 1))
@@ -6526,7 +6519,6 @@
       lastFocus = document.activeElement;
       overlay.hidden = false;
       input.value = '';
-      stopAsking();
       input.placeholder = placeholder();
       fitToViewport();
       activeIndex = 0;
@@ -6544,15 +6536,11 @@
     };
     const choose = async (item) => {
       if (!item) return;
+      close();
       if (item.kind === 'ask' && window.ReadipediaAsk) {
-        answering = true;
-        results = [];
-        input.value = item.label;
-        input.removeAttribute('aria-activedescendant');
-        window.ReadipediaAsk.run(item, askCtx());
+        window.ReadipediaAsk.ask(item.label);
         return;
       }
-      close();
       if (item.kind === 'page') {
         getEl(item.id)?.click();
       } else if (item.kind === 'library') {
@@ -6584,7 +6572,7 @@
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) close();
     });
-    input.addEventListener('input', () => { stopAsking(); activeIndex = 0; render(); });
+    input.addEventListener('input', () => { activeIndex = 0; render(); });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }

@@ -283,69 +283,124 @@
     detail.querySelectorAll('.rel-quote').forEach((btn) => {
       btn.addEventListener('click', () => {
         const ev = edge.evidence[Number(btn.dataset.i)];
-        openAndMark(ev.entity, ev[lang()]);
+        leaveGraph().then(() => openAndMark(ev.entity, ev[lang()]));
       });
     });
     detail.querySelectorAll('.rel-detail-name').forEach((a) => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
-        window.ReadipediaNav?.openEntity(a.dataset.entity);
+        leaveGraph().then(() => window.ReadipediaNav?.openEntity(a.dataset.entity));
       });
     });
   }
 
-  function mountRelations(md, entityId) {
-    const rel = DATA.relations[entityId];
-    md.querySelector('.rel-section')?.remove();
-    if (!rel) return;
-    const section = document.createElement('section');
-    section.className = 'rel-section';
-    section.innerHTML = `<h2 id="sec-relations">${T('Relations', '关系')}</h2><div class="rel-map rg"></div><div class="rel-detail" aria-live="polite"></div>`;
-    // After the lead, so the map is the first thing below the opening paragraph.
-    const firstHeading = md.querySelector('h2');
-    if (firstHeading) firstHeading.parentNode.insertBefore(section, firstHeading);
-    else md.appendChild(section);
+  /* ------------------------------------------------- Inside the graph area */
+  // The expanded graph (desktop overlay, phone full screen) gets a switch:
+  // the usual mention graph, or the labelled relations of the current entry.
+  // Nothing is added to the article itself.
+  const container = () => document.getElementById('sidebar-graph-container');
+  const expanded = () => Boolean(container()?.classList.contains('is-expanded'));
+  let currentEntity = null;
+  let mode = 'graph';
+  let layer = null;
+  let selected = null;
 
-    const host = section.querySelector('.rel-map');
-    const detail = section.querySelector('.rel-detail');
-    let edges = relationEdges(rel, host.clientWidth < 560);
-    let selected = null;
-
-    const draw = () => {
-      const narrow = host.clientWidth < 560;
-      edges = relationEdges(rel, narrow);
-      host.classList.toggle('is-fan', narrow);
-      host.style.setProperty('--fan-text-w', `${Math.max(120, host.clientWidth - Math.min(150, host.clientWidth * 0.42) - 24)}px`);
-      host.style.height = `${narrow ? rel.edges.length * 44 + 24 : 520}px`;
-      drawGraph(host, { nodes: ringLayout(rel, host.clientWidth, host.clientHeight), edges }, {
-        onPick: (key) => {
-          selected = key && key !== selected ? key : null;
-          setSelected(host, selected);
-          renderDetail(detail, edges.find((e) => e.key === selected));
-          // Phones: the quotes sit under a tall fan; bring them into view.
-          if (selected && host.classList.contains('is-fan')) {
-            setTimeout(() => detail.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 120);
-          }
-        }
-      });
-      setSelected(host, selected);
-    };
-    draw();
-    let lastWidth = host.clientWidth;
-    const ro = new ResizeObserver(() => {
-      if (Math.abs(host.clientWidth - lastWidth) < 2) return;
-      lastWidth = host.clientWidth;
-      draw();
-    });
-    ro.observe(host);
+  function leaveGraph() {
+    if (!expanded()) return Promise.resolve();
+    document.getElementById('btn-graph-expand')?.click();
+    return new Promise((r) => setTimeout(r, reducedMotion() ? 60 : 480));
   }
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function ensureLayer() {
+    const host = container();
+    if (!host) return null;
+    if (layer && host.contains(layer.root)) return layer;
+    const root = document.createElement('div');
+    root.className = 'relx';
+    root.innerHTML = `<div class="relx-switch" role="tablist">
+        <button type="button" role="tab" data-mode="graph"></button>
+        <button type="button" role="tab" data-mode="rel"></button>
+        <span class="relx-thumb" aria-hidden="true"></span>
+      </div>
+      <div class="relx-stage"><div class="relx-map rg"></div><div class="rel-detail relx-detail" aria-live="polite"></div></div>`;
+    host.appendChild(root);
+    root.querySelectorAll('.relx-switch button').forEach((btn) => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); setMode(btn.dataset.mode); });
+    });
+    // Keep clicks in the layer from reaching the canvas underneath.
+    root.addEventListener('pointerdown', (e) => e.stopPropagation());
+    layer = { root, map: root.querySelector('.relx-map'), detail: root.querySelector('.relx-detail') };
+    new ResizeObserver(() => { if (mode === 'rel' && expanded()) draw(); }).observe(root);
+    return layer;
+  }
+
+  function sync() {
+    const l = ensureLayer();
+    if (!l) return;
+    const rel = DATA.relations[currentEntity];
+    const show = Boolean(rel) && expanded();
+    l.root.classList.toggle('is-available', show);
+    if (!rel) mode = 'graph';
+    const [g, r] = l.root.querySelectorAll('.relx-switch button');
+    g.textContent = T('Graph', '图谱');
+    r.textContent = T('Relations', '关系');
+    l.root.querySelectorAll('.relx-switch button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
+    l.root.classList.toggle('is-rel', show && mode === 'rel');
+    container()?.classList.toggle('relx-on', show && mode === 'rel');
+    if (show && mode === 'rel') draw();
+  }
+
+  function setMode(next) {
+    if (next === mode) return;
+    mode = next;
+    selected = null;
+    if (layer) renderDetail(layer.detail, null);
+    sync();
+  }
+
+  function draw() {
+    const rel = DATA.relations[currentEntity];
+    if (!rel || !layer) return;
+    const host = layer.map;
+    const stage = layer.root.querySelector('.relx-stage');
+    const narrow = stage.clientWidth < 560;
+    const box = container().getBoundingClientRect();
+    const outside = !narrow && window.innerWidth - box.right >= 372;
+    layer.root.classList.toggle('detail-outside', outside);
+    layer.root.style.setProperty('--relx-detail-x', `${box.right + 12}px`);
+    const edges = relationEdges(rel, narrow);
+    host.classList.toggle('is-fan', narrow);
+    host.style.setProperty('--fan-text-w', `${Math.max(120, stage.clientWidth - Math.min(150, stage.clientWidth * 0.42) - 24)}px`);
+    host.style.height = narrow ? `${rel.edges.length * 40 + 24}px` : `${stage.clientHeight}px`;
+    drawGraph(host, { nodes: ringLayout(rel, host.clientWidth, host.clientHeight), edges }, {
+      onPick: (key) => {
+        selected = key && key !== selected ? key : null;
+        setSelected(host, selected);
+        renderDetail(layer.detail, edges.find((e) => e.key === selected));
+      }
+    });
+    setSelected(host, selected);
+  }
+
+  function watchContainer() {
+    const host = container();
+    if (!host) { setTimeout(watchContainer, 300); return; }
+    ensureLayer();
+    new MutationObserver(() => sync()).observe(host, { attributes: true, attributeFilter: ['class'] });
+    sync();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchContainer);
+  else watchContainer();
 
   document.addEventListener('readipedia:entity', (event) => {
     const md = document.getElementById('view-entity-markdown');
-    if (!md) return;
     const id = event.detail?.id;
+    if (id !== currentEntity) { selected = null; if (layer) renderDetail(layer.detail, null); }
+    currentEntity = id;
+    sync();
+    if (!md) return;
     md.dataset.entity = id;
-    mountRelations(md, id);
     if (pendingMark && pendingMark.entityId === id) {
       const { text } = pendingMark;
       pendingMark = null;
@@ -353,12 +408,7 @@
       setTimeout(() => mark(md, text), 420);
     }
   });
-
-  // A language switch re-renders the entry without a new entity event.
-  document.addEventListener('readipedia:lang', () => {
-    const md = document.getElementById('view-entity-markdown');
-    if (md?.dataset.entity && !md.querySelector('.rel-section')) mountRelations(md, md.dataset.entity);
-  });
+  document.addEventListener('readipedia:lang', () => sync());
 
   window.ReadipediaDemo2 = { drawGraph, setSelected, lightKey, nameOf, thumbOf, mark, unmark, openAndMark, esc, T, lang };
 })();

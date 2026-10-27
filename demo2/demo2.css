@@ -111,12 +111,108 @@
 .rg-edge-label.is-hover,
 .rg-edge-label.is-selected { color: var(--text-primary); }
 
-/* ------------------------------------------------------- Relations section */
-.rel-section {
-  clear: both;
-  margin: 8px 0 8px;
+/* ------------------------------------------- Relations, in the graph area */
+/* A switch in the expanded graph swaps the mention graph for the labelled
+   relations of the current entry. */
+.relx { position: absolute; inset: 0; z-index: 9; pointer-events: none; display: none; }
+.relx.is-available { display: block; }
+.relx-switch {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--tabs-bg);
+  pointer-events: auto;
+  isolation: isolate;
 }
-.rel-map { margin-top: 4px; }
+.relx-switch button {
+  position: relative;
+  z-index: 1;
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--duration-quick) var(--ease-smooth-out);
+}
+.relx-switch button[aria-selected="true"] { color: var(--text-primary); }
+.relx-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 7px;
+  background: var(--tabs-indicator);
+  box-shadow: var(--tabs-indicator-shadow);
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
+}
+.relx.is-rel .relx-thumb { transform: translateX(100%); }
+
+.relx-stage {
+  position: absolute;
+  inset: 52px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-fast) var(--ease-smooth-out), visibility 0s linear var(--duration-fast);
+}
+.relx.is-rel .relx-stage { opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; overflow-y: auto; scrollbar-width: none; }
+.relx-stage::-webkit-scrollbar { display: none; }
+/* Relations need room: the expanded area grows and covers the article. */
+.relx.is-rel { background: var(--bg-page); pointer-events: auto; }
+@media (min-width: 761px) {
+  .sidebar-graph-container.is-expanded.relx-on {
+    /* The graph code sizes the expanded area inline. */
+    width: min(max(50vw, 760px), calc(100vw - 24px)) !important;
+    height: calc(100dvh - var(--header-h) - 12px) !important;
+  }
+}
+.relx-map { flex: none; }
+.relx-detail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 4px;
+  border-radius: var(--radius-lg);
+  background: var(--tt-bg, var(--bg-surface));
+  box-shadow: var(--modal-shadow);
+}
+.relx-detail.is-open { padding: 4px 12px 6px; }
+.relx-detail:not(.is-open) { box-shadow: none; }
+/* With room to the right of the graph, the quotes sit there instead. */
+.relx.detail-outside .relx-detail {
+  position: fixed;
+  left: var(--relx-detail-x);
+  right: auto;
+  top: calc(var(--header-h) + 52px);
+  bottom: auto;
+  width: 340px;
+  margin: 0;
+}
+/* The canvas steps back while relations are shown. */
+.sidebar-graph-container .topology-pure-canvas { transition: opacity var(--duration-fast) var(--ease-smooth-out), filter var(--duration-fast) var(--ease-smooth-out); }
+.sidebar-graph-container.relx-on .topology-pure-canvas { opacity: 0; filter: blur(var(--blur-small)); pointer-events: none; }
+@media (max-width: 760px) {
+  .relx-stage { inset: 56px 16px 16px; }
+  .relx.is-rel .relx-stage { padding-bottom: 180px; }
+  .relx-detail { position: sticky; bottom: 0; margin-top: auto; }
+}
+
 .rel-detail {
   display: grid;
   grid-template-rows: 0fr;
@@ -585,3 +681,15 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 .rel-map { overflow-x: clip; }
 .rg.is-fan .rg-node.is-none .rg-text { display: none; }
 .rg.is-fan .rg-node.is-primary .rg-dot { box-shadow: none; }
+
+/* Soft edge where the relations area meets the article. */
+.relx.is-rel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 72px;
+  background: linear-gradient(to right, var(--bg-page), rgba(var(--bg-page-rgb), 0));
+  pointer-events: none;
+}

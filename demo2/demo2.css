@@ -275,7 +275,10 @@ mark.rel-mark.is-on { background: rgba(255, 196, 0, 0.28); }
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 4px 20px 28px;
+  /* The page keeps the only scrollbar; the panel scrolls without one. */
+  scrollbar-width: none;
 }
+.askp-chat::-webkit-scrollbar, .askp-entry::-webkit-scrollbar { display: none; }
 .askp-chat.is-in { animation: askp-from-left var(--duration-medium) var(--ease-smooth-out) both; }
 .askp-entry.is-in { animation: askp-from-right var(--duration-medium) var(--ease-smooth-out) both; }
 @keyframes askp-from-right { from { opacity: 0; transform: translateX(16px); } }

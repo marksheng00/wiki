@@ -224,6 +224,8 @@
     'Read the original': '阅读原著',
     'Back to top': '回到顶部',
     'Search entries and pages...': '搜索词条和页面…',
+    'Search or ask...': '搜索词条，或问一个问题…',
+    'Ask': '提问',
     'Search books and entries...': '搜索书籍和词条…',
     'Books': '书籍',
     'Other books': '其他书籍',
@@ -537,6 +539,7 @@
       "film": "<rect x=\"2.75\" y=\"2.75\" width=\"10.5\" height=\"10.5\" rx=\"2\"/><path d=\"M5.5 2.75v10.5M10.5 2.75v10.5M2.75 8h2.75M10.5 8h2.75\"/>",
       "route": "<circle cx=\"4\" cy=\"12\" r=\"1.75\"/><circle cx=\"12\" cy=\"4\" r=\"1.75\"/><path d=\"M5.75 12H10a2 2 0 0 0 0-4H6a2 2 0 0 1 0-4h4.25\"/>",
       "grid": "<rect x=\"2.75\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"2.75\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"2.75\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/><rect x=\"9\" y=\"9\" width=\"4.25\" height=\"4.25\" rx=\"1\"/>",
+      "sparkles": "<path d=\"M8 2.25c.35 2.9 1.85 4.4 4.75 4.75-2.9.35-4.4 1.85-4.75 4.75C7.65 8.85 6.15 7.35 3.25 7 6.15 6.65 7.65 5.15 8 2.25Z\"/><path d=\"M12.5 10.5c.12.95.6 1.43 1.5 1.5-.9.12-1.38.6-1.5 1.5-.12-.9-.6-1.38-1.5-1.5.9-.07 1.38-.55 1.5-1.5Z\"/>",
       "shapes": "<path d=\"M4 2.25h5.25L12 5v8.75H4Z\"/><path d=\"M9.25 2.25V5H12M6.25 8.25h3.5M6.25 10.75h3.5\"/>"
   };
 
@@ -6390,7 +6393,16 @@
     // every book and every entry. Elsewhere it searches this book first and
     // lists matches from the other books after it.
     const inLibrary = () => Boolean(getEl('view-library')?.classList.contains('active') && window.ReadipediaLibrary?.searchItems);
-    const placeholder = () => t(inLibrary() ? 'Search books and entries...' : 'Search entries and pages...');
+    // 2.0 demo: outside the library the same field also takes questions.
+    const placeholder = () => t(inLibrary() ? 'Search books and entries...' : (window.ReadipediaAsk ? 'Search or ask...' : 'Search entries and pages...'));
+    const panel = overlay.querySelector('.cmdk-panel');
+    let answering = false;
+    const askCtx = () => ({ list, input, panel, close });
+    const stopAsking = () => {
+      if (!answering) return;
+      answering = false;
+      window.ReadipediaAsk?.reset(askCtx());
+    };
 
     const rank = (items, query) => (query
       ? items.slice().sort((a, b) => (a.label.toLowerCase().startsWith(query) ? 0 : 1) - (b.label.toLowerCase().startsWith(query) ? 0 : 1))
@@ -6444,7 +6456,22 @@
         .map((page) => ({ ...page, label: t(page.label), hint: t(page.hint), alt: page.label }))
         .filter(match);
       const entityHits = rank(entities.filter(match), query).slice(0, query ? 60 : 12);
-      return [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)], [t('Other books'), otherBookHits(query, match)]];
+      const groups = [[t('Pages'), pageHits], [t('Entries'), entityHits], [t('Story'), storyHits(query, match)], [t('Other books'), otherBookHits(query, match)]];
+      // 2.0 demo: questions. Empty field: three suggestions on top. A typed
+      // question goes first; anything else can still be asked, last.
+      const ask = window.ReadipediaAsk;
+      if (ask) {
+        const raw = input.value.trim();
+        if (!raw) {
+          groups.unshift([t('Ask'), ask.suggestions().map((s) => ({ kind: 'ask', label: s.label, hint: '', icon: 'sparkles' }))]);
+        } else {
+          const askItem = [{ kind: 'ask', label: raw, hint: t('Ask'), icon: 'sparkles' }];
+          const hasHits = groups.some(([, items]) => items.length);
+          if (ask.looksLikeQuestion(raw) || !hasHits) groups.unshift([t('Ask'), askItem]);
+          else groups.push([t('Ask'), askItem]);
+        }
+      }
+      return groups;
     };
 
     const render = () => {
@@ -6499,6 +6526,7 @@
       lastFocus = document.activeElement;
       overlay.hidden = false;
       input.value = '';
+      stopAsking();
       input.placeholder = placeholder();
       fitToViewport();
       activeIndex = 0;
@@ -6516,6 +6544,14 @@
     };
     const choose = async (item) => {
       if (!item) return;
+      if (item.kind === 'ask' && window.ReadipediaAsk) {
+        answering = true;
+        results = [];
+        input.value = item.label;
+        input.removeAttribute('aria-activedescendant');
+        window.ReadipediaAsk.run(item, askCtx());
+        return;
+      }
       close();
       if (item.kind === 'page') {
         getEl(item.id)?.click();
@@ -6548,7 +6584,7 @@
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) close();
     });
-    input.addEventListener('input', () => { activeIndex = 0; render(); });
+    input.addEventListener('input', () => { stopAsking(); activeIndex = 0; render(); });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }

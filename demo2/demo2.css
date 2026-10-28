@@ -655,12 +655,10 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 .askp-pill:hover { background: var(--surface-btn-hover, var(--bg-hover)); }
 .askp-pill svg { width: 16px; height: 16px; color: var(--brand-blue); }
 
-/* Desktop: the panel docks beside the page, which makes room for it. */
+/* Desktop: the panel floats above the page; the page keeps its width. */
 @media (min-width: 761px) {
   /* Below the header, so its controls stay reachable. */
-  .askp { top: var(--header-h); }
-  html.askp-open body { padding-right: 452px; transition: padding-right var(--duration-medium) var(--ease-smooth-out); }
-  body { transition: padding-right var(--duration-medium) var(--ease-smooth-out); }
+  .askp { top: calc(var(--header-h) + 8px); right: 16px; bottom: 16px; }
 }
 
 /* Before the first question. */

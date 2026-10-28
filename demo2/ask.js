@@ -122,7 +122,7 @@
       const turn = e.target.closest('.askp-turn');
       if (turn?.querySelector('.askp-graph')) lightCite(turn, cite ? Number(cite.dataset.cite) : null, true);
     });
-    window.addEventListener('readipedia:lang', () => { if (el) { el.querySelector('.askp-chat').innerHTML = ''; turns = 0; stack.length = 0; showChat(); syncHead(); close(); } });
+    window.addEventListener('readipedia:lang', () => { if (el) { el.querySelector('.askp-chat').innerHTML = ''; turns = 0; stack.length = 0; showChat(); syncHead(); close(); } else entry(true); });
     syncHead();
     return el;
   }
@@ -133,25 +133,28 @@
     el.querySelector('.askp-title').innerHTML = top
       ? esc(top.name)
       : `${ICON.spark}<span>${T('Ask about Nineteen Eighty-Four', '问《一九八四》')}</span>`;
-    el.querySelector('.askp-input').placeholder = T('Ask a follow-up...', '继续追问…');
+    el.querySelector('.askp-input').placeholder = turns ? T('Ask a follow-up...', '继续追问…') : T('Ask a question...', '问一个问题…');
   }
 
   function open() {
     build();
     document.documentElement.classList.add('askp-open');
     el.classList.add('is-open');
-    resumePill(false);
+    entry(false);
+    if (!turns) renderWelcome();
+    requestAnimationFrame(() => el.querySelector('.askp-input')?.focus({ preventScroll: true }));
   }
   function close() {
     if (!el) return;
     el.classList.remove('is-open');
     document.documentElement.classList.remove('askp-open');
-    resumePill(turns > 0);
+    entry(true);
   }
 
-  // After closing, one quiet pill brings the conversation back.
+  // Its own entry, apart from search: a quiet pill in the corner, as in
+  // Craft. It steps aside while the panel is open.
   let pill = null;
-  function resumePill(show) {
+  function entry(show) {
     if (!pill) {
       pill = document.createElement('button');
       pill.type = 'button';
@@ -159,8 +162,17 @@
       pill.addEventListener('click', open);
       document.body.appendChild(pill);
     }
-    pill.innerHTML = `${ICON.spark}<span>${T('Back to the conversation', '回到对话')}</span>`;
+    pill.innerHTML = `${ICON.spark}<span>${T('Assistant', '助手')}</span>`;
     pill.classList.toggle('is-on', show);
+  }
+
+  function renderWelcome() {
+    const chat = el.querySelector('.askp-chat');
+    chat.innerHTML = `<section class="askp-welcome">
+        <p class="askp-welcome-h">${T('Ask anything about Nineteen Eighty-Four', '关于《一九八四》，想问什么都可以')}</p>
+        <p class="askp-note">${T('Answers come from the entries, and every claim links to the sentence it rests on.', '回答来自词条，每个说法都能点回原文那一句。')}</p>
+        ${followHtml(DATA.answers.map((a) => a.id))}
+      </section>`;
   }
 
   /* ---------- entries inside the panel ---------- */
@@ -241,8 +253,10 @@
     const id = ++runId;
     const alive = () => id === runId;
     const chat = el.querySelector('.askp-chat');
+    chat.querySelector('.askp-welcome')?.remove();
     const answer = find(q);
     turns += 1;
+    syncHead();
     const turn = document.createElement('section');
     turn.className = 'askp-turn';
     if (answer) turn.dataset.answer = answer.id;
@@ -354,5 +368,10 @@
     }).join('')}</div>`;
   }
 
+  window.addEventListener('readipedia:lang', () => { if (!el?.classList.contains('is-open')) entry(true); });
+  // After app.js has settled the language.
+  const start = () => setTimeout(() => entry(true), 0);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
   window.ReadipediaAsk = { suggestions, looksLikeQuestion, find, ask, open, close };
 })();

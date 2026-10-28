@@ -630,17 +630,17 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 .askp-pill {
   position: fixed;
   z-index: 1400;
-  right: 20px;
-  bottom: 20px;
+  right: 24px;
+  bottom: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px 0 14px;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px 0 13px;
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--text-primary);
-  color: var(--bg-page);
+  background: var(--tt-bg, var(--bg-surface));
+  color: var(--text-primary);
   font: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -649,10 +649,24 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
   opacity: 0;
   transform: translateY(8px) scale(0.96);
   pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-bounce);
+  transition: opacity var(--duration-fast) var(--ease-smooth-out), transform var(--duration-fast) var(--ease-bounce), background-color var(--duration-quick) var(--ease-smooth-out);
 }
 .askp-pill.is-on { opacity: 1; transform: none; pointer-events: auto; }
-.askp-pill svg { width: 15px; height: 15px; }
+.askp-pill:hover { background: var(--surface-btn-hover, var(--bg-hover)); }
+.askp-pill svg { width: 16px; height: 16px; color: var(--brand-blue); }
+
+/* Desktop: the panel docks beside the page, which makes room for it. */
+@media (min-width: 761px) {
+  /* Below the header, so its controls stay reachable. */
+  .askp { top: var(--header-h); }
+  html.askp-open body { padding-right: 452px; transition: padding-right var(--duration-medium) var(--ease-smooth-out); }
+  body { transition: padding-right var(--duration-medium) var(--ease-smooth-out); }
+}
+
+/* Before the first question. */
+.askp-welcome { padding-top: 28px; }
+.askp-welcome-h { margin: 0 0 6px; font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-primary); }
+.askp-welcome .askp-follows { margin-top: 18px; }
 
 @media (max-width: 760px) {
   .askp {

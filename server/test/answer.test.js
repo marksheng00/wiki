@@ -68,3 +68,9 @@ test('a long link split across chunks still converts', () => {
   const text = run(pieces).filter((e) => e.type === 'text').map((e) => e.text).join('');
   assert.strictEqual(text, `开头{@w|${label}}结尾[1]。`);
 });
+
+test('link slips never show as markup', () => {
+  const raw = '{朱莉娅|朱莉娅}和{温斯顿|E1}以及{3|101室}还有{无名|E9}与{某词|某词}。';
+  const text = run([raw]).filter((e) => e.type === 'text').map((e) => e.text).join('');
+  assert.strictEqual(text, '{@j|朱莉娅}和{@w|温斯顿}以及{@r|101室}还有无名与某词。');
+});

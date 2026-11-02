@@ -23,6 +23,18 @@ class AnswerStream {
     this.graphSent = false;
   }
 
+  byName(text) {
+    if (!this.names) {
+      this.names = new Map();
+      for (const id of this.ctx.keyToEntity.values()) {
+        const ent = this.corpus.entities.get(id);
+        if (!ent) continue;
+        for (const n of [ent.name[this.lang], ent.name.en, ...(ent.aliases || [])]) if (n) this.names.set(String(n).toLowerCase(), id);
+      }
+    }
+    return this.names.get(String(text).trim().toLowerCase()) || null;
+  }
+
   name(id) { return this.corpus.entities.get(id)?.name[this.lang] || id; }
 
   cite(sid) {
@@ -45,8 +57,16 @@ class AnswerStream {
         .filter(Boolean)
         .map((n) => `[${n}]`)
         .join(''))
-      .replace(/\{\s*E?(\d+)\s*[|｜]\s*([^{}\n]+?)\s*\}/g, (_, num, label) => {
-        const id = this.ctx.keyToEntity.get(`E${num}`);
+      // {E3|name} as asked, but also the slips seen in practice:
+      // {name|E3}, {3|name} and {name|name}. Anything else in braces with
+      // a bar keeps only its readable text, so markup never shows.
+      .replace(/\{\s*([^{}|｜\n]{1,80}?)\s*[|｜]\s*([^{}\n]{1,240}?)\s*\}/g, (_, a, b) => {
+        const key = (x) => (/^E?\d+$/.test(x) ? this.ctx.keyToEntity.get(`E${x.replace(/^E/, '')}`) : null);
+        let id = key(a);
+        let label = b;
+        if (!id && key(b)) { id = key(b); label = a; }
+        if (!id) { id = this.byName(a) || this.byName(b); label = /^E?\d+$/.test(b) ? a : b; }
+        if (/^E?\d+$/.test(label)) label = id ? this.name(id) : '';
         if (!id || this.linked.has(id)) return label;
         this.linked.add(id);
         return `{@${id}|${label}}`;

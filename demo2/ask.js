@@ -302,7 +302,7 @@
     const fail = (msg) => {
       turn.querySelector('.askp-wait')?.remove();
       setLabel(turn, T('No answer', '没有回答'), false);
-      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${esc(msg)}</p>`);
+      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${esc(msg)}</p>${followHtml([q], T('Try again', '重新回答'))}`);
     };
     let response;
     try {
@@ -324,6 +324,7 @@
     }
 
     let gotText = false;
+    let gotDone = false;
     try {
       for await (const ev of events(response)) {
         if (signal.aborted) return;
@@ -355,6 +356,8 @@
           ev.steps.forEach((s) => st.quotes.set(s.sid, s));
         } else if (ev.type === 'follow') {
           st.follow = ev.questions;
+        } else if (ev.type === 'done') {
+          gotDone = true;
         } else if (ev.type === 'error') {
           fail(ev.error === 'not_configured'
             ? T('The assistant is not configured on this server.', '服务器还没有配置助手。')
@@ -369,6 +372,11 @@
     }
     if (signal.aborted) return;
     if (!gotText) { fail(T('The model did not answer. Please try again.', '模型没有返回回答，请再试一次。')); return; }
+    if (!gotDone) {
+      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${T('The answer was cut off.', '回答中断了。')}</p>${followHtml([q], T('Try again', '重新回答'))}`);
+      scrollDown(chat);
+      return;
+    }
     history.push({ q, a: st.raw });
     linkNames(turn);
     finish(turn);
@@ -475,6 +483,26 @@
         else if (id) push(id);
       }
     });
+    unclutter(host);
+  }
+
+  // Model-chosen relations can sit close together. Push each edge label
+  // off any label, dot or name it overlaps, alternating up and down.
+  function unclutter(host) {
+    const box = host.getBoundingClientRect();
+    const rect = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; };
+    const hit = (a, b) => a.l < b.r + 2 && b.l < a.r + 2 && a.t < b.b + 2 && b.t < a.b + 2;
+    const placed = [...host.querySelectorAll('.rg-dot, .rg-name')].map(rect);
+    host.querySelectorAll('.rg-edge-label').forEach((label) => {
+      const top = parseFloat(label.style.top);
+      let r = rect(label);
+      for (let i = 1; i <= 12 && placed.some((p) => hit(r, p)); i += 1) {
+        const dy = Math.ceil(i / 2) * 7 * (i % 2 ? 1 : -1);
+        label.style.top = `${top + dy}px`;
+        r = rect(label);
+      }
+      placed.push(r);
+    });
   }
 
   // A citation and its relation light up together.
@@ -488,10 +516,10 @@
     }
   }
 
-  function followHtml(questions) {
+  function followHtml(questions, label) {
     if (!questions?.length) return '';
     return `<div class="askp-follows">${questions.map((q) => (
-      `<button type="button" class="askp-follow" data-q="${esc(q)}">${ICON.spark}<span>${esc(q)}</span></button>`
+      `<button type="button" class="askp-follow" data-q="${esc(q)}">${ICON.spark}<span>${esc(label || q)}</span></button>`
     )).join('')}</div>`;
   }
 

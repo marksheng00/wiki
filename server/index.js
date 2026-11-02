@@ -89,7 +89,12 @@ async function ask(req, res) {
   const emit = (event) => { if (!res.writableEnded) res.write(`data: ${JSON.stringify(event)}\n\n`); };
   const abort = new AbortController();
   res.on('close', () => abort.abort());
+  let timedOut = false;
+  const limit = setTimeout(() => { timedOut = true; abort.abort(); }, Number(process.env.ANSWER_TIMEOUT_MS || 300000));
   const started = Date.now();
+  // Keep the stream alive through long thinking: proxies in front of hosts
+  // like Render drop a connection that stays silent for about 100 seconds.
+  const ping = setInterval(() => { if (!res.writableEnded) res.write(': ping\n\n'); }, 10000);
 
   try {
     const previous = history.length ? history[history.length - 1].q : '';
@@ -101,24 +106,40 @@ async function ask(req, res) {
     const msgs = messages({ question, history, ctx, background: corpus.book[lang], lang, bookTitle: corpus.bookTitle });
     let first = 0;
     let thinking = false;
-    for await (const piece of chat(msgs, { signal: abort.signal })) {
-      if (piece === THINKING) {
-        if (!thinking && !first) emit({ type: 'thinking' });
-        thinking = true;
-        continue;
+    // A busy or failing upstream is retried once, as long as nothing has
+    // reached the reader yet.
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        for await (const piece of chat(msgs, { signal: abort.signal })) {
+          if (piece === THINKING) {
+            if (!thinking && !first) emit({ type: 'thinking' });
+            thinking = true;
+            continue;
+          }
+          if (!first) first = Date.now();
+          stream.push(piece);
+        }
+        break;
+      } catch (err) {
+        const retriable = !first && attempt < 2 && !abort.signal.aborted && err.code !== 'no_key'
+          && (!err.status || err.status === 429 || err.status >= 500);
+        if (!retriable) throw err;
+        console.warn('[assistant] retrying after:', err.message);
+        await new Promise((r) => setTimeout(r, 1500));
       }
-      if (!first) first = Date.now();
-      stream.push(piece);
     }
     stream.end();
     emit({ type: 'done' });
     if (process.env.ASSISTANT_LOG_RAW === '1') console.log(`[assistant] raw output:\n${stream.raw || ''}\n[assistant] end of raw output`);
     console.log(`[assistant] ${lang} ${JSON.stringify(question.slice(0, 60))} first ${first ? first - started : '-'}ms total ${Date.now() - started}ms cites ${stream.cites.size}`);
   } catch (err) {
-    if (abort.signal.aborted) return;
+    if (abort.signal.aborted && !timedOut) return;
+    if (timedOut) err = Object.assign(new Error('answer timed out'), { code: 'timeout' });
     console.error('[assistant] error:', err.code || '', err.message);
     emit({ type: 'error', error: err.code === 'no_key' ? 'not_configured' : 'upstream' });
   } finally {
+    clearInterval(ping);
+    clearTimeout(limit);
     res.end();
   }
 }

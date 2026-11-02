@@ -18,7 +18,7 @@ try { process.loadEnvFile(path.join(ROOT, '.env')); } catch { /* no .env: use th
 const { build } = require('./corpus');
 const { retrieve, buildContext } = require('./retrieve');
 const { messages } = require('./prompt');
-const { chat, MODEL, THINKING } = require('./llm');
+const { chat, MODEL, FALLBACK, THINKING } = require('./llm');
 const { AnswerStream } = require('./answer');
 
 const PORT = Number(process.env.PORT || 8000);
@@ -106,11 +106,19 @@ async function ask(req, res) {
     const msgs = messages({ question, history, ctx, background: corpus.book[lang], lang, bookTitle: corpus.bookTitle });
     let first = 0;
     let thinking = false;
-    // A busy or failing upstream is retried once, as long as nothing has
-    // reached the reader yet.
-    for (let attempt = 1; ; attempt += 1) {
+    // A busy, failing or silent main model is retried once on the fallback
+    // model, as long as nothing has reached the reader yet.
+    const models = [MODEL, FALLBACK].filter(Boolean);
+    for (let attempt = 0; ; attempt += 1) {
+      const model = models[Math.min(attempt, models.length - 1)];
+      const step = new AbortController();
+      const stop = () => step.abort();
+      abort.signal.addEventListener('abort', stop);
+      let silent = false;
+      const watch = setTimeout(() => { silent = true; step.abort(); }, Number(process.env.FIRST_TOKEN_TIMEOUT_MS || 45000));
       try {
-        for await (const piece of chat(msgs, { signal: abort.signal })) {
+        for await (const piece of chat(msgs, { signal: step.signal, model })) {
+          clearTimeout(watch);
           if (piece === THINKING) {
             if (!thinking && !first) emit({ type: 'thinking' });
             thinking = true;
@@ -121,11 +129,13 @@ async function ask(req, res) {
         }
         break;
       } catch (err) {
-        const retriable = !first && attempt < 2 && !abort.signal.aborted && err.code !== 'no_key'
-          && (!err.status || err.status === 429 || err.status >= 500);
+        const retriable = !first && attempt < 1 && !abort.signal.aborted && err.code !== 'no_key'
+          && (silent || !err.status || err.status === 404 || err.status === 429 || err.status >= 500);
         if (!retriable) throw err;
-        console.warn('[assistant] retrying after:', err.message);
-        await new Promise((r) => setTimeout(r, 1500));
+        console.warn(`[assistant] ${model} ${silent ? 'silent' : err.message}; trying ${models[attempt + 1] || model}`);
+      } finally {
+        clearTimeout(watch);
+        abort.signal.removeEventListener('abort', stop);
       }
     }
     stream.end();

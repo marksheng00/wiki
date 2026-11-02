@@ -4,9 +4,12 @@
 
 const ENDPOINT = process.env.NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1';
 const THINKING = Symbol('thinking');
-const MODEL = process.env.NIM_MODEL || 'minimaxai/minimax-m3.1-flash';
+// Fastest model that still follows the answer format (see server/README.md).
+const MODEL = process.env.NIM_MODEL || 'nvidia/nemotron-3-ultra-550b-a55b';
+// Used when the main model is overloaded or silent.
+const FALLBACK = process.env.NIM_FALLBACK_MODEL ?? 'minimaxai/minimax-m3.1-flash';
 
-async function* chat(messages, { signal, maxTokens = Number(process.env.NIM_MAX_TOKENS || 12000), temperature = 0.5 } = {}) {
+async function* chat(messages, { signal, model = MODEL, maxTokens = Number(process.env.NIM_MAX_TOKENS || 12000), temperature = 0.5 } = {}) {
   const key = process.env.NVIDIA_API_KEY;
   if (!key) throw Object.assign(new Error('NVIDIA_API_KEY is not set'), { code: 'no_key' });
   const res = await fetch(`${ENDPOINT}/chat/completions`, {
@@ -17,7 +20,11 @@ async function* chat(messages, { signal, maxTokens = Number(process.env.NIM_MAX_
       'Content-Type': 'application/json',
       Accept: 'text/event-stream'
     },
-    body: JSON.stringify({ model: MODEL, messages, max_tokens: maxTokens, temperature, top_p: 0.95, stream: true })
+    body: JSON.stringify({
+      model, messages, max_tokens: maxTokens, temperature, top_p: 0.95, stream: true,
+      // Hybrid reasoning models answer straight away with thinking off.
+      chat_template_kwargs: { thinking: false, enable_thinking: false }
+    })
   });
   if (!res.ok || !res.body) {
     const detail = await res.text().catch(() => '');
@@ -70,4 +77,4 @@ async function* chat(messages, { signal, maxTokens = Number(process.env.NIM_MAX_
   if (!inThink && pending) yield pending;
 }
 
-module.exports = { chat, MODEL, THINKING };
+module.exports = { chat, MODEL, FALLBACK, THINKING };

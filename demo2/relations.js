@@ -125,14 +125,16 @@
   /* ---------------------------------------------------------------- RelGraph */
 
   // A quadratic arc like the site graph's (curvature 0.18).
-  function arcPath(a, b, curvature = 0.18) {
+  // t places the label along the arc (0.5 is the middle).
+  function arcPath(a, b, curvature = 0.18, t = 0.5) {
     const mx = (a.x + b.x) / 2;
     const my = (a.y + b.y) / 2;
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const cx = mx - dy * curvature;
     const cy = my + dx * curvature;
-    return { d: `M${a.x},${a.y} Q${cx},${cy} ${b.x},${b.y}`, mid: { x: (a.x + 2 * cx + b.x) / 4, y: (a.y + 2 * cy + b.y) / 4 } };
+    const u = 1 - t;
+    return { d: `M${a.x},${a.y} Q${cx},${cy} ${b.x},${b.y}`, mid: { x: u * u * a.x + 2 * u * t * cx + t * t * b.x, y: u * u * a.y + 2 * u * t * cy + t * t * b.y } };
   }
 
   /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub}], edges:[{key,source,target,label,showLabel}] }
@@ -147,7 +149,7 @@
       const a = byId.get(e.source);
       const b = byId.get(e.target);
       if (!a || !b) return;
-      const arc = arcPath(a, b, e.curvature ?? 0.18);
+      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5);
       svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}" data-key="${e.key}" d="${arc.d}"/>`;
       svg += `<path class="rg-hit" data-key="${e.key}" d="${arc.d}"/>`;
       if (e.showLabel && e.label) {

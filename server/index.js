@@ -20,6 +20,7 @@ const { retrieve, buildContext } = require('./retrieve');
 const { messages } = require('./prompt');
 const { chat, MODEL, FALLBACK, THINKING } = require('./llm');
 const { AnswerStream } = require('./answer');
+const vectors = require('./vectors');
 
 const PORT = Number(process.env.PORT || 8000);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -28,6 +29,26 @@ const ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim
 const RATE = { max: Number(process.env.RATE_LIMIT || 20), windowMs: 10 * 60 * 1000 };
 
 const corpus = build();
+// Paragraph vectors for hybrid retrieval; missing files mean BM25 only.
+const tables = { en: vectors.load(corpus, 'en'), zh: vectors.load(corpus, 'zh') };
+for (const lang of ['en', 'zh']) {
+  const t = tables[lang];
+  console.log(`[assistant] ${lang} vectors: ${t ? `${t.rows.length - t.missing}/${t.rows.length} paragraphs (${vectors.EMBED_MODEL})` : 'none, BM25 only (run npm run embeddings)'}`);
+}
+
+// Embeds the question (with the previous one, for follow-ups). Gives up
+// after a short wait so a slow embedding call never delays the answer much.
+async function questionVector(lang, question, previous) {
+  const table = tables[lang];
+  if (!table) return null;
+  try {
+    const [q] = await vectors.embed([previous ? `${previous}\n${question}` : question], 'query', { signal: AbortSignal.timeout(Number(process.env.EMBED_TIMEOUT_MS || 3000)) });
+    return vectors.scores(table, q);
+  } catch (err) {
+    console.warn('[assistant] question embedding skipped:', err.message);
+    return null;
+  }
+}
 console.log(`[assistant] ${corpus.entities.size} entries indexed, model ${MODEL}${process.env.NVIDIA_API_KEY ? '' : ' (NVIDIA_API_KEY missing)'}`);
 
 /* ---------- small helpers ---------- */
@@ -98,7 +119,8 @@ async function ask(req, res) {
 
   try {
     const previous = history.length ? history[history.length - 1].q : '';
-    const found = retrieve(corpus, { question, previous, lang });
+    const vector = await questionVector(lang, question, previous);
+    const found = retrieve(corpus, { question, previous, lang, vector });
     const ctx = buildContext(corpus, found, lang);
     emit({ type: 'read', entities: found.chosen.map((id) => ({ id, name: corpus.entities.get(id).name[lang] })) });
 

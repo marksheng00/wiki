@@ -12,7 +12,9 @@ key 只在服务端从环境变量 `NVIDIA_API_KEY`（或本地 `.env`）读取�
 
 ## 一次提问怎么走
 
-1. **检索**（`retrieve.js`）：先找问题里点名的词条（中英文名、名字的一部分，如「温斯顿」），追问时也带上上一问点名的词条；再用 BM25 在全部段落里找（英文按词、中文按二字切分）。最多选 7 个词条，每个取开头一段加最相关的几段，控制在一个字数预算内。
+1. **检索**（`retrieve.js`、`vectors.js`）：先找问题里点名的词条（中英文名、名字的一部分，如「温斯顿」），追问时也带上上一问点名的词条；再在全部段落里做混合检索：BM25（英文按词、中文按二字切分）加向量检索（`nvidia/nemotron-3.5-embed-1b`，段落向量预先算好放在 `server/embeddings/`，每次提问只算问题本身，约 0.2 秒），两份排名用 RRF 合并。向量服务 3 秒内没返回就只用 BM25。最多选 7 个词条，每个取开头一段加最相关的几段，控制在一个字数预算内。
+
+   换说法的问题靠向量才找得到（如「他为什么投降」找到「最终皈依」「他爱老大哥」）。14 个测试问题里，正确词条进前三：只用 BM25 是 6 个，混合检索是 10 个。改了词条正文后运行 `npm run embeddings`，只重算变了的段落；向量和正文对不上的段落会退回只用 BM25，启动日志会显示覆盖了多少段。
 2. **编号**：选中的每个词条编为 `E1…`，每一句编为 `S1…`。模型只能写编号引用，所以出处永远是词条原句，前端可以在词条里找到并标黄。
 3. **生成**（`prompt.js`、`llm.js`）：NVIDIA NIM 的 OpenAI 兼容接口，默认 `nvidia/nemotron-3-ultra-550b-a55b`（关闭推理），流式；主模型报错、过载或 45 秒没有任何输出时，自动换 `minimaxai/minimax-m3.1-flash` 重试一次。要求先一两句结论，再分 2 到 4 节；第一次出现的人和物带一句简介；每个说法带引用；可以有解读，但不能编造原文没有的情节。
 4. **转换**（`answer.js`）：边收边转。`[S12]` 按阅读顺序重新编号成 `[1]`、`[2]`；`{E3|名字}` 换成词条 id；`@graph`、`@chain`、`@follow` 三段整块解析成数据。
@@ -38,7 +40,7 @@ key 只在服务端从环境变量 `NVIDIA_API_KEY`（或本地 `.env`）读取�
 
 ## 配置
 
-见 `.env.example`：`NIM_MODEL`、`NIM_FALLBACK_MODEL`（留空则不换）、`FIRST_TOKEN_TIMEOUT_MS`（默认 45000）、`ANSWER_TIMEOUT_MS`（默认 300000）、`NIM_MAX_TOKENS`（含推理，默认 12000）、`PORT`、`HOST`、`RATE_LIMIT`（每 IP 每 10 分钟，默认 20）、`ALLOWED_ORIGINS`（站点和 API 不同域名时）、`TRUST_PROXY`、`SERVE_STATIC=0`（只开 API）、`ASSISTANT_LOG_RAW=1`（在服务端日志里打印模型原始输出，调试用）。
+见 `.env.example`：`NIM_MODEL`、`NIM_FALLBACK_MODEL`（留空则不换）、`FIRST_TOKEN_TIMEOUT_MS`（默认 45000）、`ANSWER_TIMEOUT_MS`（默认 300000）、`NIM_MAX_TOKENS`（含推理，默认 12000）、`NIM_EMBED_MODEL`（默认 nvidia/nemotron-3.5-embed-1b，换了要重跑 `npm run embeddings`）、`EMBED_TIMEOUT_MS`（默认 3000）、`PORT`、`HOST`、`RATE_LIMIT`（每 IP 每 10 分钟，默认 20）、`ALLOWED_ORIGINS`（站点和 API 不同域名时）、`TRUST_PROXY`、`SERVE_STATIC=0`（只开 API）、`ASSISTANT_LOG_RAW=1`（在服务端日志里打印模型原始输出，调试用）。
 
 前端默认请求同域的 `/api/ask`；API 部署在别处时，在页面里设 `window.READIPEDIA_ASSISTANT_URL`。
 

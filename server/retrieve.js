@@ -42,10 +42,25 @@ function namedIn(corpus, text) {
   return hits.map((h) => h.id);
 }
 
-function retrieve(corpus, { question, previous = '', lang = 'en' }) {
+// Reciprocal rank fusion: a paragraph near the top of either list ranks
+// well, without having to calibrate BM25 scores against cosine similarity.
+function fuse(lists, k = 60, depth = 60) {
+  const out = new Array(lists[0].length).fill(0);
+  for (const list of lists) {
+    if (!list) continue;
+    list.map((s, i) => [s, i]).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]).slice(0, depth)
+      .forEach(([, i], rank) => { out[i] += 1 / (k + rank + 1); });
+  }
+  return out;
+}
+
+/* vector: optional similarity of every paragraph to the question (see
+   vectors.js). Without it, retrieval is BM25 alone. */
+function retrieve(corpus, { question, previous = '', lang = 'en', vector = null }) {
   const { index, entities } = corpus;
   const { chunks, bm } = index[lang];
-  const scores = bm.scores([...tokenize(question), ...tokenize(question), ...tokenize(previous)]);
+  const lexical = bm.scores([...tokenize(question), ...tokenize(question), ...tokenize(previous)]);
+  const scores = vector ? fuse([lexical, vector]) : lexical;
 
   const named = namedIn(corpus, question);
   const namedBefore = namedIn(corpus, previous).filter((id) => !named.includes(id));
@@ -149,4 +164,4 @@ function buildContext(corpus, retrieval, lang) {
   };
 }
 
-module.exports = { retrieve, buildContext, namedIn };
+module.exports = { retrieve, buildContext, namedIn, fuse };

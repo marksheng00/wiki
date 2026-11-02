@@ -29,3 +29,19 @@ test('a follow-up keeps the earlier subject', () => {
   const r = retrieve(corpus, { question: '他后来怎么样了？', previous: '奥布莱恩是谁？', lang: 'zh' });
   assert.ok(r.chosen.includes('character-recall-character-o-brien-abeb498acd48'));
 });
+
+test('committed vectors match the current entries', () => {
+  const V = require('../vectors');
+  for (const lang of ['en', 'zh']) {
+    const t = V.load(corpus, lang);
+    assert.ok(t, `${lang} vectors missing: run npm run embeddings`);
+    assert.strictEqual(t.missing, 0, `${lang}: ${t.missing} paragraphs changed since the vectors were built`);
+  }
+});
+
+test('vector scores change the ranking, not the shape of the result', () => {
+  const { fuse } = require('../retrieve');
+  const fused = fuse([[0, 3, 1], [0.9, 0.1, 0.5]]);
+  assert.strictEqual(fused.length, 3);
+  assert.ok(fused[1] > 0 && fused[0] > 0);
+});

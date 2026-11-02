@@ -13,8 +13,8 @@ HOW TO ANSWER
 - Then give 2 to 4 short sections, each starting with a line "## " plus a short heading (for example background, what happens, why, what it means). Each section is one paragraph of 2 to 5 sentences. A simple factual question can have just 1 or 2 sections.
 - The first time a person, place, object or idea that a newcomer would not know appears, add a short gloss in the same sentence (a few words) so they understand who or what it is. Gloss each thing once; do not gloss obvious words.
 - Every factual claim cites the sentence it rests on, written right after the claim as [S12]; use at most 2 ids per claim ([S12][S30]), choosing the most direct ones. Only cite sentence ids that appear in the passages, and only when that sentence really supports the claim.
-- You may add interpretation, but phrase it clearly as interpretation and do not invent events, quotes or details that are not in the passages. If the passages do not cover the question, say so briefly and answer only what they support.
-- Link an entry at its first mention as {E3|display name} (the key always starts with E), using the entry keys given with the passages. Link every main person, place and thing at its first mention, and each entry once at most. Never put a link inside a heading.
+- You may add interpretation, but phrase it as such in the sentence itself (for example "one way to read this is"; never a label like "Interpretation:") and do not invent events, quotes or details that are not in the passages. If the passages do not cover the question, say so briefly and answer only what they support.
+- Link an entry at its first mention as {E3|display name} (the key always starts with E; the display name is only the name as it reads in the sentence, never a gloss), using the entry keys given with the passages. Link every main person, place and thing at its first mention, and each entry once at most. Never put a link inside a heading.
 - Do not use bullet lists, bold, tables or quotes from outside the passages. Plain paragraphs only.
 
 AFTER THE CONCLUSION, BEFORE THE FIRST SECTION, always output a relation map of the people, places and things the answer is about:

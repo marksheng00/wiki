@@ -5,7 +5,7 @@
    - @graph, @chain and @follow blocks are parsed whole and sent as data. */
 'use strict';
 
-const MAX_HOLD = 60;
+const MAX_HOLD = 240;
 
 class AnswerStream {
   constructor({ ctx, corpus, lang, emit }) {
@@ -152,7 +152,7 @@ class AnswerStream {
       const b = this.ctx.keyToEntity.get(m[2]);
       if (!a || !b || a === b) continue;
       if (edges.some((e) => e.source === a && e.target === b)) continue;
-      edges.push({ source: a, target: b, label: m[3].slice(0, 24), ...this.quoteOf(m[4]) });
+      edges.push({ source: a, target: b, label: m[3].slice(0, 40), ...this.quoteOf(m[4]) });
       for (const id of [a, b]) nodes.set(id, (nodes.get(id) || 0) + 1);
       if (edges.length >= 8) break;
     }

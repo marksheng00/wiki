@@ -446,6 +446,8 @@ mark.rel-mark.is-on { background: rgba(255, 196, 0, 0.28); }
   color: transparent;
   animation: ask-shimmer 1.4s linear infinite;
 }
+/* While the model thinks, before the first word. */
+.askp-wait { margin: 14px 0 0; font-size: 15px; line-height: 24px; }
 @keyframes ask-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
 .askp-step {
   display: inline-flex;

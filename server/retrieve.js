@@ -13,12 +13,16 @@ const MAX_ENTITIES = 7;
 const PER_ENTITY = { en: 3200, zh: 1500 };
 const TOTAL = { en: 18000, zh: 8500 };
 
+// Names that usually mean the novel itself, not the entry of that name.
+const GENERIC = new Set(['the book', 'book', '书', '这本书', 'the novel']);
+
 function namedIn(corpus, text) {
   const lower = String(text || '').toLowerCase();
   const hits = [];
   for (const ent of corpus.entities.values()) {
     let best = 0;
     for (const alias of ent.aliases) {
+      if (GENERIC.has(alias)) continue;
       const at = lower.indexOf(alias);
       if (at < 0) continue;
       // Latin names must stand as words.

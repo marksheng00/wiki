@@ -300,6 +300,7 @@
     turn.scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' });
 
     const fail = (msg) => {
+      turn.querySelector('.askp-wait')?.remove();
       setLabel(turn, T('No answer', '没有回答'), false);
       turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${esc(msg)}</p>`);
     };
@@ -329,7 +330,8 @@
         if (ev.type === 'read') {
           const steps = turn.querySelector('.askp-steps');
           ev.entities.forEach((e) => steps.insertAdjacentHTML('beforeend', `<a href="#${esc(e.id)}" class="askp-step askp-ent" data-entity-id="${esc(e.id)}">${esc(e.name)}</a>`));
-          setLabel(turn, T(`Read ${ev.entities.length} entries, thinking`, `读了 ${ev.entities.length} 个词条，正在思考`), true);
+          setLabel(turn, T(`Read ${ev.entities.length} entries`, `读了 ${ev.entities.length} 个词条`), false);
+          st.leadHost.innerHTML = `<p class="askp-wait"><span class="askp-steps-label is-working">${T('Thinking…', '正在思考…')}</span></p>`;
         } else if (ev.type === 'cite') {
           st.cites[ev.n - 1] = ev;
           st.bySid.set(ev.sid, ev.n);
@@ -337,8 +339,7 @@
         } else if (ev.type === 'text') {
           if (!gotText) {
             gotText = true;
-            const n = turn.querySelectorAll('.askp-step').length;
-            setLabel(turn, T(`Read ${n} entries`, `读了 ${n} 个词条`), false);
+            st.leadHost.querySelector('.askp-wait')?.remove();
           }
           st.raw += ev.text;
           renderText(turn);

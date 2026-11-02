@@ -59,3 +59,12 @@ test('drops unknown ids and closes a block without @end', () => {
   assert.ok(text.includes('## 小标题\n正文。'));
   assert.ok(events.find((e) => e.type === 'graph'));
 });
+
+test('a long link split across chunks still converts', () => {
+  const label = '一个非常长的显示名'.repeat(12);
+  const raw = `开头{E1|${label}}结尾[S1]。`;
+  const pieces = [];
+  for (let i = 0; i < raw.length; i += 3) pieces.push(raw.slice(i, i + 3));
+  const text = run(pieces).filter((e) => e.type === 'text').map((e) => e.text).join('');
+  assert.strictEqual(text, `开头{@w|${label}}结尾[1]。`);
+});

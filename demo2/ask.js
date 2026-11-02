@@ -473,8 +473,12 @@
     const edges = st.graph.edges.map((e, i) => ({
       key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true,
       curvature: both.has(pair(e)) ? 0.32 : 0.1,
-      labelAt: e.source === centre ? 0.56 : e.target === centre ? 0.44 : 0.5
+      labelAt: e.source === centre ? 0.56 : e.target === centre ? 0.44 : 0.5,
+      arrow: true, i
     }));
+    // Relations appear one by one in the order the model gave them; each
+    // entry appears with the first relation that reaches it.
+    nodes.forEach((n) => { const k = edges.findIndex((e) => e.source === n.id || e.target === n.id); n.i = k < 0 ? 0 : k; });
     D().drawGraph(host, { nodes, edges }, {
       onHover: (key) => lightCite(turn, key && key.startsWith('sS') ? st.bySid.get(key.slice(1)) ?? null : null),
       onPick: (key, id) => {
@@ -489,6 +493,8 @@
   // Model-chosen relations can sit close together. Push each edge label
   // off any label, dot or name it overlaps, alternating up and down.
   function unclutter(host) {
+    // Measure at rest: nodes scale in, which would shrink their boxes.
+    host.classList.add('rg-still');
     const box = host.getBoundingClientRect();
     const rect = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; };
     const hit = (a, b) => a.l < b.r + 2 && b.l < a.r + 2 && a.t < b.b + 2 && b.t < a.b + 2;
@@ -503,6 +509,8 @@
       }
       placed.push(r);
     });
+    void host.offsetWidth;
+    host.classList.remove('rg-still');
   }
 
   // A citation and its relation light up together.

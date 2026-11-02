@@ -28,6 +28,25 @@
   pointer-events: stroke;
 }
 [data-theme="dark"] .rg-edge { stroke: rgba(255, 255, 255, 0.24); }
+.rg-arrow {
+  fill: rgba(0, 0, 0, 0.3);
+  transition: fill var(--duration-fast) var(--ease-smooth-out), opacity var(--duration-fast) var(--ease-smooth-out);
+}
+[data-theme="dark"] .rg-arrow { fill: rgba(255, 255, 255, 0.42); }
+/* Edges given an order draw from source to target, one after another. */
+.rg-edge.is-draw {
+  stroke-dasharray: 1;
+  animation: rg-draw var(--duration-slow) var(--ease-smooth-out) both;
+  animation-delay: calc(var(--i) * var(--rg-step, 140ms));
+}
+@keyframes rg-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.rg-arrow,
+.askp-graph .rg-edge-label {
+  animation: rg-fade var(--duration-fast) var(--ease-smooth-out) both;
+  animation-delay: calc(var(--i, 0) * var(--rg-step, 140ms) + var(--duration-slow) * 0.7);
+}
+@keyframes rg-fade { from { opacity: 0; } }
+.rg-still, .rg-still * { animation: none !important; }
 
 .rg-node {
   position: absolute;
@@ -102,6 +121,8 @@
 .rg.has-selection:not(.has-hover) .rg-node:not(.is-selected):not(.is-primary) { opacity: 0.35; }
 .rg.has-hover .rg-edge:not(.is-hover),
 .rg.has-selection:not(.has-hover) .rg-edge:not(.is-selected) { opacity: 0.35; }
+.rg.has-hover .rg-arrow:not(.is-hover),
+.rg.has-selection:not(.has-hover) .rg-arrow:not(.is-selected),
 .rg.has-hover .rg-edge-label:not(.is-hover),
 .rg.has-selection:not(.has-hover) .rg-edge-label:not(.is-selected) { opacity: 0.35; }
 .rg-edge.is-hover,
@@ -110,6 +131,10 @@
 [data-theme="dark"] .rg-edge.is-selected { stroke: rgba(255, 255, 255, 0.7); }
 .rg-edge-label.is-hover,
 .rg-edge-label.is-selected { color: var(--text-primary); }
+.rg-arrow.is-hover,
+.rg-arrow.is-selected { fill: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .rg-arrow.is-hover,
+[data-theme="dark"] .rg-arrow.is-selected { fill: rgba(255, 255, 255, 0.7); }
 
 /* ------------------------------------------- Relations, in the graph area */
 /* A switch in the expanded graph swaps the mention graph for the labelled
@@ -507,6 +532,7 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
   margin: 16px 0 4px;
   animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both;
 }
+.askp-graph .rg-node { animation-delay: calc(var(--i) * var(--rg-step, 140ms)); }
 .askp-graph .rg-text { max-width: 110px; }
 /* Model-written labels run longer: let them wrap instead of crossing nodes. */
 .askp-graph .rg-edge-label { width: max-content; max-width: 104px; white-space: normal; text-align: center; background: var(--tt-bg, var(--bg-surface)); }
@@ -689,7 +715,7 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rg-node, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-graph, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
+  .rg-node, .rg-edge.is-draw, .rg-arrow, .askp-graph .rg-edge-label, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-graph, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
 }
 
 /* Phones: fan layout, one relation per row. */

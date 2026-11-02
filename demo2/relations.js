@@ -125,20 +125,42 @@
   /* ---------------------------------------------------------------- RelGraph */
 
   // A quadratic arc like the site graph's (curvature 0.18).
-  // t places the label along the arc (0.5 is the middle).
-  function arcPath(a, b, curvature = 0.18, t = 0.5) {
+  // t places the label along the arc (0.5 is the middle). inset stops the
+  // arc short of the target's edge, where an arrowhead can sit.
+  function arcPath(a, b, curvature = 0.18, t = 0.5, inset = 0) {
     const mx = (a.x + b.x) / 2;
     const my = (a.y + b.y) / 2;
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const cx = mx - dy * curvature;
     const cy = my + dx * curvature;
+    let end = { x: b.x, y: b.y };
+    let tip = null;
+    if (inset) {
+      const ux = b.x - cx;
+      const uy = b.y - cy;
+      const len = Math.hypot(ux, uy) || 1;
+      end = { x: b.x - (ux / len) * inset, y: b.y - (uy / len) * inset };
+      // A small filled arrowhead pointing along the arc's last stretch.
+      const L = 7;
+      const W = 3.5;
+      const bx = end.x - (ux / len) * L;
+      const by = end.y - (uy / len) * L;
+      const px = (-uy / len) * W;
+      const py = (ux / len) * W;
+      tip = `M${end.x.toFixed(1)},${end.y.toFixed(1)} L${(bx + px).toFixed(1)},${(by + py).toFixed(1)} L${(bx - px).toFixed(1)},${(by - py).toFixed(1)} Z`;
+    }
     const u = 1 - t;
-    return { d: `M${a.x},${a.y} Q${cx},${cy} ${b.x},${b.y}`, mid: { x: u * u * a.x + 2 * u * t * cx + t * t * b.x, y: u * u * a.y + 2 * u * t * cy + t * t * b.y } };
+    return {
+      d: `M${a.x},${a.y} Q${cx},${cy} ${end.x},${end.y}`,
+      tip,
+      mid: { x: u * u * a.x + 2 * u * t * cx + t * t * end.x, y: u * u * a.y + 2 * u * t * cy + t * t * end.y }
+    };
   }
 
-  /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub}], edges:[{key,source,target,label,showLabel}] }
-     Positions are in pixels of the host box. */
+  /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub,i}], edges:[{key,source,target,label,showLabel,arrow,i}] }
+     Positions are in pixels of the host box. An edge with arrow points at its
+     target; an edge with i is drawn in that order. */
   function drawGraph(host, graph, handlers = {}) {
     const width = host.clientWidth;
     const height = host.clientHeight;
@@ -149,11 +171,13 @@
       const a = byId.get(e.source);
       const b = byId.get(e.target);
       if (!a || !b) return;
-      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5);
-      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}" data-key="${e.key}" d="${arc.d}"/>`;
+      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + 3 : 0);
+      const order = e.i !== undefined ? ` style="--i:${e.i}"` : '';
+      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${arc.d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
+      if (arc.tip) svg += `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
       svg += `<path class="rg-hit" data-key="${e.key}" d="${arc.d}"/>`;
       if (e.showLabel && e.label) {
-        labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px">${esc(e.label)}</span>`;
+        labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;
       }
     });
     svg += '</svg>';
@@ -162,7 +186,7 @@
       const src = thumbOf(n.id);
       const side = n.labelSide || 'below';
       html += `<button type="button" class="rg-node is-${side}${n.primary ? ' is-primary' : ''}" data-id="${n.id}" data-key="${n.key || ''}"`
-        + ` style="left:${n.x}px;top:${n.y}px;--r:${n.r}px;--i:${i}">`
+        + ` style="left:${n.x}px;top:${n.y}px;--r:${n.r}px;--i:${n.i ?? i}">`
         + `<span class="rg-dot">${src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : ''}</span>`
         + `<span class="rg-text"><span class="rg-name">${esc(n.name || nameOf(n.id))}</span>${n.sub ? `<span class="rg-sub">${esc(n.sub)}</span>` : ''}</span>`
         + '</button>';
@@ -190,7 +214,7 @@
   function lightKey(host, key, cls) {
     host.classList.toggle(cls === 'is-hover' ? 'has-hover' : 'has-selection', Boolean(key) && Boolean(host.edgeEnds?.has(key)));
     const ends = key ? host.edgeEnds?.get(key) : null;
-    host.querySelectorAll('.rg-edge, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
+    host.querySelectorAll('.rg-edge, .rg-arrow, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
     host.querySelectorAll('.rg-node').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
   }
 

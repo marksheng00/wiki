@@ -21,7 +21,7 @@ AFTER THE CONCLUSION, BEFORE THE FIRST SECTION, always output a relation map of 
 @graph
 E1 > E2 | relation label | S12
 @end
-- 3 to 7 lines, each a directed relation "who/what > to whom/what" between two entry keys, a label of at most ${zh ? '8 Chinese characters' : '4 words'} that says what one does to or means for the other, and the one sentence id that shows it.
+- 3 to 7 lines, each a directed relation "who/what > to whom/what" between two entry keys, a label of at most ${zh ? '6 Chinese characters' : '3 words'} that says what one does to or means for the other, and the one sentence id that shows it.
 - Use 3 to 7 distinct entries in total. Entries listed under "Other entries" may be used as nodes too.
 
 AT THE END, output:

@@ -423,9 +423,8 @@
   function finish(turn) {
     const st = turnsState.get(turn);
     const chain = st.chain.map((s, i) => {
-      const n = st.bySid.get(s.sid);
       return `<li><button type="button" class="askp-chain-step" data-sid="${esc(s.sid)}"><span class="askp-chain-dot">${i + 1}</span>`
-        + `<span class="askp-chain-text"><span class="askp-chain-label">${esc(s.label)}</span><span class="askp-chain-ent">${esc(s.name)}${n ? ` · ${n}` : ''}</span></span></button></li>`;
+        + `<span class="askp-chain-text"><span class="askp-chain-label">${esc(s.label)}</span><span class="askp-chain-ent">${esc(s.name)}</span></span></button></li>`;
     }).join('');
     const sources = st.cites.filter(Boolean).map((c) => (
       `<li><button type="button" class="askp-source" data-cite="${c.n}"><span class="askp-source-n">${c.n}</span>`
@@ -459,10 +458,14 @@
       return { id: n.id, name: n.name, x: cx + rx * Math.cos(a), y, r: 16, labelSide: y < cy - 4 ? 'above' : 'below', key: '' };
     });
     // Labels sit nearer the outer node, clear of the centre's own name.
+    // A pair linked both ways bends further apart.
     const centre = nodes[0].id;
+    const pair = (e) => [e.source, e.target].sort().join('|');
+    const both = new Set(st.graph.edges.filter((e) => st.graph.edges.some((f) => f.source === e.target && f.target === e.source)).map(pair));
     const edges = st.graph.edges.map((e, i) => ({
-      key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true, curvature: 0.12,
-      labelAt: e.source === centre ? 0.62 : e.target === centre ? 0.38 : 0.5
+      key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true,
+      curvature: both.has(pair(e)) ? 0.32 : 0.1,
+      labelAt: e.source === centre ? 0.56 : e.target === centre ? 0.44 : 0.5
     }));
     D().drawGraph(host, { nodes, edges }, {
       onHover: (key) => lightCite(turn, key && key.startsWith('sS') ? st.bySid.get(key.slice(1)) ?? null : null),

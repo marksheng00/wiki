@@ -503,11 +503,13 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 
 /* The relations an answer rests on. */
 .askp-graph {
-  height: 360px;
+  height: 400px;
   margin: 16px 0 4px;
   animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both;
 }
 .askp-graph .rg-text { max-width: 110px; }
+/* Model-written labels run longer: let them wrap instead of crossing nodes. */
+.askp-graph .rg-edge-label { width: max-content; max-width: 104px; white-space: normal; text-align: center; background: var(--tt-bg, var(--bg-surface)); }
 .askp-cite.is-hover { background: var(--text-primary); color: var(--bg-page); }
 
 /* Story order and sources, both folded until asked for. */

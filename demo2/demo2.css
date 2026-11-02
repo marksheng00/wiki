@@ -538,6 +538,67 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 .askp-graph .rg-edge-label { width: max-content; max-width: 104px; white-space: normal; text-align: center; background: var(--tt-bg, var(--bg-surface)); }
 .askp-cite.is-hover { background: var(--text-primary); color: var(--bg-page); }
 
+/* Notes look: the map reads as if drawn with a pen in class notes. One ink,
+   a yellow highlighter on the subject, strokes that write themselves in. */
+.askp-graph {
+  --ink: #2f4fa8;
+  --ink-soft: rgba(47, 79, 168, 0.5);
+  --marker: rgba(255, 214, 10, 0.55);
+  --rg-step: 260ms;
+  --font-hand: 'Caveat', 'Long Cang', 'Kaiti SC', 'STKaiti', 'KaiTi', cursive;
+}
+[data-theme="dark"] .askp-graph {
+  --ink: #a9c1ff;
+  --ink-soft: rgba(169, 193, 255, 0.5);
+  --marker: rgba(255, 214, 10, 0.32);
+}
+.askp-graph .rg-edge { stroke: var(--ink-soft); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.askp-graph .rg-edge.is-draw { animation-duration: 520ms; animation-timing-function: cubic-bezier(0.45, 0, 0.3, 1); }
+.askp-graph .rg-arrow.is-pen {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: rg-draw 180ms ease-out both;
+  animation-delay: calc(var(--i, 0) * var(--rg-step) + 480ms);
+}
+.rg-ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  opacity: 0.55;
+  animation: rg-draw 420ms cubic-bezier(0.45, 0, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * var(--rg-step));
+  transition: opacity var(--duration-fast) var(--ease-smooth-out);
+}
+.rg-ring.is-primary { stroke-width: 1.6; opacity: 0.8; }
+.rg-ring.is-hover, .rg-ring.is-selected { opacity: 1; }
+.rg.has-hover .rg-ring:not(.is-hover):not(.is-primary) { opacity: 0.25; }
+.askp-graph .rg-edge.is-hover, .askp-graph .rg-edge.is-selected { stroke: var(--ink); stroke-width: 1.8; }
+.askp-graph .rg-arrow.is-pen.is-hover, .askp-graph .rg-arrow.is-pen.is-selected { stroke: var(--ink); fill: none; }
+.askp-graph .rg-edge-label {
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 19px;
+  font-weight: 500;
+  color: var(--ink);
+  max-width: 120px;
+  padding: 0 3px;
+}
+html[lang^="zh"] .askp-graph .rg-edge-label { font-size: 17px; line-height: 20px; }
+.askp-graph .rg-edge-label.is-hover, .askp-graph .rg-edge-label.is-selected { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+/* Highlighter swipe under the subject's name, after its circle is drawn. */
+.askp-graph .rg-node.is-primary .rg-name {
+  padding: 0 4px;
+  background: linear-gradient(100deg, transparent 0 2%, var(--marker) 4% 96%, transparent 98%) no-repeat 0 62% / 0% 72%;
+  animation: rg-marker 520ms cubic-bezier(0.45, 0, 0.3, 1) 380ms both;
+}
+@keyframes rg-marker { to { background-size: 100% 72%; } }
+
 /* Story order and sources, both folded until asked for. */
 .askp-more { margin-top: 14px; border-top: 1px solid var(--border-hairline); animation: rel-rise var(--duration-slow) var(--ease-smooth-out) both; }
 .askp-toggle {
@@ -715,7 +776,8 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rg-node, .rg-edge.is-draw, .rg-arrow, .askp-graph .rg-edge-label, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-graph, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
+  .askp-graph .rg-node.is-primary .rg-name { animation: none; background-size: 100% 72%; }
+  .rg-node, .rg-edge.is-draw, .rg-arrow, .rg-ring, .askp-graph .rg-edge-label, .rel-quote, .askp-step, .askp-h, .askp-more, .askp-follows, .askp-graph, .askp-chat.is-in, .askp-entry.is-in { animation: none; }
 }
 
 /* Phones: fan layout, one relation per row. */

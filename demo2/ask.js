@@ -350,7 +350,10 @@
           ev.edges.forEach((e) => { if (e.sid) st.quotes.set(e.sid, e); });
           const host = turn.querySelector('.askp-graph-host');
           host.innerHTML = '<div class="askp-graph rg"></div>';
-          answerGraph(host.firstChild, turn);
+          const g = host.firstChild;
+          // Wait briefly for the handwriting fonts so labels are placed at their real size.
+          const fonts = document.fonts ? Promise.all([document.fonts.load('500 19px Caveat'), document.fonts.load('17px "Long Cang"', ev.edges.map((e) => e.label).join('') || '关系')]) : null;
+          Promise.race([fonts, new Promise((r) => setTimeout(r, 900))].filter(Boolean)).catch(() => {}).then(() => { if (g.isConnected) answerGraph(g, turn); });
         } else if (ev.type === 'chain') {
           st.chain = ev.steps;
           ev.steps.forEach((s) => st.quotes.set(s.sid, s));
@@ -492,7 +495,7 @@
     // Relations appear one by one in the order the model gave them; each
     // entry appears with the first relation that reaches it.
     nodes.forEach((nd) => { const k = edges.findIndex((e) => e.source === nd.id || e.target === nd.id); nd.i = k < 0 ? 0 : k; });
-    D().drawGraph(host, { nodes, edges }, {
+    D().drawGraph(host, { nodes, edges, sketch: true }, {
       onHover: (key) => lightCite(turn, key && key.startsWith('sS') ? st.bySid.get(key.slice(1)) ?? null : null),
       onPick: (key, id) => {
         const q = key && key.startsWith('sS') ? st.quotes.get(key.slice(1)) : null;

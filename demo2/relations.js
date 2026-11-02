@@ -154,13 +154,73 @@
     return {
       d: `M${a.x},${a.y} Q${cx},${cy} ${end.x},${end.y}`,
       tip,
+      c: { x: cx, y: cy },
+      end,
       mid: { x: u * u * a.x + 2 * u * t * cx + t * t * end.x, y: u * u * a.y + 2 * u * t * cy + t * t * end.y }
     };
   }
 
+  /* ---------------------------------------------------------- Pen sketch */
+  // Hand-drawn strokes for the notes look: a line that wavers a little, an
+  // open arrowhead of two strokes, a loose circle that overshoots its start.
+  function seeded(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  }
+  const f1 = (v) => v.toFixed(1);
+  function penLine(a, c, b, rnd) {
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(8, Math.round(len / 14));
+    const amp = Math.min(1.6, len / 90);
+    const ph = rnd() * Math.PI * 2;
+    const fr = 1 + rnd() * 1.5;
+    let d = '';
+    for (let k = 0; k <= steps; k += 1) {
+      const t = k / steps;
+      const u = 1 - t;
+      const x = u * u * a.x + 2 * u * t * c.x + t * t * b.x;
+      const y = u * u * a.y + 2 * u * t * c.y + t * t * b.y;
+      const tx = 2 * u * (c.x - a.x) + 2 * t * (b.x - c.x);
+      const ty = 2 * u * (c.y - a.y) + 2 * t * (b.y - c.y);
+      const tl = Math.hypot(tx, ty) || 1;
+      const w = amp * Math.sin(Math.PI * 2 * fr * t + ph) * Math.sin(Math.PI * t);
+      d += `${k ? 'L' : 'M'}${f1(x - (ty / tl) * w)},${f1(y + (tx / tl) * w)}`;
+    }
+    return d;
+  }
+  function penArrow(c, tip, rnd) {
+    const ux = tip.x - c.x;
+    const uy = tip.y - c.y;
+    const l = Math.hypot(ux, uy) || 1;
+    const ang = Math.atan2(uy, ux);
+    const wing = (side) => {
+      const a = ang + Math.PI + side * (0.45 + rnd() * 0.12);
+      const len = 8 + rnd() * 2.5;
+      return `${f1(tip.x + Math.cos(a) * len)},${f1(tip.y + Math.sin(a) * len)}`;
+    };
+    void l;
+    return `M${wing(1)} L${f1(tip.x)},${f1(tip.y)} L${wing(-1)}`;
+  }
+  function penCircle(n, rnd) {
+    const r = n.r + 5;
+    const start = rnd() * Math.PI * 2;
+    const sweep = Math.PI * 2 + 0.45 + rnd() * 0.3;
+    const squash = 0.92 + rnd() * 0.1;
+    const steps = 28;
+    let d = '';
+    for (let k = 0; k <= steps; k += 1) {
+      const a = start + (k / steps) * sweep;
+      const rr = r * (1 + 0.05 * Math.sin(a * 2 + start) + (k / steps) * 0.06);
+      d += `${k ? 'L' : 'M'}${f1(n.x + Math.cos(a) * rr)},${f1(n.y + Math.sin(a) * rr * squash)}`;
+    }
+    return d;
+  }
+
   /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub,i}], edges:[{key,source,target,label,showLabel,arrow,i}] }
      Positions are in pixels of the host box. An edge with arrow points at its
-     target; an edge with i is drawn in that order. */
+     target; an edge with i is drawn in that order. graph.sketch draws it all
+     by hand, like notes. */
   function drawGraph(host, graph, handlers = {}) {
     const width = host.clientWidth;
     const height = host.clientHeight;
@@ -173,13 +233,22 @@
       if (!a || !b) return;
       const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + 3 : 0);
       const order = e.i !== undefined ? ` style="--i:${e.i}"` : '';
-      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${arc.d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
-      if (arc.tip) svg += `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
+      const rnd = graph.sketch ? seeded(`${e.source}>${e.target}`) : null;
+      const d = rnd ? penLine(a, arc.c, arc.end, rnd) : arc.d;
+      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
+      if (arc.tip) svg += rnd
+        ? `<path class="rg-arrow is-pen" data-key="${e.key}" d="${penArrow(arc.c, arc.end, rnd)}" pathLength="1"${order}/>`
+        : `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
       svg += `<path class="rg-hit" data-key="${e.key}" d="${arc.d}"/>`;
       if (e.showLabel && e.label) {
         labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;
       }
     });
+    if (graph.sketch) {
+      graph.nodes.forEach((n, i) => {
+        svg += `<path class="rg-ring${n.primary ? ' is-primary' : ''}" data-id="${n.id}" d="${penCircle(n, seeded(n.id))}" pathLength="1" style="--i:${n.i ?? i}"/>`;
+      });
+    }
     svg += '</svg>';
     let html = '';
     graph.nodes.forEach((n, i) => {
@@ -215,7 +284,7 @@
     host.classList.toggle(cls === 'is-hover' ? 'has-hover' : 'has-selection', Boolean(key) && Boolean(host.edgeEnds?.has(key)));
     const ends = key ? host.edgeEnds?.get(key) : null;
     host.querySelectorAll('.rg-edge, .rg-arrow, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
-    host.querySelectorAll('.rg-node').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
+    host.querySelectorAll('.rg-node, .rg-ring').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
   }
 
   function setSelected(host, key) {

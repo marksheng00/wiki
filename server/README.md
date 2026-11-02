@@ -55,3 +55,9 @@ npm test
 ## 已知问题
 
 - **慢**：minimax-m3.1-flash 在 NIM 免费额度上会先推理，实测首字 50 到 160 秒，整答 90 到 180 秒。界面上会显示「正在思考」。之后可以换模型（`NIM_MODEL`）或换付费推理端点。
+
+## 部署
+
+仓库根目录的 `render.yaml` 可以在 Render 上一键部署：Render 控制台选 New → Blueprint，连上这个仓库，按提示填入 `NVIDIA_API_KEY`，几分钟后得到 `https://readipedia-xxxx.onrender.com` 这样的地址。免费档闲置 15 分钟会休眠，之后第一次打开要等半分钟左右。
+
+其他能跑 Node 的平台（Railway、Fly.io、自己的服务器）同理：启动命令 `npm start`，设置 `NVIDIA_API_KEY`、`HOST=0.0.0.0`，平台会给 `PORT`。

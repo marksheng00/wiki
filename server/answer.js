@@ -48,15 +48,30 @@ class AnswerStream {
     return this.cites.get(sid);
   }
 
+  // Citations: at most two in a row, even when the model piles up more.
+  citeRuns(text) {
+    const re = /[[【]\s*(S\d+(?:\s*[,，、;；]\s*S?\d+)*)\s*[\]】]/g;
+    let out = '';
+    let last = 0;
+    for (let m = re.exec(text); m; m = re.exec(text)) {
+      const between = text.slice(last, m.index);
+      if (/\S/.test(between)) this.run = 0;
+      out += between;
+      for (const raw of m[1].split(/\s*[,，、;；]\s*/)) {
+        const sid = raw.startsWith('S') ? raw : `S${raw}`;
+        if (!this.ctx.sentences.has(sid) || (this.run || 0) >= 2) continue;
+        this.run = (this.run || 0) + 1;
+        out += `[${this.cite(sid)}]`;
+      }
+      last = re.lastIndex;
+    }
+    const rest = text.slice(last);
+    if (/\S/.test(rest)) this.run = 0;
+    return out + rest;
+  }
+
   transform(text) {
-    return text
-      .replace(/[[【]\s*(S\d+(?:\s*[,，、;；]\s*S?\d+)*)\s*[\]】]/g, (_, list) => list
-        .split(/\s*[,，、;；]\s*/)
-        .map((x) => (x.startsWith('S') ? x : `S${x}`))
-        .map((sid) => this.cite(sid))
-        .filter(Boolean)
-        .map((n) => `[${n}]`)
-        .join(''))
+    return this.citeRuns(text)
       // {E3|name} as asked, but also the slips seen in practice:
       // {name|E3}, {3|name} and {name|name}. Anything else in braces with
       // a bar keeps only its readable text, so markup never shows.

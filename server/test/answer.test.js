@@ -74,3 +74,10 @@ test('link slips never show as markup', () => {
   const text = run([raw]).filter((e) => e.type === 'text').map((e) => e.text).join('');
   assert.strictEqual(text, '{@j|朱莉娅}和{@w|温斯顿}以及{@r|101室}还有无名与某词。');
 });
+
+test('no more than two citations in a row', () => {
+  const pieces = ['甲[S1][S2]', '[S3]。乙[S3]', '【S1，S2】。'];
+  const events = run(pieces);
+  const text = events.filter((e) => e.type === 'text').map((e) => e.text).join('');
+  assert.strictEqual(text, '甲[1][2]。乙[3][1]。');
+});

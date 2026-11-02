@@ -6,9 +6,11 @@
 'use strict';
 
 const MAX_HOLD = 240;
+const ACTORS = new Set(['Character', 'Organization', 'Location', 'Object', 'Creature']);
 
 class AnswerStream {
-  constructor({ ctx, corpus, lang, emit }) {
+  constructor({ ctx, corpus, lang, emit, subjects }) {
+    this.subjects = new Set(subjects || []);
     this.ctx = ctx;
     this.corpus = corpus;
     this.lang = lang;
@@ -190,6 +192,17 @@ class AnswerStream {
       edges.push({ source: a, target: b, label: m[3].slice(0, 40), ...this.quoteOf(m[4]) });
       for (const id of [a, b]) nodes.set(id, (nodes.get(id) || 0) + 1);
       if (edges.length >= 8) break;
+    }
+    // Actors and places make the map; events and ideas belong in the labels.
+    // Drop edges through other kinds when enough remain without them.
+    const kind = (id) => this.corpus.entities.get(id)?.typeName?.en;
+    const keep = (id) => ACTORS.has(kind(id)) || this.subjects.has(id); // what the question names always stays
+    const solid = edges.filter((e) => keep(e.source) && keep(e.target));
+    if (solid.length >= 3 && solid.length < edges.length) {
+      edges.length = 0;
+      edges.push(...solid);
+      nodes.clear();
+      for (const e of solid) for (const id of [e.source, e.target]) nodes.set(id, (nodes.get(id) || 0) + 1);
     }
     if (edges.length < 2) return;
     const primary = [...nodes.entries()].sort((x, y) => y[1] - x[1])[0][0];

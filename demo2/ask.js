@@ -447,8 +447,9 @@
       ${followHtml(st.follow)}`);
   }
 
-  // Map of the answer: the most connected entry in the middle, the rest
-  // around it in the order the model listed them.
+  // Map of the answer: the most connected entry in the middle, the rest on a
+  // ring. The ring order is the one with the fewest crossings and no line
+  // running through a node it does not belong to.
   function answerGraph(host, turn) {
     const st = turnsState.get(turn);
     const W = host.clientWidth;
@@ -456,29 +457,41 @@
     const list = st.graph.nodes.slice().sort((a, b) => Number(b.primary) - Number(a.primary));
     const cx = W / 2;
     const cy = H / 2;
-    const rx = W / 2 - (W < 400 ? 48 : 64);
-    const ry = H / 2 - 52;
+    const rx = W / 2 - (W < 400 ? 52 : 72);
+    const ry = H / 2 - 56;
+    const centre = list[0].id;
     const ring = list.slice(1);
-    const nodes = list.map((n, i) => {
-      if (i === 0) return { id: n.id, name: n.name, x: cx, y: cy, r: 20, primary: true, labelSide: 'below', key: '' };
-      const a = -Math.PI / 2 + ((i - 1) / ring.length) * Math.PI * 2 + (ring.length % 2 ? 0 : Math.PI / ring.length);
-      const y = cy + ry * Math.sin(a);
-      return { id: n.id, name: n.name, x: cx + rx * Math.cos(a), y, r: 16, labelSide: y < cy - 4 ? 'above' : 'below', key: '' };
+    const n = ring.length;
+    const slot = (k) => {
+      const a = -Math.PI / 2 + (k / n) * Math.PI * 2 + (n % 2 ? 0 : Math.PI / n);
+      return { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) };
+    };
+    const graphEdges = st.graph.edges.filter((e) => list.some((x) => x.id === e.source) && list.some((x) => x.id === e.target));
+    const order = bestRing(ring.map((r) => r.id), graphEdges, centre, { x: cx, y: cy }, slot);
+    const pos = new Map([[centre, { x: cx, y: cy }]]);
+    order.forEach((id, k) => pos.set(id, slot(k)));
+    const nodes = list.map((nd) => {
+      const p = pos.get(nd.id);
+      const primary = nd.id === centre;
+      return { id: nd.id, name: nd.name, x: p.x, y: p.y, r: primary ? 20 : 16, primary, labelSide: primary || p.y >= cy - 4 ? 'below' : 'above', key: '' };
     });
-    // Labels sit nearer the outer node, clear of the centre's own name.
-    // A pair linked both ways bends further apart.
-    const centre = nodes[0].id;
     const pair = (e) => [e.source, e.target].sort().join('|');
-    const both = new Set(st.graph.edges.filter((e) => st.graph.edges.some((f) => f.source === e.target && f.target === e.source)).map(pair));
-    const edges = st.graph.edges.map((e, i) => ({
-      key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true,
-      curvature: both.has(pair(e)) ? 0.32 : 0.1,
-      labelAt: e.source === centre ? 0.56 : e.target === centre ? 0.44 : 0.5,
-      arrow: true, i
-    }));
+    const both = new Set(graphEdges.filter((e) => graphEdges.some((f) => f.source === e.target && f.target === e.source)).map(pair));
+    const edges = graphEdges.map((e, i) => {
+      const a = pos.get(e.source);
+      const b = pos.get(e.target);
+      let curvature = both.has(pair(e)) ? 0.3 : (e.source === centre || e.target === centre ? 0.06 : 0.16);
+      // Lines between two ring entries bow outwards, away from the middle.
+      if (!both.has(pair(e)) && e.source !== centre && e.target !== centre) {
+        const nx = -(b.y - a.y);
+        const ny = b.x - a.x;
+        if (nx * ((a.x + b.x) / 2 - cx) + ny * ((a.y + b.y) / 2 - cy) < 0) curvature = -curvature;
+      }
+      return { key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true, curvature, arrow: true, i };
+    });
     // Relations appear one by one in the order the model gave them; each
     // entry appears with the first relation that reaches it.
-    nodes.forEach((n) => { const k = edges.findIndex((e) => e.source === n.id || e.target === n.id); n.i = k < 0 ? 0 : k; });
+    nodes.forEach((nd) => { const k = edges.findIndex((e) => e.source === nd.id || e.target === nd.id); nd.i = k < 0 ? 0 : k; });
     D().drawGraph(host, { nodes, edges }, {
       onHover: (key) => lightCite(turn, key && key.startsWith('sS') ? st.bySid.get(key.slice(1)) ?? null : null),
       onPick: (key, id) => {
@@ -487,27 +500,77 @@
         else if (id) push(id);
       }
     });
-    unclutter(host);
+    placeLabels(host, edges, pos);
   }
 
-  // Model-chosen relations can sit close together. Push each edge label
-  // off any label, dot or name it overlaps, alternating up and down.
-  function unclutter(host) {
-    // Measure at rest: nodes scale in, which would shrink their boxes.
-    host.classList.add('rg-still');
+  function bestRing(ids, edges, centre, mid, slot) {
+    if (ids.length < 3) return ids;
+    const segOf = (pos, e) => [pos.get(e.source), pos.get(e.target)];
+    const cross = (p, q, r, s) => {
+      const d = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+      return d(p, q, r) * d(p, q, s) < 0 && d(r, s, p) * d(r, s, q) < 0;
+    };
+    const near = (p, a, b) => {
+      const vx = b.x - a.x; const vy = b.y - a.y;
+      const t = Math.max(0, Math.min(1, ((p.x - a.x) * vx + (p.y - a.y) * vy) / (vx * vx + vy * vy || 1)));
+      return Math.hypot(p.x - a.x - t * vx, p.y - a.y - t * vy);
+    };
+    let best = ids;
+    let bestScore = Infinity;
+    const first = ids[0];
+    const rest = ids.slice(1);
+    const perms = (arr) => (arr.length <= 1 ? [arr] : arr.flatMap((x, i) => perms([...arr.slice(0, i), ...arr.slice(i + 1)]).map((p) => [x, ...p])));
+    for (const p of perms(rest)) {
+      const order = [first, ...p];
+      const pos = new Map([[centre, mid]]);
+      order.forEach((id, k) => pos.set(id, slot(k)));
+      let score = 0;
+      edges.forEach((e, i) => {
+        const [a, b] = segOf(pos, e);
+        score += Math.hypot(b.x - a.x, b.y - a.y) / 400;
+        for (const [id, q] of pos) if (id !== e.source && id !== e.target && near(q, a, b) < 40) score += 12;
+        for (let j = i + 1; j < edges.length; j += 1) {
+          const f = edges[j];
+          if ([f.source, f.target].some((x) => x === e.source || x === e.target)) continue;
+          const [c, d] = segOf(pos, f);
+          if (cross(a, b, c, d)) score += 10;
+        }
+      });
+      if (score < bestScore) { bestScore = score; best = order; }
+    }
+    return best;
+  }
+
+  // Each relation label slides along its own line to the first spot that
+  // clears every dot, name and label already placed.
+  function placeLabels(host, edges, pos) {
+    host.classList.add('rg-still'); // measure at rest: nodes scale in
     const box = host.getBoundingClientRect();
     const rect = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; };
-    const hit = (a, b) => a.l < b.r + 2 && b.l < a.r + 2 && a.t < b.b + 2 && b.t < a.b + 2;
+    const overlap = (a, b) => Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l) + 3) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t) + 3);
     const placed = [...host.querySelectorAll('.rg-dot, .rg-name')].map(rect);
-    host.querySelectorAll('.rg-edge-label').forEach((label) => {
-      const top = parseFloat(label.style.top);
-      let r = rect(label);
-      for (let i = 1; i <= 12 && placed.some((p) => hit(r, p)); i += 1) {
-        const dy = Math.ceil(i / 2) * 7 * (i % 2 ? 1 : -1);
-        label.style.top = `${top + dy}px`;
-        r = rect(label);
+    const labels = host.querySelectorAll('.rg-edge-label');
+    edges.forEach((e, i) => {
+      const label = labels[i];
+      if (!label) return;
+      const a = pos.get(e.source);
+      const b = pos.get(e.target);
+      const qx = (a.x + b.x) / 2 - (b.y - a.y) * e.curvature;
+      const qy = (a.y + b.y) / 2 + (b.x - a.x) * e.curvature;
+      const at = (t) => ({ x: (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * qx + t * t * b.x, y: (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * qy + t * t * b.y });
+      let best = null;
+      for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.27, 0.73]) {
+        const p = at(t);
+        label.style.left = `${p.x}px`;
+        label.style.top = `${p.y}px`;
+        const r = rect(label);
+        const cost = placed.reduce((s, q) => s + overlap(r, q), 0) + (r.l < 0 || r.r > box.width ? 500 : 0);
+        if (!best || cost < best.cost) best = { cost, p, r };
+        if (cost === 0) break;
       }
-      placed.push(r);
+      label.style.left = `${best.p.x}px`;
+      label.style.top = `${best.p.y}px`;
+      placed.push(best.r);
     });
     void host.offsetWidth;
     host.classList.remove('rg-still');

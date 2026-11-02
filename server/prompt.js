@@ -17,6 +17,8 @@ E1 > E2 | relation label | S12
 @end
   - 3 to 7 lines, each a directed relation "who/what > to whom/what" between two entry keys, a label of at most ${zh ? '6 Chinese characters' : '3 words'} that says what one does to or means for the other, and the one sentence id that shows it.
   - Use 3 to 7 distinct entries in total. Entries listed under "Other entries" may be used as nodes too.
+  - Nodes are people, groups, places, creatures or objects. Events, actions and ideas go into the label, not into a node, unless the question is about that idea itself.
+  - Keep labels short verb phrases (for example ${zh ? '「告发」「实施酷刑」' : '"betrays", "tortures"'}), never a sentence.
 - Then always give 2 to 4 sections, each starting with a line "## " plus a short heading (for example background, what happens, why, what it means). Each section is one paragraph of 2 to 5 sentences. In total aim for ${zh ? '400 to 800 Chinese characters' : '250 to 500 words'} before the blocks below.
 - The first time a person, place, object or idea that a newcomer would not know appears, add a short gloss in the same sentence (a few words) so they understand who or what it is. Gloss each thing once; do not gloss obvious words.
 - Every factual claim cites the sentence it rests on, written right after the claim as [S12]; use at most 2 ids per claim ([S12][S30]), choosing the most direct ones. Only cite sentence ids that appear in the passages, and only when that sentence really supports the claim.

@@ -16,7 +16,7 @@ const ROOT = path.join(__dirname, '..');
 try { process.loadEnvFile(path.join(ROOT, '.env')); } catch { /* no .env: use the real environment */ }
 
 const { build } = require('./corpus');
-const { retrieve, buildContext } = require('./retrieve');
+const { retrieve, buildContext, namedIn } = require('./retrieve');
 const { messages } = require('./prompt');
 const { chat, MODEL, FALLBACK, THINKING } = require('./llm');
 const { AnswerStream } = require('./answer');
@@ -124,7 +124,7 @@ async function ask(req, res) {
     const ctx = buildContext(corpus, found, lang);
     emit({ type: 'read', entities: found.chosen.map((id) => ({ id, name: corpus.entities.get(id).name[lang] })) });
 
-    const stream = new AnswerStream({ ctx, corpus, lang, emit });
+    const stream = new AnswerStream({ ctx, corpus, lang, emit, subjects: namedIn(corpus, question) });
     const msgs = messages({ question, history, ctx, background: corpus.book[lang], lang, bookTitle: corpus.bookTitle });
     let first = 0;
     let thinking = false;

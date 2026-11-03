@@ -194,21 +194,23 @@
     return `${polyline(left)}${polyline(right.reverse()).replace(/^M/, 'L')}Z`;
   }
 
-  // The pen's path for a relation: the same arc, starting clear of the
-  // source dot, with a slight natural bow, sampled every few pixels.
-  function penPoints(a, c, b, rnd, startGap) {
+  // The pen's path for a relation: the same arc with a slight natural bow,
+  // sampled every two pixels, cut back wherever it would run over either
+  // end's portrait or name.
+  function penPoints(a, c, b, rnd, insideA, insideB) {
     const bow = (rnd() - 0.5) * 0.08;
     const cx = c.x - (b.y - a.y) * bow;
     const cy = c.y + (b.x - a.x) * bow;
     const at = (t) => { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * cx + t * t * b.x, y: u * u * a.y + 2 * u * t * cy + t * t * b.y }; };
     const len = Math.hypot(b.x - a.x, b.y - a.y);
-    const steps = Math.max(12, Math.round(len / 3));
-    const pts = [];
-    for (let k = 0; k <= steps; k += 1) {
-      const p = at(k / steps);
-      if (Math.hypot(p.x - a.x, p.y - a.y) >= startGap) pts.push(p);
-    }
-    return { pts, c: { x: cx, y: cy } };
+    const steps = Math.max(16, Math.round(len / 2));
+    const all = [];
+    for (let k = 0; k <= steps; k += 1) all.push(at(k / steps));
+    let i = 0;
+    let j = all.length - 1;
+    while (i < j && insideA(all[i])) i += 1;
+    while (j > i && insideB(all[j])) j -= 1;
+    return { pts: all.slice(i, j + 1), c: { x: cx, y: cy } };
   }
 
   // An open arrowhead in one stroke: wing, tip, other wing.
@@ -237,6 +239,7 @@
     const byId = new Map(graph.nodes.map((n) => [n.id, n]));
     let svg = `<svg class="rg-edges" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" aria-hidden="true">`;
     let labels = '';
+    const pending = [];
     graph.edges.forEach((e) => {
       const a = byId.get(e.source);
       const b = byId.get(e.target);
@@ -244,19 +247,7 @@
       const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + (graph.sketch ? 5 : 3) : 0);
       const order = e.i !== undefined ? ` style="--i:${e.i}"` : '';
       if (graph.sketch) {
-        const rnd = seeded(`${e.source}>${e.target}`);
-        const pen = penPoints(a, arc.c, arc.end, rnd, a.r + 6);
-        const id = `rgm${(maskSeq += 1)}`;
-        if (pen.pts.length > 2) {
-          svg += `<mask id="${id}" maskUnits="userSpaceOnUse"><path class="rg-reveal" d="${polyline(pen.pts)}" pathLength="1"${order}/></mask>`;
-          svg += `<path class="rg-edge is-pen" data-key="${e.key}" d="${inkOutline(pen.pts, 1.9)}" mask="url(#${id})"/>`;
-        }
-        if (e.arrow) {
-          const from = pen.pts[Math.max(0, pen.pts.length - 4)] || pen.c;
-          const tip = arrowPoints(from, arc.end, rnd);
-          svg += `<mask id="${id}t" maskUnits="userSpaceOnUse"><path class="rg-reveal is-tip" d="${polyline(tip)}" pathLength="1"${order}/></mask>`;
-          svg += `<path class="rg-arrow is-pen" data-key="${e.key}" d="${inkOutline(tip, 1.9, 0.15, 0.2)}" mask="url(#${id}t)"/>`;
-        }
+        pending.push({ e, a, b, arc, order });
       } else {
         svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${arc.d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
         if (arc.tip) svg += `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
@@ -266,7 +257,7 @@
         labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;
       }
     });
-    svg += '</svg>';
+    if (!graph.sketch) svg += '</svg>';
     let html = '';
     graph.nodes.forEach((n, i) => {
       const src = thumbOf(n.id);
@@ -277,7 +268,46 @@
         + `<span class="rg-text"><span class="rg-name">${esc(n.name || nameOf(n.id))}</span>${n.sub ? `<span class="rg-sub">${esc(n.sub)}</span>` : ''}</span>`
         + '</button>';
     });
-    host.innerHTML = svg + labels + html;
+    if (!graph.sketch) {
+      host.innerHTML = svg + labels + html;
+    } else {
+      host.innerHTML = labels + html;
+      // Measure each name at rest, then keep every stroke off portraits and names.
+      host.classList.add('rg-still');
+      const hb = host.getBoundingClientRect();
+      const names = new Map();
+      host.querySelectorAll('.rg-node').forEach((el) => {
+        const r = el.querySelector('.rg-name').getBoundingClientRect();
+        names.set(el.dataset.id, { l: r.left - hb.left - 5, t: r.top - hb.top - 4, r: r.right - hb.left + 5, b: r.bottom - hb.top + 4 });
+      });
+      host.classList.remove('rg-still');
+      const inside = (n) => {
+        const box = names.get(n.id);
+        // The name's box reaches back to the portrait, so no stroke slips into the gap.
+        const span = box && { l: Math.min(box.l, n.x - n.r), r: Math.max(box.r, n.x + n.r), t: Math.min(box.t, n.y - n.r), b: Math.max(box.b, n.y + n.r) };
+        const gapIn = (p) => span && (box.t > n.y || box.b < n.y ? Math.abs(p.x - n.x) < n.r : Math.abs(p.y - n.y) < n.r) && p.x > span.l && p.x < span.r && p.y > span.t && p.y < span.b;
+        return (p) => Math.hypot(p.x - n.x, p.y - n.y) < n.r + 6 || (box && p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b) || gapIn(p);
+      };
+      host.inkClear = { names, inside };
+      pending.forEach(({ e, a, b, arc, order }) => {
+        const rnd = seeded(`${e.source}>${e.target}`);
+        const pen = penPoints(a, arc.c, b, rnd, inside(a), inside(b));
+        if (pen.pts.length < 4) return;
+        // Pull the line back until the arrowhead's wings clear the target's name too.
+        const tipFor = () => arrowPoints(pen.pts[Math.max(0, pen.pts.length - 6)], pen.pts[pen.pts.length - 1], seeded(`${e.key}^`));
+        const inB = inside(b);
+        if (e.arrow) while (pen.pts.length > 8 && tipFor().some(inB)) pen.pts.pop();
+        const id = `rgm${(maskSeq += 1)}`;
+        svg += `<mask id="${id}" maskUnits="userSpaceOnUse"><path class="rg-reveal" d="${polyline(pen.pts)}" pathLength="1"${order}/></mask>`;
+        svg += `<path class="rg-edge is-pen" data-key="${e.key}" d="${inkOutline(pen.pts, 1.9)}" mask="url(#${id})"/>`;
+        if (e.arrow) {
+          const tip = tipFor();
+          svg += `<mask id="${id}t" maskUnits="userSpaceOnUse"><path class="rg-reveal is-tip" d="${polyline(tip)}" pathLength="1"${order}/></mask>`;
+          svg += `<path class="rg-arrow is-pen" data-key="${e.key}" d="${inkOutline(tip, 1.9, 0.15, 0.2)}" mask="url(#${id}t)"/>`;
+        }
+      });
+      host.insertAdjacentHTML('afterbegin', `${svg}</svg>`);
+    }
 
     // Both ends of a relation stay lit with it.
     host.edgeEnds = new Map();

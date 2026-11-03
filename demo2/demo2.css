@@ -552,9 +552,11 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
   --marker: rgba(255, 222, 80, 0.88);
 }
 /* On dark paper the highlighter stays bright and the name under it dark. */
-[data-theme="dark"] .askp-graph .rg-node.is-primary .rg-name { color: #1c1c1c; }
+[data-theme="dark"] .askp-graph .rg-node.is-primary .rg-name { color: #1c1c1c; background-position: 0 50%; animation-name: rg-marker-full; }
+@keyframes rg-marker-full { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
 .askp-graph .rg-edge.is-pen { fill: var(--ink-line); stroke: none; transition: fill var(--duration-fast) var(--ease-smooth-out), opacity var(--duration-fast) var(--ease-smooth-out); }
 .askp-graph .rg-arrow.is-pen { fill: var(--ink-line); }
+.askp-graph .rg-edge.is-pen, .askp-graph .rg-arrow.is-pen { pointer-events: none; }
 .rg-reveal {
   fill: none;
   stroke: #fff;
@@ -584,6 +586,8 @@ html[lang^="zh"] .askp-lead, html[lang^="zh"] .askp-p { line-height: 1.85; }
 @keyframes rg-write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 html[lang^="zh"] .askp-graph .rg-edge-label { font-size: 14.5px; line-height: 19px; letter-spacing: 0.04em; }
 .askp-graph .rg-edge-label.is-hover, .askp-graph .rg-edge-label.is-selected { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.askp-graph .rg-edge-label.is-tucked { opacity: 0; background: var(--bg-surface); border-radius: 4px; padding: 0 4px; z-index: 2; }
+.askp-graph .rg-edge-label.is-tucked.is-hover, .askp-graph .rg-edge-label.is-tucked.is-selected { opacity: 1; text-decoration: none; }
 /* Highlighter under the subject's name: a flat band, swiped left to right. */
 .askp-graph .rg-node.is-primary .rg-name {
   padding: 0 5px;

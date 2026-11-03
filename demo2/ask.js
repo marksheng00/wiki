@@ -455,6 +455,8 @@
   // running through a node it does not belong to.
   function answerGraph(host, turn) {
     const st = turnsState.get(turn);
+    // More entries get more height, so their labels have room.
+    host.style.height = `${[400, 400, 400, 400, 400, 420, 460, 500, 520][Math.min(8, st.graph.nodes.length)]}px`;
     const W = host.clientWidth;
     const H = host.clientHeight;
     const list = st.graph.nodes.slice().sort((a, b) => Number(b.primary) - Number(a.primary));
@@ -477,6 +479,22 @@
       const p = pos.get(nd.id);
       const primary = nd.id === centre;
       return { id: nd.id, name: nd.name, x: p.x, y: p.y, r: primary ? 20 : 16, primary, labelSide: primary || p.y >= cy - 4 ? 'below' : 'above', key: '' };
+    });
+    // Each name goes on the side of its portrait that no line leaves from.
+    const sides = [['below', Math.PI / 2], ['above', -Math.PI / 2], ['right', 0], ['left', Math.PI]];
+    nodes.forEach((nd) => {
+      const dirs = graphEdges.filter((e) => e.source === nd.id || e.target === nd.id).map((e) => {
+        const o = pos.get(e.source === nd.id ? e.target : e.source);
+        return Math.atan2(o.y - nd.y, o.x - nd.x);
+      });
+      if (!dirs.length) return;
+      const gap = (a) => Math.min(...dirs.map((d) => { const x = Math.abs(((a - d) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI); return x; }));
+      // Sideways names need room: only on the outer edge of the map.
+      const est = [...(nd.name || '')].reduce((w, ch) => w + (/[\u2e80-\u9fff]/.test(ch) ? 13 : 7.2), 0);
+      const ok = sides.filter(([s]) => (s === 'right' ? nd.x > W * 0.6 && nd.x + 24 + est < W - 6
+        : s === 'left' ? nd.x < W * 0.4 && nd.x - 24 - est > 6 : true));
+      const pref = { below: 0.05, above: 0.03, right: 0, left: 0 };
+      nd.labelSide = ok.map(([s, a]) => [s, gap(a) + pref[s]]).sort((x, y) => y[1] - x[1])[0][0];
     });
     const pair = (e) => [e.source, e.target].sort().join('|');
     const both = new Set(graphEdges.filter((e) => graphEdges.some((f) => f.source === e.target && f.target === e.source)).map(pair));
@@ -531,7 +549,12 @@
       edges.forEach((e, i) => {
         const [a, b] = segOf(pos, e);
         score += Math.hypot(b.x - a.x, b.y - a.y) / 400;
-        for (const [id, q] of pos) if (id !== e.source && id !== e.target && near(q, a, b) < 40) score += 12;
+        for (const [id, q] of pos) {
+          if (id === e.source || id === e.target) continue;
+          if (near(q, a, b) < 40) score += 12;
+          // and clear of that entry's name, under or over its portrait
+          if (near({ x: q.x, y: q.y + (q.y < mid.y - 4 ? -34 : 34) }, a, b) < 30) score += 12;
+        }
         for (let j = i + 1; j < edges.length; j += 1) {
           const f = edges[j];
           if ([f.source, f.target].some((x) => x === e.source || x === e.target)) continue;
@@ -552,6 +575,12 @@
     const rect = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; };
     const overlap = (a, b) => Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l) + 3) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t) + 3);
     const placed = [...host.querySelectorAll('.rg-dot, .rg-name')].map(rect);
+    // Every inked point, so a label never sits on a line or an arrow.
+    const ink = [];
+    host.querySelectorAll('.rg-reveal').forEach((el) => {
+      for (const m of el.getAttribute('d').matchAll(/(-?[\d.]+),(-?[\d.]+)/g)) ink.push({ x: +m[1], y: +m[2] });
+    });
+    const inkIn = (r) => ink.reduce((n, p) => n + (p.x > r.l - 4 && p.x < r.r + 4 && p.y > r.t - 4 && p.y < r.b + 4 ? 1 : 0), 0);
     const labels = host.querySelectorAll('.rg-edge-label');
     edges.forEach((e, i) => {
       const label = labels[i];
@@ -576,20 +605,24 @@
       };
       let best = null;
       const spots = [];
-      for (const t of [0.5, 0.4, 0.6, 0.32, 0.68]) for (const sgn of [1, -1]) spots.push([t, sgn]);
-      for (const [t, sgn] of spots) {
+      for (const push of [0, 8, 18]) for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74]) for (const sgn of [1, -1]) spots.push([t, sgn, push]);
+      for (const [t, sgn, push] of spots) {
         const c = at(t);
         const o = side(t);
-        const p = { x: c.x + o.nx * sgn, y: c.y + o.ny * sgn };
+        const k = 1 + push / (Math.hypot(o.nx, o.ny) || 1);
+        const p = { x: c.x + o.nx * sgn * k, y: c.y + o.ny * sgn * k };
         label.style.left = `${p.x}px`;
         label.style.top = `${p.y}px`;
         const r = rect(label);
-        const cost = placed.reduce((s, q) => s + overlap(r, q), 0) + (r.l < 0 || r.r > box.width ? 500 : 0);
-        if (!best || cost < best.cost) best = { cost, p, r };
-        if (cost === 0) break;
+        const bad = placed.reduce((s, q) => s + overlap(r, q), 0) + inkIn(r) * 60 + (r.l < 0 || r.r > box.width || r.t < 0 || r.b > box.height ? 500 : 0);
+        const cost = bad + push;
+        if (!best || cost < best.cost) best = { cost, bad, p, r };
+        if (cost === push && cost === 0) break;
       }
       label.style.left = `${best.p.x}px`;
       label.style.top = `${best.p.y}px`;
+      // No free spot: keep it out of sight until its line is hovered or picked.
+      if (best.bad > 0) { label.classList.add('is-tucked'); return; }
       placed.push(best.r);
     });
     void host.offsetWidth;

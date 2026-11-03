@@ -125,47 +125,189 @@
   /* ---------------------------------------------------------------- RelGraph */
 
   // A quadratic arc like the site graph's (curvature 0.18).
-  function arcPath(a, b, curvature = 0.18) {
+  // t places the label along the arc (0.5 is the middle). inset stops the
+  // arc short of the target's edge, where an arrowhead can sit.
+  function arcPath(a, b, curvature = 0.18, t = 0.5, inset = 0) {
     const mx = (a.x + b.x) / 2;
     const my = (a.y + b.y) / 2;
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const cx = mx - dy * curvature;
     const cy = my + dx * curvature;
-    return { d: `M${a.x},${a.y} Q${cx},${cy} ${b.x},${b.y}`, mid: { x: (a.x + 2 * cx + b.x) / 4, y: (a.y + 2 * cy + b.y) / 4 } };
+    let end = { x: b.x, y: b.y };
+    let tip = null;
+    if (inset) {
+      const ux = b.x - cx;
+      const uy = b.y - cy;
+      const len = Math.hypot(ux, uy) || 1;
+      end = { x: b.x - (ux / len) * inset, y: b.y - (uy / len) * inset };
+      // A small filled arrowhead pointing along the arc's last stretch.
+      const L = 7;
+      const W = 3.5;
+      const bx = end.x - (ux / len) * L;
+      const by = end.y - (uy / len) * L;
+      const px = (-uy / len) * W;
+      const py = (ux / len) * W;
+      tip = `M${end.x.toFixed(1)},${end.y.toFixed(1)} L${(bx + px).toFixed(1)},${(by + py).toFixed(1)} L${(bx - px).toFixed(1)},${(by - py).toFixed(1)} Z`;
+    }
+    const u = 1 - t;
+    return {
+      d: `M${a.x},${a.y} Q${cx},${cy} ${end.x},${end.y}`,
+      tip,
+      c: { x: cx, y: cy },
+      end,
+      mid: { x: u * u * a.x + 2 * u * t * cx + t * t * end.x, y: u * u * a.y + 2 * u * t * cy + t * t * end.y }
+    };
   }
 
-  /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub}], edges:[{key,source,target,label,showLabel}] }
-     Positions are in pixels of the host box. */
+  /* ---------------------------------------------------------- Pen sketch */
+  // Ink strokes for the notes look, like a pressure-sensitive pen: each line
+  // starts thin, swells a little and tapers off at the end. Drawn as filled
+  // outlines and revealed through a mask that follows the pen.
+  function seeded(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  }
+  const f1 = (v) => v.toFixed(1);
+  const smooth = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+  const polyline = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${f1(p.x)},${f1(p.y)}`).join('');
+
+  // Outline of a stroke along pts with the given peak width.
+  function inkOutline(pts, w, taperIn = 0.08, taperOut = 0.12) {
+    const n = pts.length;
+    const left = [];
+    const right = [];
+    for (let i = 0; i < n; i += 1) {
+      const t = i / (n - 1);
+      const p = pts[i];
+      const q = pts[Math.min(n - 1, i + 1)];
+      const o = pts[Math.max(0, i - 1)];
+      const dx = q.x - o.x;
+      const dy = q.y - o.y;
+      const l = Math.hypot(dx, dy) || 1;
+      // Nearly even, like a fine pen: a soft start, a slight swell, a light lift at the end.
+      const half = (w / 2) * (0.45 + 0.55 * smooth(0, taperIn, t)) * (1 - 0.4 * smooth(1 - taperOut, 1, t)) * (0.9 + 0.1 * Math.sin(Math.PI * t));
+      left.push({ x: p.x - (dy / l) * half, y: p.y + (dx / l) * half });
+      right.push({ x: p.x + (dy / l) * half, y: p.y - (dx / l) * half });
+    }
+    return `${polyline(left)}${polyline(right.reverse()).replace(/^M/, 'L')}Z`;
+  }
+
+  // The pen's path for a relation: the same arc with a slight natural bow,
+  // sampled every two pixels, cut back wherever it would run over either
+  // end's portrait or name.
+  function penPoints(a, c, b, rnd, insideA, insideB) {
+    const bow = (rnd() - 0.5) * 0.08;
+    const cx = c.x - (b.y - a.y) * bow;
+    const cy = c.y + (b.x - a.x) * bow;
+    const at = (t) => { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * cx + t * t * b.x, y: u * u * a.y + 2 * u * t * cy + t * t * b.y }; };
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(16, Math.round(len / 2));
+    const all = [];
+    for (let k = 0; k <= steps; k += 1) all.push(at(k / steps));
+    let i = 0;
+    let j = all.length - 1;
+    while (i < j && insideA(all[i])) i += 1;
+    while (j > i && insideB(all[j])) j -= 1;
+    return { pts: all.slice(i, j + 1), c: { x: cx, y: cy } };
+  }
+
+  // An open arrowhead in one stroke: wing, tip, other wing.
+  function arrowPoints(from, tip, rnd) {
+    const ang = Math.atan2(tip.y - from.y, tip.x - from.x);
+    const wing = (side) => {
+      const a = ang + Math.PI + side * (0.5 + rnd() * 0.1);
+      const len = 8.5 + rnd() * 2;
+      return { x: tip.x + Math.cos(a) * len, y: tip.y + Math.sin(a) * len };
+    };
+    const w1 = wing(1);
+    const w2 = wing(-1);
+    const seg = (p, q, k) => Array.from({ length: k }, (_, i) => ({ x: p.x + ((q.x - p.x) * i) / k, y: p.y + ((q.y - p.y) * i) / k }));
+    return [...seg(w1, tip, 6), ...seg(tip, w2, 6), w2];
+  }
+
+  let maskSeq = 0;
+
+  /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub,i}], edges:[{key,source,target,label,showLabel,arrow,i}] }
+     Positions are in pixels of the host box. An edge with arrow points at its
+     target; an edge with i is drawn in that order. graph.sketch draws it all
+     by hand, like notes. */
   function drawGraph(host, graph, handlers = {}) {
     const width = host.clientWidth;
     const height = host.clientHeight;
     const byId = new Map(graph.nodes.map((n) => [n.id, n]));
     let svg = `<svg class="rg-edges" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" aria-hidden="true">`;
     let labels = '';
+    const pending = [];
     graph.edges.forEach((e) => {
       const a = byId.get(e.source);
       const b = byId.get(e.target);
       if (!a || !b) return;
-      const arc = arcPath(a, b, e.curvature ?? 0.18);
-      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}" data-key="${e.key}" d="${arc.d}"/>`;
+      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + (graph.sketch ? 5 : 3) : 0);
+      const order = e.i !== undefined ? ` style="--i:${e.i}"` : '';
+      if (graph.sketch) {
+        pending.push({ e, a, b, arc, order });
+      } else {
+        svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${arc.d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
+        if (arc.tip) svg += `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
+      }
       svg += `<path class="rg-hit" data-key="${e.key}" d="${arc.d}"/>`;
       if (e.showLabel && e.label) {
-        labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px">${esc(e.label)}</span>`;
+        labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;
       }
     });
-    svg += '</svg>';
+    if (!graph.sketch) svg += '</svg>';
     let html = '';
     graph.nodes.forEach((n, i) => {
       const src = thumbOf(n.id);
       const side = n.labelSide || 'below';
       html += `<button type="button" class="rg-node is-${side}${n.primary ? ' is-primary' : ''}" data-id="${n.id}" data-key="${n.key || ''}"`
-        + ` style="left:${n.x}px;top:${n.y}px;--r:${n.r}px;--i:${i}">`
+        + ` style="left:${n.x}px;top:${n.y}px;--r:${n.r}px;--i:${n.i ?? i}">`
         + `<span class="rg-dot">${src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : ''}</span>`
         + `<span class="rg-text"><span class="rg-name">${esc(n.name || nameOf(n.id))}</span>${n.sub ? `<span class="rg-sub">${esc(n.sub)}</span>` : ''}</span>`
         + '</button>';
     });
-    host.innerHTML = svg + labels + html;
+    if (!graph.sketch) {
+      host.innerHTML = svg + labels + html;
+    } else {
+      host.innerHTML = labels + html;
+      // Measure each name at rest, then keep every stroke off portraits and names.
+      host.classList.add('rg-still');
+      const hb = host.getBoundingClientRect();
+      const names = new Map();
+      host.querySelectorAll('.rg-node').forEach((el) => {
+        const r = el.querySelector('.rg-name').getBoundingClientRect();
+        names.set(el.dataset.id, { l: r.left - hb.left - 5, t: r.top - hb.top - 4, r: r.right - hb.left + 5, b: r.bottom - hb.top + 4 });
+      });
+      host.classList.remove('rg-still');
+      const inside = (n) => {
+        const box = names.get(n.id);
+        // The name's box reaches back to the portrait, so no stroke slips into the gap.
+        const span = box && { l: Math.min(box.l, n.x - n.r), r: Math.max(box.r, n.x + n.r), t: Math.min(box.t, n.y - n.r), b: Math.max(box.b, n.y + n.r) };
+        const gapIn = (p) => span && (box.t > n.y || box.b < n.y ? Math.abs(p.x - n.x) < n.r : Math.abs(p.y - n.y) < n.r) && p.x > span.l && p.x < span.r && p.y > span.t && p.y < span.b;
+        return (p) => Math.hypot(p.x - n.x, p.y - n.y) < n.r + 6 || (box && p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b) || gapIn(p);
+      };
+      host.inkClear = { names, inside };
+      pending.forEach(({ e, a, b, arc, order }) => {
+        const rnd = seeded(`${e.source}>${e.target}`);
+        const pen = penPoints(a, arc.c, b, rnd, inside(a), inside(b));
+        if (pen.pts.length < 4) return;
+        // Pull the line back until the arrowhead's wings clear the target's name too.
+        const tipFor = () => arrowPoints(pen.pts[Math.max(0, pen.pts.length - 6)], pen.pts[pen.pts.length - 1], seeded(`${e.key}^`));
+        const inB = inside(b);
+        if (e.arrow) while (pen.pts.length > 8 && tipFor().some(inB)) pen.pts.pop();
+        const id = `rgm${(maskSeq += 1)}`;
+        svg += `<mask id="${id}" maskUnits="userSpaceOnUse"><path class="rg-reveal" d="${polyline(pen.pts)}" pathLength="1"${order}/></mask>`;
+        svg += `<path class="rg-edge is-pen" data-key="${e.key}" d="${inkOutline(pen.pts, 1.9)}" mask="url(#${id})"/>`;
+        if (e.arrow) {
+          const tip = tipFor();
+          svg += `<mask id="${id}t" maskUnits="userSpaceOnUse"><path class="rg-reveal is-tip" d="${polyline(tip)}" pathLength="1"${order}/></mask>`;
+          svg += `<path class="rg-arrow is-pen" data-key="${e.key}" d="${inkOutline(tip, 1.9, 0.15, 0.2)}" mask="url(#${id}t)"/>`;
+        }
+      });
+      host.insertAdjacentHTML('afterbegin', `${svg}</svg>`);
+    }
 
     // Both ends of a relation stay lit with it.
     host.edgeEnds = new Map();
@@ -188,7 +330,7 @@
   function lightKey(host, key, cls) {
     host.classList.toggle(cls === 'is-hover' ? 'has-hover' : 'has-selection', Boolean(key) && Boolean(host.edgeEnds?.has(key)));
     const ends = key ? host.edgeEnds?.get(key) : null;
-    host.querySelectorAll('.rg-edge, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
+    host.querySelectorAll('.rg-edge, .rg-arrow, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
     host.querySelectorAll('.rg-node').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
   }
 

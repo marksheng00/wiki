@@ -1,0 +1,11 @@
+{
+  "name": "readipedia",
+  "private": true,
+  "description": "Readipedia static site plus the assistant API",
+  "scripts": {
+    "start": "node server/index.js",
+    "embeddings": "node tools/build-embeddings.js",
+    "test": "node --test server/test/*.test.js"
+  },
+  "engines": { "node": ">=20.12" }
+}

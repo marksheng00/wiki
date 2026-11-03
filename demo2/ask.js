@@ -1,10 +1,9 @@
-/* Readipedia 2.0 demo: ask about the book in a panel that stays open.
-   A question typed in the search palette opens the panel. Answers are
-   presets (demo2/data.js) but follow the flow 2.0 would ship: read the
-   relevant entries, answer in layers with a short gloss for every person or
-   place, and cite every claim to a verbatim sentence. Entries named in the
-   answer open inside the panel, with the cited sentence marked, so reading
-   them never ends the conversation. */
+/* Readipedia 2.0: ask about the book in a panel that stays open.
+   Answers stream from the assistant API (server/): it reads the relevant
+   entries, answers in layers with a short gloss for every person or place,
+   and cites every claim to a verbatim sentence. Entries named in the answer
+   open inside the panel, with the cited sentence marked, so reading them
+   never ends the conversation. */
 (function () {
   const DATA = window.READIPEDIA_DEMO2;
   const D = () => window.ReadipediaDemo2;
@@ -15,20 +14,8 @@
   const T = (en, zh) => (isZh() ? zh : en);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 0 : ms));
-  const nameOf = (id) => D().nameOf(id);
 
-  const QUESTION_RE = /[?？]|^(why|what|how|who|where|when|which|does|do|is|are|can)\b|为什么|为何|什么|怎么|如何|怎样|谁|哪|吗|呢|是否|意味/i;
-  const looksLikeQuestion = (q) => QUESTION_RE.test(q.trim());
-
-  function find(q) {
-    const text = q.toLowerCase();
-    return DATA.answers.find((a) => a.q[lang()].toLowerCase() === text)
-      || DATA.answers.find((a) => a.match[lang()].some((k) => text.includes(k.toLowerCase())))
-      || DATA.answers.find((a) => [...a.match.en, ...a.match.zh].some((k) => text.includes(k.toLowerCase())))
-      || null;
-  }
-  const byId = (id) => DATA.answers.find((a) => a.id === id);
+  // Example questions for the first open; the answers come from the API.
   const suggestions = () => DATA.answers.map((a) => ({ id: a.id, label: a.q[lang()] }));
 
   const ICON = {
@@ -98,12 +85,11 @@
         push(chip.dataset.entityId);
         return;
       }
-      const cite = e.target.closest('[data-cite]');
+      const cite = e.target.closest('[data-cite], [data-sid]');
       if (cite) {
-        const turn = cite.closest('.askp-turn');
-        const answer = byId(turn?.dataset.answer);
-        const c = answer?.cites[Number(cite.dataset.cite) - 1];
-        if (c) push(c.entity, c[lang()]);
+        const st = turnsState.get(cite.closest('.askp-turn'));
+        const c = cite.dataset.sid ? st?.quotes.get(cite.dataset.sid) : st?.cites[Number(cite.dataset.cite) - 1];
+        if (c) push(c.entity, c.quote);
         return;
       }
       const toggle = e.target.closest('.askp-toggle');
@@ -122,7 +108,7 @@
       const turn = e.target.closest('.askp-turn');
       if (turn?.querySelector('.askp-graph')) lightCite(turn, cite ? Number(cite.dataset.cite) : null, true);
     });
-    window.addEventListener('readipedia:lang', () => { if (el) { el.querySelector('.askp-chat').innerHTML = ''; turns = 0; stack.length = 0; showChat(); syncHead(); close(); } else entry(true); });
+    window.addEventListener('readipedia:lang', () => { if (el) { controller?.abort(); history.length = 0; el.querySelector('.askp-chat').innerHTML = ''; turns = 0; stack.length = 0; showChat(); syncHead(); close(); } else entry(true); });
     syncHead();
     return el;
   }
@@ -170,8 +156,7 @@
     const chat = el.querySelector('.askp-chat');
     chat.innerHTML = `<section class="askp-welcome">
         <p class="askp-welcome-h">${T('Ask anything about Nineteen Eighty-Four', '关于《一九八四》，想问什么都可以')}</p>
-        <p class="askp-note">${T('Answers come from the entries, and every claim links to the sentence it rests on.', '回答来自词条，每个说法都能点回原文那一句。')}</p>
-        ${followHtml(DATA.answers.map((a) => a.id))}
+                ${followHtml(suggestions().map((x) => x.label))}
       </section>`;
   }
 
@@ -217,29 +202,47 @@
   }
 
   /* ---------- answers ---------- */
-  // "{@key|text}" links an entry, "[n]" cites a sentence.
-  function tokens(text) {
-    const out = [];
-    text.split(/(\{@\w+\|[^}]+\}|\[\d+\])/).forEach((part) => {
-      if (!part) return;
+  // Answers stream from the assistant API (server/). Text arrives with
+  // citations as [n] and entry links as {@entity-id|name}; citations,
+  // the relation map, the story chain and follow-ups arrive as data.
+  const API = () => window.READIPEDIA_ASSISTANT_URL || '/api/ask';
+  const turnsState = new WeakMap();
+  const history = [];
+  let controller = null;
+
+  function inline(text) {
+    return text.split(/(\{@[^|{}]+\|[^{}]+\}|\[\d+\])/).map((part) => {
       const cite = part.match(/^\[(\d+)\]$/);
-      if (cite) { out.push({ html: `<button type="button" class="askp-cite" data-cite="${cite[1]}" aria-label="${T('Source', '来源')} ${cite[1]}">${cite[1]}</button>` }); return; }
-      const ent = part.match(/^\{@(\w+)\|([^}]+)\}$/);
-      if (ent) { out.push({ html: `<a href="#${DATA.ids[ent[1]]}" class="askp-ent" data-entity-id="${DATA.ids[ent[1]]}">${esc(ent[2])}</a>` }); return; }
-      if (isZh()) for (let i = 0; i < part.length; i += 3) out.push({ html: esc(part.slice(i, i + 3)) });
-      else part.split(/(\s+)/).forEach((w) => { if (w) out.push({ html: esc(w) }); });
-    });
-    return out;
+      if (cite) return `<button type="button" class="askp-cite" data-cite="${cite[1]}" aria-label="${T('Source', '来源')} ${cite[1]}">${cite[1]}</button>`;
+      const ent = part.match(/^\{@([^|{}]+)\|([^{}]+)\}$/);
+      if (ent) return `<a href="#${esc(ent[1])}" class="askp-ent" data-entity-id="${esc(ent[1])}">${esc(ent[2])}</a>`;
+      return esc(part);
+    }).join('');
   }
 
-  async function stream(host, text, alive) {
-    const list = tokens(text);
-    for (let i = 0; i < list.length; i += 1) {
-      host.insertAdjacentHTML('beforeend', list[i].html);
-      if (i % 3 === 2) await wait(16);
-      if (!alive()) return false;
-    }
-    return true;
+  // Raw answer text -> lead, then headings and paragraphs. Only blocks whose
+  // text changed are touched, so streaming stays cheap.
+  function renderText(turn) {
+    const st = turnsState.get(turn);
+    const blocks = st.raw.replace(/\r/g, '').split(/\n\s*\n|\n(?=#{2,3}\s)|(?<=^#{2,3}\s.*)\n/m).map((b) => b.trim()).filter(Boolean);
+    blocks.forEach((block, i) => {
+      const heading = block.match(/^#{2,3}\s+(.+)$/);
+      const isLead = i === 0 && !heading;
+      const tag = heading ? 'h3' : 'p';
+      const cls = heading ? 'askp-h' : isLead ? 'askp-lead' : 'askp-p';
+      let node = st.blocks[i];
+      if (!node || node.tagName.toLowerCase() !== tag || node.className !== cls) {
+        const fresh = document.createElement(tag);
+        fresh.className = cls;
+        if (node) node.replaceWith(fresh);
+        else (isLead ? st.leadHost : st.bodyHost).appendChild(fresh);
+        node = fresh;
+        st.blocks[i] = node;
+        st.html[i] = '';
+      }
+      const html = inline(heading ? heading[1].replace(/\{@[^|{}]+\|([^{}]+)\}/g, '$1') : block);
+      if (st.html[i] !== html) { node.innerHTML = html; st.html[i] = html; }
+    });
   }
 
   function scrollDown(chat) {
@@ -247,110 +250,383 @@
     if (near) chat.scrollTop = chat.scrollHeight;
   }
 
+  async function* events(response) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let at;
+      while ((at = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, at);
+        buf = buf.slice(at + 2);
+        const data = chunk.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
+        if (data) { try { yield JSON.parse(data); } catch (e) { /* skip */ } }
+      }
+    }
+  }
+
+  function setLabel(turn, text, working) {
+    const label = turn.querySelector('.askp-steps-label');
+    if (!label) return;
+    label.textContent = text;
+    label.classList.toggle('is-working', working);
+  }
+
   async function ask(q) {
     open();
     if (stack.length) { stack.length = 0; showChat(); }
-    const id = ++runId;
-    const alive = () => id === runId;
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
     const chat = el.querySelector('.askp-chat');
     chat.querySelector('.askp-welcome')?.remove();
-    const answer = find(q);
     turns += 1;
     syncHead();
+
     const turn = document.createElement('section');
     turn.className = 'askp-turn';
-    if (answer) turn.dataset.answer = answer.id;
-    turn.innerHTML = `<p class="askp-q">${esc(q)}</p>`;
+    turn.innerHTML = `<p class="askp-q">${esc(q)}</p>
+      <div class="askp-steps"><span class="askp-steps-label is-working">${T('Reading entries', '正在读词条')}</span></div>
+      <div class="askp-lead-host"></div><div class="askp-graph-host"></div><div class="askp-body-host"></div>`;
     chat.appendChild(turn);
+    const st = {
+      raw: '', blocks: [], html: [], cites: [], bySid: new Map(), quotes: new Map(), chain: [], follow: [], graph: null,
+      leadHost: turn.querySelector('.askp-lead-host'), bodyHost: turn.querySelector('.askp-body-host')
+    };
+    turnsState.set(turn, st);
     turn.scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' });
 
-    if (!answer) {
-      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${T('This demo answers three preset questions. In 2.0 the assistant reads the entries and answers any question about the book.', '演示版只预置了三个问题。正式版会实时读词条，回答关于这本书的任何问题。')}</p>${followHtml(DATA.answers.map((a) => a.id))}`);
+    const fail = (msg) => {
+      turn.querySelector('.askp-wait')?.remove();
+      setLabel(turn, T('No answer', '没有回答'), false);
+      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${esc(msg)}</p>${followHtml([q], T('Try again', '重新回答'))}`);
+    };
+    let response;
+    try {
+      response = await fetch(API(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        body: JSON.stringify({ question: q, lang: lang(), history: history.slice(-3) }),
+        signal
+      });
+    } catch (e) {
+      if (!signal.aborted) fail(T('The assistant cannot be reached right now. Please try again in a moment.', '暂时连不上助手，请稍后再试。'));
+      return;
+    }
+    if (!response.ok || !response.body) {
+      fail(response.status === 429
+        ? T('Too many questions in a short time. Please wait a few minutes.', '提问太频繁了，请过几分钟再试。')
+        : T('The assistant is not available right now.', '助手暂时不可用。'));
       return;
     }
 
-    turn.insertAdjacentHTML('beforeend', `<div class="askp-steps"><span class="askp-steps-label is-working">${T('Reading entries', '正在读词条')}</span></div>`);
-    const steps = turn.querySelector('.askp-steps');
-    for (const entity of answer.read) {
-      await wait(240);
-      if (!alive()) return;
-      steps.insertAdjacentHTML('beforeend', `<a href="#${entity}" class="askp-step askp-ent" data-entity-id="${entity}">${esc(nameOf(entity))}</a>`);
+    let gotText = false;
+    let gotDone = false;
+    try {
+      for await (const ev of events(response)) {
+        if (signal.aborted) return;
+        if (ev.type === 'read') {
+          const steps = turn.querySelector('.askp-steps');
+          ev.entities.forEach((e) => steps.insertAdjacentHTML('beforeend', `<a href="#${esc(e.id)}" class="askp-step askp-ent" data-entity-id="${esc(e.id)}">${esc(e.name)}</a>`));
+          setLabel(turn, T(`Read ${ev.entities.length} entries`, `读了 ${ev.entities.length} 个词条`), false);
+          st.leadHost.innerHTML = `<p class="askp-wait"><span class="askp-steps-label is-working">${T('Thinking…', '正在思考…')}</span></p>`;
+        } else if (ev.type === 'cite') {
+          st.cites[ev.n - 1] = ev;
+          st.bySid.set(ev.sid, ev.n);
+          st.quotes.set(ev.sid, ev);
+        } else if (ev.type === 'text') {
+          if (!gotText) {
+            gotText = true;
+            st.leadHost.querySelector('.askp-wait')?.remove();
+          }
+          st.raw += ev.text;
+          renderText(turn);
+          scrollDown(chat);
+        } else if (ev.type === 'graph') {
+          st.graph = ev;
+          ev.edges.forEach((e) => { if (e.sid) st.quotes.set(e.sid, e); });
+          const host = turn.querySelector('.askp-graph-host');
+          host.innerHTML = '<div class="askp-graph rg"></div>';
+          const g = host.firstChild;
+          // Wait briefly for the handwriting fonts so labels are placed at their real size.
+          const fonts = document.fonts ? Promise.all([document.fonts.load('500 19px Caveat'), document.fonts.load('16px "LXGW WenKai Screen"', ev.edges.map((e) => e.label).join('') || '关系')]) : null;
+          Promise.race([fonts, new Promise((r) => setTimeout(r, 900))].filter(Boolean)).catch(() => {}).then(() => { if (g.isConnected) answerGraph(g, turn); });
+        } else if (ev.type === 'chain') {
+          st.chain = ev.steps;
+          ev.steps.forEach((s) => st.quotes.set(s.sid, s));
+        } else if (ev.type === 'follow') {
+          st.follow = ev.questions;
+        } else if (ev.type === 'done') {
+          gotDone = true;
+        } else if (ev.type === 'error') {
+          fail(ev.error === 'not_configured'
+            ? T('The assistant is not configured on this server.', '服务器还没有配置助手。')
+            : T('The model did not answer. Please try again.', '模型没有返回回答，请再试一次。'));
+          return;
+        }
+      }
+    } catch (e) {
+      if (signal.aborted) return;
+      fail(T('The answer was cut off. Please try again.', '回答中断了，请再试一次。'));
+      return;
     }
-    await wait(300);
-    if (!alive()) return;
-    const label = steps.querySelector('.askp-steps-label');
-    label.classList.remove('is-working');
-    label.textContent = T(`Read ${answer.read.length} entries`, `读了 ${answer.read.length} 个词条`);
-
-    const lead = document.createElement('p');
-    lead.className = 'askp-lead';
-    turn.appendChild(lead);
-    if (!await stream(lead, answer.lead[lang()], alive)) return;
-    // Right under the conclusion, a map of who did what to whom, so the
-    // sections below read against it. Edges carry the citation numbers and
-    // light up with them.
-    turn.insertAdjacentHTML('beforeend', '<div class="askp-graph rg"></div>');
-    answerGraph(turn.querySelector('.askp-graph'), answer);
-    await wait(260);
-    if (!alive()) return;
-    for (const section of answer.sections) {
-      turn.insertAdjacentHTML('beforeend', `<h3 class="askp-h">${esc(section.h[lang()])}</h3>`);
-      const p = document.createElement('p');
-      p.className = 'askp-p';
-      turn.appendChild(p);
+    if (signal.aborted) return;
+    if (!gotText) { fail(T('The model did not answer. Please try again.', '模型没有返回回答，请再试一次。')); return; }
+    if (!gotDone) {
+      turn.insertAdjacentHTML('beforeend', `<p class="askp-note">${T('The answer was cut off.', '回答中断了。')}</p>${followHtml([q], T('Try again', '重新回答'))}`);
       scrollDown(chat);
-      if (!await stream(p, section.text[lang()], alive)) return;
+      return;
     }
-    await wait(120);
-    if (!alive()) return;
-
-    const chain = answer.chain.map((s, i) => (
-      `<li><button type="button" class="askp-chain-step" data-cite="${s.cite}"><span class="askp-chain-dot">${i + 1}</span>`
-      + `<span class="askp-chain-text"><span class="askp-chain-label">${esc(s.label[lang()])}</span>${s.label[lang()].replace(/[“”"]/g, '') === nameOf(s.entity) ? '' : `<span class="askp-chain-ent">${esc(nameOf(s.entity))}</span>`}</span></button></li>`
-    )).join('');
-    const sources = answer.cites.map((c, i) => (
-      `<li><button type="button" class="askp-source" data-cite="${i + 1}"><span class="askp-source-n">${i + 1}</span>`
-      + `<span class="askp-source-body"><span class="askp-source-name">${esc(nameOf(c.entity))}</span><span class="askp-source-quote">${esc(c[lang()])}</span></span></button></li>`
-    )).join('');
-    turn.insertAdjacentHTML('beforeend', `
-      <div class="askp-more">
-        <button type="button" class="askp-toggle" aria-expanded="false">${T('How it unfolds', '事件经过')}<span class="askp-count">${answer.chain.length}</span>${ICON.chev}</button>
-        <div class="askp-fold"><ol class="askp-chain">${chain}</ol></div>
-        <button type="button" class="askp-toggle" aria-expanded="false">${T('Sources', '来源')}<span class="askp-count">${answer.cites.length}</span>${ICON.chev}</button>
-        <div class="askp-fold"><ol class="askp-sources">${sources}</ol></div>
-      </div>
-      ${followHtml(answer.follow)}`);
+    history.push({ q, a: st.raw });
+    linkNames(turn);
+    finish(turn);
     scrollDown(chat);
   }
 
-  function answerGraph(host, answer) {
+  // The model links entries with {@id|name}; when it skips one, link the
+  // first plain mention of each entry the answer read or drew.
+  function linkNames(turn) {
+    const st = turnsState.get(turn);
+    const linked = new Set([...turn.querySelectorAll('.askp-lead .askp-ent, .askp-p .askp-ent')].map((a) => a.dataset.entityId));
+    const seen = new Set();
+    const names = [];
+    const add = (id, name) => {
+      if (!id || !name || linked.has(id) || seen.has(`${id}|${name}`)) return;
+      seen.add(`${id}|${name}`);
+      names.push({ id, name });
+    };
+    const ents = [...turn.querySelectorAll('.askp-step')].map((a) => ({ id: a.dataset.entityId, name: a.textContent }));
+    (st.graph?.nodes || []).forEach((n) => ents.push(n));
+    ents.forEach(({ id, name }) => {
+      add(id, name);
+      if (!id.startsWith('character-')) return;
+      if (name.includes('·')) add(id, name.split('·')[0]);
+      else if (/^[A-Z][a-z'’]{3,}\s/.test(name) && !/^The\s/.test(name)) add(id, name.split(/\s/)[0]);
+    });
+    names.sort((a, b) => b.name.length - a.name.length);
+    for (const { id, name } of names) {
+      if (linked.has(id) || name.length < 2) continue;
+      const walker = document.createTreeWalker(turn, NodeFilter.SHOW_TEXT, {
+        acceptNode: (n) => (n.parentElement.closest('.askp-lead, .askp-p') && !n.parentElement.closest('a, button') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT)
+      });
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const at = node.nodeValue.indexOf(name);
+        if (at < 0) continue;
+        // Latin names must stand as words.
+        if (/^[A-Za-z]/.test(name) && (/[A-Za-z]/.test(node.nodeValue[at - 1] || '') || /[A-Za-z]/.test(node.nodeValue[at + name.length] || ''))) continue;
+        const rest = node.splitText(at);
+        rest.nodeValue = rest.nodeValue.slice(name.length);
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.className = 'askp-ent';
+        a.dataset.entityId = id;
+        a.textContent = name;
+        rest.parentNode.insertBefore(a, rest);
+        linked.add(id);
+        break;
+      }
+    }
+  }
+
+  function finish(turn) {
+    const st = turnsState.get(turn);
+    const chain = st.chain.map((s, i) => {
+      return `<li><button type="button" class="askp-chain-step" data-sid="${esc(s.sid)}"><span class="askp-chain-dot">${i + 1}</span>`
+        + `<span class="askp-chain-text"><span class="askp-chain-label">${esc(s.label)}</span><span class="askp-chain-ent">${esc(s.name)}</span></span></button></li>`;
+    }).join('');
+    const sources = st.cites.filter(Boolean).map((c) => (
+      `<li><button type="button" class="askp-source" data-cite="${c.n}"><span class="askp-source-n">${c.n}</span>`
+      + `<span class="askp-source-body"><span class="askp-source-name">${esc(c.name)}</span><span class="askp-source-quote">${esc(c.quote)}</span></span></button></li>`
+    )).join('');
+    const fold = (label, count, list) => `<button type="button" class="askp-toggle" aria-expanded="false">${label}<span class="askp-count">${count}</span>${ICON.chev}</button><div class="askp-fold">${list}</div>`;
+    turn.insertAdjacentHTML('beforeend', `
+      ${chain || sources ? `<div class="askp-more">
+        ${chain ? fold(T('How it unfolds', '事件经过'), st.chain.length, `<ol class="askp-chain">${chain}</ol>`) : ''}
+        ${sources ? fold(T('Sources', '来源'), st.cites.filter(Boolean).length, `<ol class="askp-sources">${sources}</ol>`) : ''}
+      </div>` : ''}
+      ${followHtml(st.follow)}`);
+  }
+
+  // Map of the answer: the most connected entry in the middle, the rest on a
+  // ring. The ring order is the one with the fewest crossings and no line
+  // running through a node it does not belong to.
+  function answerGraph(host, turn) {
+    const st = turnsState.get(turn);
+    // More entries get more height, so their labels have room.
+    host.style.height = `${[400, 400, 400, 400, 400, 420, 460, 500, 520][Math.min(8, st.graph.nodes.length)]}px`;
     const W = host.clientWidth;
     const H = host.clientHeight;
-    const padX = W < 400 ? 40 : 52;
-    const padTop = answer.graph.nodes.some((n) => n.side === 'above') ? 40 : 22;
-    const padBottom = 44;
-    const nodes = answer.graph.nodes.map((n) => ({
-      id: n.id,
-      name: n.name?.[lang()],
-      x: padX + n.x * (W - padX * 2),
-      y: padTop + n.y * (H - padTop - padBottom),
-      r: n.primary ? 20 : 16,
-      primary: n.primary,
-      labelSide: n.side || 'below',
-      key: ''
-    }));
-    const edges = answer.graph.edges.map((e) => ({
-      key: `k${e.cite}`, source: e.source, target: e.target, label: e.label[lang()], showLabel: true, curvature: e.curve ?? 0.14
-    }));
-    D().drawGraph(host, { nodes, edges }, {
-      onHover: (key) => lightCite(host.closest('.askp-turn'), key ? Number(key.slice(1)) : null),
+    const list = st.graph.nodes.slice().sort((a, b) => Number(b.primary) - Number(a.primary));
+    const cx = W / 2;
+    const cy = H / 2;
+    const rx = W / 2 - (W < 400 ? 52 : 72);
+    const ry = H / 2 - 56;
+    const centre = list[0].id;
+    const ring = list.slice(1);
+    const n = ring.length;
+    const slot = (k) => {
+      const a = -Math.PI / 2 + (k / n) * Math.PI * 2 + (n % 2 ? 0 : Math.PI / n);
+      return { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) };
+    };
+    const graphEdges = st.graph.edges.filter((e) => list.some((x) => x.id === e.source) && list.some((x) => x.id === e.target));
+    const order = bestRing(ring.map((r) => r.id), graphEdges, centre, { x: cx, y: cy }, slot);
+    const pos = new Map([[centre, { x: cx, y: cy }]]);
+    order.forEach((id, k) => pos.set(id, slot(k)));
+    const nodes = list.map((nd) => {
+      const p = pos.get(nd.id);
+      const primary = nd.id === centre;
+      return { id: nd.id, name: nd.name, x: p.x, y: p.y, r: primary ? 20 : 16, primary, labelSide: primary || p.y >= cy - 4 ? 'below' : 'above', key: '' };
+    });
+    // Each name goes on the side of its portrait that no line leaves from.
+    const sides = [['below', Math.PI / 2], ['above', -Math.PI / 2], ['right', 0], ['left', Math.PI]];
+    nodes.forEach((nd) => {
+      const dirs = graphEdges.filter((e) => e.source === nd.id || e.target === nd.id).map((e) => {
+        const o = pos.get(e.source === nd.id ? e.target : e.source);
+        return Math.atan2(o.y - nd.y, o.x - nd.x);
+      });
+      if (!dirs.length) return;
+      const gap = (a) => Math.min(...dirs.map((d) => { const x = Math.abs(((a - d) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI); return x; }));
+      // Sideways names need room: only on the outer edge of the map.
+      const est = [...(nd.name || '')].reduce((w, ch) => w + (/[\u2e80-\u9fff]/.test(ch) ? 13 : 7.2), 0);
+      const ok = sides.filter(([s]) => (s === 'right' ? nd.x > W * 0.6 && nd.x + 24 + est < W - 6
+        : s === 'left' ? nd.x < W * 0.4 && nd.x - 24 - est > 6 : true));
+      const pref = { below: 0.05, above: 0.03, right: 0, left: 0 };
+      nd.labelSide = ok.map(([s, a]) => [s, gap(a) + pref[s]]).sort((x, y) => y[1] - x[1])[0][0];
+    });
+    const pair = (e) => [e.source, e.target].sort().join('|');
+    const both = new Set(graphEdges.filter((e) => graphEdges.some((f) => f.source === e.target && f.target === e.source)).map(pair));
+    const edges = graphEdges.map((e, i) => {
+      const a = pos.get(e.source);
+      const b = pos.get(e.target);
+      let curvature = both.has(pair(e)) ? 0.3 : (e.source === centre || e.target === centre ? 0.06 : 0.16);
+      // Lines between two ring entries bow outwards, away from the middle.
+      if (!both.has(pair(e)) && e.source !== centre && e.target !== centre) {
+        const nx = -(b.y - a.y);
+        const ny = b.x - a.x;
+        if (nx * ((a.x + b.x) / 2 - cx) + ny * ((a.y + b.y) / 2 - cy) < 0) curvature = -curvature;
+      }
+      return { key: e.sid ? `s${e.sid}` : `e${i}`, source: e.source, target: e.target, label: e.label, showLabel: true, curvature, arrow: true, i };
+    });
+    // Relations appear one by one in the order the model gave them; each
+    // entry appears with the first relation that reaches it.
+    nodes.forEach((nd) => { const k = edges.findIndex((e) => e.source === nd.id || e.target === nd.id); nd.i = k < 0 ? 0 : k; });
+    D().drawGraph(host, { nodes, edges, sketch: true }, {
+      onHover: (key) => lightCite(turn, key && key.startsWith('sS') ? st.bySid.get(key.slice(1)) ?? null : null),
       onPick: (key, id) => {
-        if (key) {
-          const c = answer.cites[Number(key.slice(1)) - 1];
-          if (c) push(c.entity, c[lang()]);
-        } else if (id) push(id);
+        const q = key && key.startsWith('sS') ? st.quotes.get(key.slice(1)) : null;
+        if (q) push(q.entity, q.quote);
+        else if (id) push(id);
       }
     });
+    placeLabels(host, edges, pos);
+  }
+
+  function bestRing(ids, edges, centre, mid, slot) {
+    if (ids.length < 3) return ids;
+    const segOf = (pos, e) => [pos.get(e.source), pos.get(e.target)];
+    const cross = (p, q, r, s) => {
+      const d = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+      return d(p, q, r) * d(p, q, s) < 0 && d(r, s, p) * d(r, s, q) < 0;
+    };
+    const near = (p, a, b) => {
+      const vx = b.x - a.x; const vy = b.y - a.y;
+      const t = Math.max(0, Math.min(1, ((p.x - a.x) * vx + (p.y - a.y) * vy) / (vx * vx + vy * vy || 1)));
+      return Math.hypot(p.x - a.x - t * vx, p.y - a.y - t * vy);
+    };
+    let best = ids;
+    let bestScore = Infinity;
+    const first = ids[0];
+    const rest = ids.slice(1);
+    const perms = (arr) => (arr.length <= 1 ? [arr] : arr.flatMap((x, i) => perms([...arr.slice(0, i), ...arr.slice(i + 1)]).map((p) => [x, ...p])));
+    for (const p of perms(rest)) {
+      const order = [first, ...p];
+      const pos = new Map([[centre, mid]]);
+      order.forEach((id, k) => pos.set(id, slot(k)));
+      let score = 0;
+      edges.forEach((e, i) => {
+        const [a, b] = segOf(pos, e);
+        score += Math.hypot(b.x - a.x, b.y - a.y) / 400;
+        for (const [id, q] of pos) {
+          if (id === e.source || id === e.target) continue;
+          if (near(q, a, b) < 40) score += 12;
+          // and clear of that entry's name, under or over its portrait
+          if (near({ x: q.x, y: q.y + (q.y < mid.y - 4 ? -34 : 34) }, a, b) < 30) score += 12;
+        }
+        for (let j = i + 1; j < edges.length; j += 1) {
+          const f = edges[j];
+          if ([f.source, f.target].some((x) => x === e.source || x === e.target)) continue;
+          const [c, d] = segOf(pos, f);
+          if (cross(a, b, c, d)) score += 10;
+        }
+      });
+      if (score < bestScore) { bestScore = score; best = order; }
+    }
+    return best;
+  }
+
+  // Each relation label slides along its own line to the first spot that
+  // clears every dot, name and label already placed.
+  function placeLabels(host, edges, pos) {
+    host.classList.add('rg-still'); // measure at rest: nodes scale in
+    const box = host.getBoundingClientRect();
+    const rect = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; };
+    const overlap = (a, b) => Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l) + 3) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t) + 3);
+    const placed = [...host.querySelectorAll('.rg-dot, .rg-name')].map(rect);
+    // Every inked point, so a label never sits on a line or an arrow.
+    const ink = [];
+    host.querySelectorAll('.rg-reveal').forEach((el) => {
+      for (const m of el.getAttribute('d').matchAll(/(-?[\d.]+),(-?[\d.]+)/g)) ink.push({ x: +m[1], y: +m[2] });
+    });
+    const inkIn = (r) => ink.reduce((n, p) => n + (p.x > r.l - 4 && p.x < r.r + 4 && p.y > r.t - 4 && p.y < r.b + 4 ? 1 : 0), 0);
+    const labels = host.querySelectorAll('.rg-edge-label');
+    edges.forEach((e, i) => {
+      const label = labels[i];
+      if (!label) return;
+      const a = pos.get(e.source);
+      const b = pos.get(e.target);
+      const qx = (a.x + b.x) / 2 - (b.y - a.y) * e.curvature;
+      const qy = (a.y + b.y) / 2 + (b.x - a.x) * e.curvature;
+      const at = (t) => ({ x: (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * qx + t * t * b.x, y: (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * qy + t * t * b.y });
+      // Written beside the line, as in notes, on whichever side is free.
+      const lw = label.offsetWidth;
+      const lh = label.offsetHeight;
+      const side = (t) => {
+        const u = 1 - t;
+        const tx = 2 * u * (qx - a.x) + 2 * t * (b.x - qx);
+        const ty = 2 * u * (qy - a.y) + 2 * t * (b.y - qy);
+        const l = Math.hypot(tx, ty) || 1;
+        const nx = -ty / l;
+        const ny = tx / l;
+        const d = Math.abs(nx) * lw / 2 + Math.abs(ny) * lh / 2 + 3;
+        return { nx: nx * d, ny: ny * d };
+      };
+      let best = null;
+      const spots = [];
+      for (const push of [0, 8, 18]) for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74]) for (const sgn of [1, -1]) spots.push([t, sgn, push]);
+      for (const [t, sgn, push] of spots) {
+        const c = at(t);
+        const o = side(t);
+        const k = 1 + push / (Math.hypot(o.nx, o.ny) || 1);
+        const p = { x: c.x + o.nx * sgn * k, y: c.y + o.ny * sgn * k };
+        label.style.left = `${p.x}px`;
+        label.style.top = `${p.y}px`;
+        const r = rect(label);
+        const bad = placed.reduce((s, q) => s + overlap(r, q), 0) + inkIn(r) * 60 + (r.l < 0 || r.r > box.width || r.t < 0 || r.b > box.height ? 500 : 0);
+        const cost = bad + push;
+        if (!best || cost < best.cost) best = { cost, bad, p, r };
+        if (cost === push && cost === 0) break;
+      }
+      label.style.left = `${best.p.x}px`;
+      label.style.top = `${best.p.y}px`;
+      // No free spot: keep it out of sight until its line is hovered or picked.
+      if (best.bad > 0) { label.classList.add('is-tucked'); return; }
+      placed.push(best.r);
+    });
+    void host.offsetWidth;
+    host.classList.remove('rg-still');
   }
 
   // A citation and its relation light up together.
@@ -358,14 +634,17 @@
     if (!turn) return;
     turn.querySelectorAll('.askp-cite').forEach((c) => c.classList.toggle('is-hover', n !== null && Number(c.dataset.cite) === n));
     const host = turn.querySelector('.askp-graph');
-    if (fromText && host) D().lightKey(host, n !== null ? `k${n}` : null, 'is-hover');
+    if (fromText && host) {
+      const sid = n !== null ? turnsState.get(turn)?.cites[n - 1]?.sid : null;
+      D().lightKey(host, sid ? `s${sid}` : null, 'is-hover');
+    }
   }
 
-  function followHtml(ids) {
-    return `<div class="askp-follows">${ids.map((id) => {
-      const q = byId(id).q[lang()];
-      return `<button type="button" class="askp-follow" data-q="${esc(q)}">${ICON.spark}<span>${esc(q)}</span></button>`;
-    }).join('')}</div>`;
+  function followHtml(questions, label) {
+    if (!questions?.length) return '';
+    return `<div class="askp-follows">${questions.map((q) => (
+      `<button type="button" class="askp-follow" data-q="${esc(q)}">${ICON.spark}<span>${esc(label || q)}</span></button>`
+    )).join('')}</div>`;
   }
 
   window.addEventListener('readipedia:lang', () => { if (!el?.classList.contains('is-open')) entry(true); });
@@ -373,5 +652,5 @@
   const start = () => setTimeout(() => entry(true), 0);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
-  window.ReadipediaAsk = { suggestions, looksLikeQuestion, find, ask, open, close };
+  window.ReadipediaAsk = { suggestions, ask, open, close };
 })();

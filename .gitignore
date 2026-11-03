@@ -5,3 +5,6 @@ node_modules/
 .idea/
 *.log
 ._*
+.env
+.env.*
+!.env.example

@@ -352,7 +352,7 @@
           host.innerHTML = '<div class="askp-graph rg"></div>';
           const g = host.firstChild;
           // Wait briefly for the handwriting fonts so labels are placed at their real size.
-          const fonts = document.fonts ? Promise.all([document.fonts.load('500 19px Caveat'), document.fonts.load('17px "Long Cang"', ev.edges.map((e) => e.label).join('') || '关系')]) : null;
+          const fonts = document.fonts ? Promise.all([document.fonts.load('500 19px Caveat'), document.fonts.load('16px "LXGW WenKai Screen"', ev.edges.map((e) => e.label).join('') || '关系')]) : null;
           Promise.race([fonts, new Promise((r) => setTimeout(r, 900))].filter(Boolean)).catch(() => {}).then(() => { if (g.isConnected) answerGraph(g, turn); });
         } else if (ev.type === 'chain') {
           st.chain = ev.steps;
@@ -561,9 +561,26 @@
       const qx = (a.x + b.x) / 2 - (b.y - a.y) * e.curvature;
       const qy = (a.y + b.y) / 2 + (b.x - a.x) * e.curvature;
       const at = (t) => ({ x: (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * qx + t * t * b.x, y: (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * qy + t * t * b.y });
+      // Written beside the line, as in notes, on whichever side is free.
+      const lw = label.offsetWidth;
+      const lh = label.offsetHeight;
+      const side = (t) => {
+        const u = 1 - t;
+        const tx = 2 * u * (qx - a.x) + 2 * t * (b.x - qx);
+        const ty = 2 * u * (qy - a.y) + 2 * t * (b.y - qy);
+        const l = Math.hypot(tx, ty) || 1;
+        const nx = -ty / l;
+        const ny = tx / l;
+        const d = Math.abs(nx) * lw / 2 + Math.abs(ny) * lh / 2 + 3;
+        return { nx: nx * d, ny: ny * d };
+      };
       let best = null;
-      for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.27, 0.73]) {
-        const p = at(t);
+      const spots = [];
+      for (const t of [0.5, 0.4, 0.6, 0.32, 0.68]) for (const sgn of [1, -1]) spots.push([t, sgn]);
+      for (const [t, sgn] of spots) {
+        const c = at(t);
+        const o = side(t);
+        const p = { x: c.x + o.nx * sgn, y: c.y + o.ny * sgn };
         label.style.left = `${p.x}px`;
         label.style.top = `${p.y}px`;
         const r = rect(label);

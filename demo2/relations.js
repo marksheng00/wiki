@@ -161,47 +161,72 @@
   }
 
   /* ---------------------------------------------------------- Pen sketch */
-  // Hand-drawn strokes for the notes look: a line that wavers a little, and an
-  // open arrowhead of two strokes.
+  // Ink strokes for the notes look, like a pressure-sensitive pen: each line
+  // starts thin, swells a little and tapers off at the end. Drawn as filled
+  // outlines and revealed through a mask that follows the pen.
   function seeded(str) {
     let h = 2166136261;
     for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
     return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
   }
   const f1 = (v) => v.toFixed(1);
-  function penLine(a, c, b, rnd) {
-    const len = Math.hypot(b.x - a.x, b.y - a.y);
-    const steps = Math.max(8, Math.round(len / 14));
-    const amp = Math.min(1.6, len / 90);
-    const ph = rnd() * Math.PI * 2;
-    const fr = 1 + rnd() * 1.5;
-    let d = '';
-    for (let k = 0; k <= steps; k += 1) {
-      const t = k / steps;
-      const u = 1 - t;
-      const x = u * u * a.x + 2 * u * t * c.x + t * t * b.x;
-      const y = u * u * a.y + 2 * u * t * c.y + t * t * b.y;
-      const tx = 2 * u * (c.x - a.x) + 2 * t * (b.x - c.x);
-      const ty = 2 * u * (c.y - a.y) + 2 * t * (b.y - c.y);
-      const tl = Math.hypot(tx, ty) || 1;
-      const w = amp * Math.sin(Math.PI * 2 * fr * t + ph) * Math.sin(Math.PI * t);
-      d += `${k ? 'L' : 'M'}${f1(x - (ty / tl) * w)},${f1(y + (tx / tl) * w)}`;
+  const smooth = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+  const polyline = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${f1(p.x)},${f1(p.y)}`).join('');
+
+  // Outline of a stroke along pts with the given peak width.
+  function inkOutline(pts, w, taperIn = 0.08, taperOut = 0.12) {
+    const n = pts.length;
+    const left = [];
+    const right = [];
+    for (let i = 0; i < n; i += 1) {
+      const t = i / (n - 1);
+      const p = pts[i];
+      const q = pts[Math.min(n - 1, i + 1)];
+      const o = pts[Math.max(0, i - 1)];
+      const dx = q.x - o.x;
+      const dy = q.y - o.y;
+      const l = Math.hypot(dx, dy) || 1;
+      // Nearly even, like a fine pen: a soft start, a slight swell, a light lift at the end.
+      const half = (w / 2) * (0.45 + 0.55 * smooth(0, taperIn, t)) * (1 - 0.4 * smooth(1 - taperOut, 1, t)) * (0.9 + 0.1 * Math.sin(Math.PI * t));
+      left.push({ x: p.x - (dy / l) * half, y: p.y + (dx / l) * half });
+      right.push({ x: p.x + (dy / l) * half, y: p.y - (dx / l) * half });
     }
-    return d;
+    return `${polyline(left)}${polyline(right.reverse()).replace(/^M/, 'L')}Z`;
   }
-  function penArrow(c, tip, rnd) {
-    const ux = tip.x - c.x;
-    const uy = tip.y - c.y;
-    const l = Math.hypot(ux, uy) || 1;
-    const ang = Math.atan2(uy, ux);
+
+  // The pen's path for a relation: the same arc, starting clear of the
+  // source dot, with a slight natural bow, sampled every few pixels.
+  function penPoints(a, c, b, rnd, startGap) {
+    const bow = (rnd() - 0.5) * 0.08;
+    const cx = c.x - (b.y - a.y) * bow;
+    const cy = c.y + (b.x - a.x) * bow;
+    const at = (t) => { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * cx + t * t * b.x, y: u * u * a.y + 2 * u * t * cy + t * t * b.y }; };
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(12, Math.round(len / 3));
+    const pts = [];
+    for (let k = 0; k <= steps; k += 1) {
+      const p = at(k / steps);
+      if (Math.hypot(p.x - a.x, p.y - a.y) >= startGap) pts.push(p);
+    }
+    return { pts, c: { x: cx, y: cy } };
+  }
+
+  // An open arrowhead in one stroke: wing, tip, other wing.
+  function arrowPoints(from, tip, rnd) {
+    const ang = Math.atan2(tip.y - from.y, tip.x - from.x);
     const wing = (side) => {
-      const a = ang + Math.PI + side * (0.45 + rnd() * 0.12);
-      const len = 8 + rnd() * 2.5;
-      return `${f1(tip.x + Math.cos(a) * len)},${f1(tip.y + Math.sin(a) * len)}`;
+      const a = ang + Math.PI + side * (0.5 + rnd() * 0.1);
+      const len = 8.5 + rnd() * 2;
+      return { x: tip.x + Math.cos(a) * len, y: tip.y + Math.sin(a) * len };
     };
-    void l;
-    return `M${wing(1)} L${f1(tip.x)},${f1(tip.y)} L${wing(-1)}`;
+    const w1 = wing(1);
+    const w2 = wing(-1);
+    const seg = (p, q, k) => Array.from({ length: k }, (_, i) => ({ x: p.x + ((q.x - p.x) * i) / k, y: p.y + ((q.y - p.y) * i) / k }));
+    return [...seg(w1, tip, 6), ...seg(tip, w2, 6), w2];
   }
+
+  let maskSeq = 0;
+
   /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub,i}], edges:[{key,source,target,label,showLabel,arrow,i}] }
      Positions are in pixels of the host box. An edge with arrow points at its
      target; an edge with i is drawn in that order. graph.sketch draws it all
@@ -216,14 +241,26 @@
       const a = byId.get(e.source);
       const b = byId.get(e.target);
       if (!a || !b) return;
-      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + 3 : 0);
+      const arc = arcPath(a, b, e.curvature ?? 0.18, e.labelAt ?? 0.5, e.arrow ? b.r + (graph.sketch ? 5 : 3) : 0);
       const order = e.i !== undefined ? ` style="--i:${e.i}"` : '';
-      const rnd = graph.sketch ? seeded(`${e.source}>${e.target}`) : null;
-      const d = rnd ? penLine(a, arc.c, arc.end, rnd) : arc.d;
-      svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
-      if (arc.tip) svg += rnd
-        ? `<path class="rg-arrow is-pen" data-key="${e.key}" d="${penArrow(arc.c, arc.end, rnd)}" pathLength="1"${order}/>`
-        : `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
+      if (graph.sketch) {
+        const rnd = seeded(`${e.source}>${e.target}`);
+        const pen = penPoints(a, arc.c, arc.end, rnd, a.r + 6);
+        const id = `rgm${(maskSeq += 1)}`;
+        if (pen.pts.length > 2) {
+          svg += `<mask id="${id}" maskUnits="userSpaceOnUse"><path class="rg-reveal" d="${polyline(pen.pts)}" pathLength="1"${order}/></mask>`;
+          svg += `<path class="rg-edge is-pen" data-key="${e.key}" d="${inkOutline(pen.pts, 1.9)}" mask="url(#${id})"/>`;
+        }
+        if (e.arrow) {
+          const from = pen.pts[Math.max(0, pen.pts.length - 4)] || pen.c;
+          const tip = arrowPoints(from, arc.end, rnd);
+          svg += `<mask id="${id}t" maskUnits="userSpaceOnUse"><path class="rg-reveal is-tip" d="${polyline(tip)}" pathLength="1"${order}/></mask>`;
+          svg += `<path class="rg-arrow is-pen" data-key="${e.key}" d="${inkOutline(tip, 1.9, 0.15, 0.2)}" mask="url(#${id}t)"/>`;
+        }
+      } else {
+        svg += `<path class="rg-edge${e.cross ? ' is-cross' : ''}${e.i !== undefined ? ' is-draw' : ''}" data-key="${e.key}" d="${arc.d}"${e.i !== undefined ? ' pathLength="1"' : ''}${order}/>`;
+        if (arc.tip) svg += `<path class="rg-arrow" data-key="${e.key}" d="${arc.tip}"${order}/>`;
+      }
       svg += `<path class="rg-hit" data-key="${e.key}" d="${arc.d}"/>`;
       if (e.showLabel && e.label) {
         labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;

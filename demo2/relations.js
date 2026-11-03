@@ -161,8 +161,8 @@
   }
 
   /* ---------------------------------------------------------- Pen sketch */
-  // Hand-drawn strokes for the notes look: a line that wavers a little, an
-  // open arrowhead of two strokes, a loose circle that overshoots its start.
+  // Hand-drawn strokes for the notes look: a line that wavers a little, and an
+  // open arrowhead of two strokes.
   function seeded(str) {
     let h = 2166136261;
     for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -202,21 +202,6 @@
     void l;
     return `M${wing(1)} L${f1(tip.x)},${f1(tip.y)} L${wing(-1)}`;
   }
-  function penCircle(n, rnd) {
-    const r = n.r + 5;
-    const start = rnd() * Math.PI * 2;
-    const sweep = Math.PI * 2 + 0.45 + rnd() * 0.3;
-    const squash = 0.92 + rnd() * 0.1;
-    const steps = 28;
-    let d = '';
-    for (let k = 0; k <= steps; k += 1) {
-      const a = start + (k / steps) * sweep;
-      const rr = r * (1 + 0.05 * Math.sin(a * 2 + start) + (k / steps) * 0.06);
-      d += `${k ? 'L' : 'M'}${f1(n.x + Math.cos(a) * rr)},${f1(n.y + Math.sin(a) * rr * squash)}`;
-    }
-    return d;
-  }
-
   /* graph: { nodes:[{id,x,y,r,primary,labelSide,sub,i}], edges:[{key,source,target,label,showLabel,arrow,i}] }
      Positions are in pixels of the host box. An edge with arrow points at its
      target; an edge with i is drawn in that order. graph.sketch draws it all
@@ -244,11 +229,6 @@
         labels += `<span class="rg-edge-label${e.cross ? ' is-cross' : ''}" data-key="${e.key}" style="left:${arc.mid.x}px;top:${arc.mid.y}px${e.i !== undefined ? `;--i:${e.i}` : ''}">${esc(e.label)}</span>`;
       }
     });
-    if (graph.sketch) {
-      graph.nodes.forEach((n, i) => {
-        svg += `<path class="rg-ring${n.primary ? ' is-primary' : ''}" data-id="${n.id}" d="${penCircle(n, seeded(n.id))}" pathLength="1" style="--i:${n.i ?? i}"/>`;
-      });
-    }
     svg += '</svg>';
     let html = '';
     graph.nodes.forEach((n, i) => {
@@ -284,7 +264,7 @@
     host.classList.toggle(cls === 'is-hover' ? 'has-hover' : 'has-selection', Boolean(key) && Boolean(host.edgeEnds?.has(key)));
     const ends = key ? host.edgeEnds?.get(key) : null;
     host.querySelectorAll('.rg-edge, .rg-arrow, .rg-hit, .rg-edge-label').forEach((el) => el.classList.toggle(cls, Boolean(key) && el.dataset.key === key));
-    host.querySelectorAll('.rg-node, .rg-ring').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
+    host.querySelectorAll('.rg-node').forEach((el) => el.classList.toggle(cls, Boolean(ends?.has(el.dataset.id))));
   }
 
   function setSelected(host, key) {

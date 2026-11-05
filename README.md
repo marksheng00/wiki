@@ -56,7 +56,7 @@ Readipedia 是 Readify 的「书籍百科」站：把一本书做成一部可以
 | 书库 | 全部书籍、全部词条、14 个分类页，带筛选和分页 |
 | 书籍百科 | 只有《一九八四》一本：概览、149 个词条、知识图谱、89 个故事线场景、3 条 StoryFlow |
 | 其他书籍 | 只在书库和搜索里出现，点开跳到 readifyai.com 对应页面 |
-| 引流 | 页头「Open Readify」、下载菜单、词条和书籍页的「Read the book in Readify」按钮、页脚、促销卡片 |
+| 引流 | 页头「Open Readify」、下载菜单、词条和书籍页的「Read the book in Readify」按钮、页脚、促销弹窗 |
 | 语言 | 英文、中文两种；日、西、法语在菜单里是灰色不可选的占位 |
 | 主题 | 浅色、深色、跟随系统 |
 
@@ -78,7 +78,7 @@ Readipedia 是 Readify 的「书籍百科」站：把一本书做成一部可以
 | 书籍页右侧的作者、国家、语言、类型、出版日期 | **写死在 HTML** | 只适用于这一本书 |
 | 侧边栏的 149 个词条链接 | **写死在 HTML** | `index.html` 里静态生成，正式版应由数据渲染 |
 | StoryFlow 列表的 3 张卡片 | **写死在 HTML** | 按顺序和数据里的 id 对应 |
-| 促销卡片的文案、5 个 A/B 版本、截止时间 | **演示** | 运营活动占位，截止时间写在 `data-end` |
+| 促销弹窗的文案、5 个 A/B 版本、截止时间 | **演示** | 运营活动占位，截止时间写在 `data-end` |
 | macOS、Windows 下载链接 | **空** | 菜单里显示但点了没反应 |
 | 下载菜单里的二维码 | **演示** | 调用外部服务 api.qrserver.com 现场生成 |
 | 页脚「Free tools」四项 | **占位** | 纯文字，没有链接 |
@@ -117,9 +117,9 @@ index.html                 唯一的页面模板：页头、侧边栏、所有�
 app.js                     主控制器：路由、历史记录、语言、主题、知识图谱、搜索、词条页、手势
 library.js                 书库：全部书籍、全部词条、分类页、筛选、分页、书库侧边栏
 story.js                   故事线（缩略图、滑动）、StoryFlow 页和弹出层、词条页的「相关 StoryFlow」、手机书籍页的热门词条胶囊
-promo-banner.js            促销卡片：A/B 文案、倒计时、关闭、埋点
+promo-modal.js             促销弹窗：A/B 文案、倒计时、弹出时机、频控、埋点
 style.css                  全站样式和所有设计 token（:root）
-library.css / story.css / promo-banner.css / pro-gradient-text.css   各模块样式
+library.css / story.css / promo-modal.css / pro-gradient-text.css   各模块样式
 data/
   wiki_store.js            英文主数据（书、作者、概览、图谱、故事线、StoryFlow 列表、词条正文、图片映射），约 1.9 MB
   wiki_store_zh.js         中文：书籍正文、作者、故事线、StoryFlow 标题、图谱节点中文名、分类中文名
@@ -131,7 +131,7 @@ data/
 assets/
   images/                  词条图、故事线图、StoryFlow 图、封面（全尺寸）
   images/graph/            图谱节点用的 256px 小头像
-  brand/                   favicon、促销卡片的 5 张背景画
+  brand/                   favicon、促销弹窗的 5 张背景画
   fonts/  vendor/
 books/  entries/  categories/<id>/     预渲染的书库静态页（见 2.5）
 tools/
@@ -148,7 +148,7 @@ docs/                      评审记录和本文截图
 lucide → marked → force-graph
 → data/wiki_store.js → data/wiki_store_zh.js → border-beam.js
 → data/storyflows_complete.js → data/entity_storyflows.js
-→ story.js → data/library.js → library.js → app.js → promo-banner.js
+→ story.js → data/library.js → library.js → app.js → promo-modal.js
 ```
 
 `<head>` 里有一段内联脚本，在 CSS 之前执行，作用是避免闪烁：
@@ -238,7 +238,7 @@ node tools/prerender-library.js [--base http://localhost:8765/] [--origin https:
 |---|---|
 | ≤ 768px | 手机：页头只留 Logo 图标、搜索、Open Readify、菜单按钮；侧边栏变成全屏菜单；图谱有浮动按钮 |
 | 769–960px | 小平板：侧边栏和正文间距从 56px 缩到 32px，隐藏页头「Open Readify」和快捷键提示 |
-| 769–1100px | 窄桌面：全部词条两列；促销卡片改成两行紧凑版 |
+| 769–1100px | 窄桌面：全部词条两列 |
 | ≥ 1024px | 书籍页右侧信息栏上移，和书名顶部对齐 |
 | ≤ 1080px 且有触屏 | 在侧边栏顶部下拉可以展开图谱（平板也生效） |
 | 高度 ≤ 500px（手机横屏） | 图谱下方词条露出高度固定 104px |
@@ -654,7 +654,7 @@ Entities
 | Get Readify | 手机菜单顶部 | 同上 | 【演示】 |
 | 页脚 Product 列 | 每页底部 | 各平台下载 | 【必须】 |
 | 其他书籍、其他书的词条 | 书库、搜索 | readifyai.com 对应页面 | 【必须】 |
-| 促销卡片 | 页面底部浮动 | 带 UTM 的 app.readifyai.com | 【演示】 |
+| 促销弹窗 | 读者看了一会儿后弹出，见 6.8 | 带 UTM 的 app.readifyai.com | 【演示】 |
 
 **「Read the book in Readify」按钮**：
 
@@ -672,27 +672,34 @@ Entities
 - 链接配置在 `app.js` 的 `READIFY_APPS`：iOS、Android、Chrome 扩展、网页版有链接，**macOS 和 Windows 为空**，这两项会显示但点击无效（`aria-disabled`），所以 Mac 和 Windows 用户目前看到的仍是「Open Readify」。
 - 「Open Readify」的文字是 td 的 Pro 渐变文字效果（七层径向渐变叠在灰色底字上，`pro-gradient-text.css`），按钮本身是灰色胶囊。
 
-### 6.8 促销卡片【演示】
+### 6.8 促销弹窗【演示】
 
-![促销卡片（桌面）](docs/readme-assets/17-promo-desktop.jpg)
+![促销弹窗（桌面）](docs/readme-assets/17-promo-desktop.jpg)
 
-一张浮在页面底部的彩画卡片，用于「Readify 限时免费」活动：
+「Readify 限时免费」活动的弹窗。替代了原来浮在页面底部的促销卡片（读者滚过就忽略，还会挡住词条正文）。代码在 `promo-modal.js` / `promo-modal.css`，所有阈值写在 `promo-modal.js` 顶部的 `RULES` 里。
 
-- **何时出现**：页面滚过 35% 或滚过 1.5 屏（取先到者），或标签页在前台累计停留 8 秒。页面不够一屏长时只等计时。
-- **出现动效**：td Toast，从下方 16px、缩放 0.97、模糊 2px 升起（350ms）。
+- **何时弹出**（只给已经在看内容的读者）：
+  - 本次访问打开了第 2 个页面，并在这个页面停留满 5 秒；
+  - 或在任意一个页面停留满 25 秒（StoryFlow 这类几乎不滚动的页面靠它）；
+  - 或桌面上停留满 8 秒后，鼠标从窗口顶部移出（要去切标签页或关页面）。
+  - 只计标签页在前台的时间。条件满足后还要等一个「安静的时刻」：搜索、StoryFlow 弹层、手机菜单、全屏图谱都没打开，没有选中文字、没有在输入，且停止滚动 0.8 秒。
+- **频控**（`localStorage['readipedia-promo-free-2026']`、`sessionStorage` 同名键）：每次访问最多一次；关闭后 3 天内不再弹；点过 CTA 后本次活动不再弹；每个浏览器本次活动最多弹 3 次；`data-end` 过后不再弹。
 - **布局**：
-  - 桌面：宽 `min(880px, 正文区宽)`，在正文区（不是整个窗口）水平居中，跟着侧边栏收起展开移动；距底部 16px；圆角 16px。左边标题（17px 粗）和副标题，一条竖线，倒计时（「Ends in」+ `09d 09:50:54`），右边 CTA（暖黄色文字 + 箭头）和关闭 ✕。
-  - 769–1100px 和手机：两行紧凑版，去掉副标题和竖线，标题用短版本。手机左右各留 20px。
-  - 手机上打开菜单、全屏图谱或图谱文章时，卡片隐藏让位。
-- **5 个 A/B 文案**（voices、library、claude、import、all），每个读者随机分到一个并记在 `localStorage['readipedia-promo-variant']`，每个版本有自己的背景画（`assets/brand/promo-*.jpg`）。文案中英各一套。
-- **倒计时**：每秒更新，截止时间在 `index.html` 的 `data-end="2026-10-31T23:59:59+08:00"`。只有变化的数字做 td「数字弹入」动画（从下方 8px 带模糊弹入，500ms，多个数字同时变时依次延后 70ms）。过期后倒计时和竖线隐藏，卡片保留。
-- **CTA**：链接自动加 `utm_source=readipedia&utm_medium=promo-card&utm_campaign=free-2026&utm_content=<版本>`。
-- **关闭**：点 ✕，卡片下沉淡出（250ms）后从页面移除，刷新后会再出现。
-- **埋点**：出现、点击、关闭三个事件，推到 `window.dataLayer`（`promo_view` / `promo_click` / `promo_close`，带 `promo_variant`），同时派发 `readipedia:promo` 自定义事件。
-- 卡片完全独立于页面布局：固定定位，不占位置，不改页面任何 class 或变量。
-- 预览参数 `?promo=<版本>` 本意是强制显示指定版本，但目前会被路由抹掉，见第 11 节。
+  - 桌面和平板：居中弹窗，宽 420px，圆角 24px。上面是通栏的彩画（每个 A/B 版本一张，`assets/brand/promo-*.jpg`），右上角关闭 ✕；下面是倒计时、标题（20px）、一句副标题和一个通栏 CTA 胶囊按钮（文字色底，深色模式自动反色）。
+  - 手机：底部抽屉，顶部有拖动条，可下拉或快速下滑关闭，和 StoryFlow 抽屉一致。
+- **动效**：桌面用 td Modal（遮罩淡入，弹窗从 0.96 放大并去模糊，开 250ms、关 150ms）；手机用面板动效（从底部升起 400ms、收起 350ms）。倒计时数字用 td「数字弹入」。系统开启「减少动态效果」时不播放。
+- **关闭方式**：✕、点遮罩、Esc、手机下滑。焦点在弹窗内循环，关闭后回到原来的位置；打开时页面不能滚动。
+- **5 个 A/B 文案**（voices、library、claude、import、all），每个读者随机分到一个并记在 `localStorage['readipedia-promo-variant']`。文案中英各一套。
+- **倒计时**：截止时间在 `index.html` 的 `data-end`（目前是占位的 `2026-11-30T23:59:59+08:00`）。不足一天时只显示时分秒。
+- **CTA**：链接自动加 `utm_source=readipedia&utm_medium=promo-modal&utm_campaign=free-2026&utm_content=<版本>`。
+- **埋点**：推到 `window.dataLayer`，同时派发 `readipedia:promo` 自定义事件（字段相同，dataLayer 里带 `promo_` 前缀）：
+  - `promo_impression`：`trigger`（second_page / time_on_page / exit_intent / preview）、`pages_in_visit`
+  - `promo_click`：`dwell_ms`（从弹出到点击的毫秒数）
+  - `promo_dismiss`：`method`（close_button / backdrop / esc / swipe / navigate）、`dwell_ms`
+  - 每个事件都带 `campaign`、`surface`（modal）、`variant`、`page_type`、`lang`、`show_n`（这是第几次弹）、`preview`
+- 预览参数 `?promo=<版本>`：立刻弹出指定版本，跳过所有规则，不写频控记录（事件里 `preview: true`）。
 
-![促销卡片（手机）](docs/readme-assets/19-promo-mobile.jpg)
+![促销弹窗（手机）](docs/readme-assets/19-promo-mobile.jpg)
 
 ### 6.9 Tooltip【可选】
 
@@ -757,11 +764,11 @@ Entities
 | 柔和替换（Text swap soft） | 切语言、故事线换图、悬停预览换内容、切主题 | 交叉模糊 2px 淡入，200ms，ease-in-out |
 | 下拉菜单（Menu dropdown） | 语言菜单、下载菜单 | 开：从 0.97 缩放到 1，250ms；关：缩到 0.99 淡出，150ms；从触发按钮那一角长出 |
 | 面板（Panel reveal） | 桌面侧边栏收起展开、手机菜单 | 开 400ms，关 350ms，模糊 2px，smooth-out |
-| 弹窗（Modal） | 搜索面板、StoryFlow 弹层 | 开 250ms（弹层 400ms），关 150ms；面板从 0.96 + 2px 模糊恢复 |
+| 弹窗（Modal） | 搜索面板、StoryFlow 弹层、促销弹窗 | 开 250ms（弹层 400ms），关 150ms；面板从 0.96 + 2px 模糊恢复 |
 | 折叠面板（Accordion） | 侧边栏词条类别 | 高度 + 2px 模糊 + 透明度，开关各 250ms；箭头同步旋转 |
 | 滑动指示条（Tabs） | 目录竖线指示条、故事线缩略图下划线（当前故事线页隐藏） | 250ms，smooth-out |
 | Tooltip | data-tooltip、悬停预览 | 延迟 80ms 后 150ms 出现（从 0.98 缩放），50ms 消失；相邻元素间滑动 160ms |
-| Toast | 回到顶部按钮、促销卡片 | 从下方 16px + 0.97 缩放 + 2px 模糊，进 350ms，出 250ms |
+| Toast | 回到顶部按钮 | 从下方 16px + 0.97 缩放 + 2px 模糊，进 350ms，出 250ms |
 | 图标替换（Icon swap） | 主题按钮月亮/太阳 | 从 0.25 缩放 + 2px 模糊，250ms |
 | 骨架屏 + 图片显现（Skeleton / Reveal） | 所有大图 | 图片未加载时容器灰底脉动一次（1000ms，透明度 1 → 0.5 → 1）；加载完图片从 2px 模糊淡入（400ms）；已在缓存里的图直接显示 |
 | Learn more 箭头 | 促销 CTA 箭头、手机「Back to」链接 | 悬停时箭头向阅读方向移 2px，两臂张开 8°，350ms |
@@ -828,7 +835,7 @@ Entities
 ### 8.2 字体和字号
 
 - 字体：Inter（可变字体，自托管），中文回退 PingFang SC、Hiragino Sans GB、Microsoft YaHei、Noto Sans CJK SC。代码字体 Roboto Mono / 系统等宽。
-- 字重只用 400 和 500（促销卡片标题 600）。
+- 字重只用 400 和 500。
 
 | 用途 | 桌面 | 手机 |
 |---|---|---|
@@ -1039,7 +1046,7 @@ WIKI_STORE = {
 | `readipedia:lang` | 无 | 语言切换后 |
 | `readipedia:scene` | `{ pos, index }` | 故事线换场景 |
 | `readipedia:entity` | `{ id, label }` | 词条页渲染完 |
-| `readipedia:promo` | `{ campaign, variant, action }` | 促销卡片 view / click / close |
+| `readipedia:promo` | `{ campaign, surface, variant, action, page_type, lang, show_n, preview, … }` | 促销弹窗 impression / click / dismiss，见 6.8 |
 
 模块间接口：`window.ReadipediaNav`（打开书库、书、词条；库路径）、`window.ReadipediaBridge`（story.js 用的换场景、显示视图、写历史）、`window.ReadipediaLibrary.searchItems()`、`window.StoryPages`（路由、打开场景和 StoryFlow、搜索条目）、`window.ReadipediaMedia.reveal()`（图片显现）。
 
@@ -1123,7 +1130,7 @@ EntityStoryFlow entity_id, flow_id
 - 词条正文、中文数据都按需请求，不要整书打包。
 - 图片走 CDN，提供原图和 256px 缩略图两种（图谱只用缩略图）；建议再出 WebP / AVIF。
 - 图谱：词条多的书前端不能全量计算，建议服务端按 `nodeCap` / `edgeCap` 选点并缓存布局坐标，前端只负责画和交互。
-- 埋点：促销卡片已经推 `dataLayer`，其他关键行为（搜索、外链点击、图谱点击）建议同样派发事件统一上报。
+- 埋点：促销弹窗已经推 `dataLayer`，其他关键行为（搜索、外链点击、图谱点击）建议同样派发事件统一上报。
 
 ---
 
@@ -1131,18 +1138,17 @@ EntityStoryFlow entity_id, flow_id
 
 代码核对中发现的问题，正式版请避开：
 
-1. **`?promo=<版本>` 预览参数无效。** `index.html` 的 `<base href="./">` 让 `app.js` 初始化时 `replaceState` 写入的地址丢掉了查询参数，而 `promo-banner.js` 在它之后才读 `location.search`，所以读不到参数。
-2. **搜索会匹配右侧提示文字。** 在书籍页输入「ha」会列出所有人物，因为提示文字「Character」里有「ha」。建议只匹配名称（和书的作者）。
-3. **「States」的中文译名不一致。** 侧边栏用 `ZH_UI` 的「超级大国」，书库筛选用数据里的「状态」。
-4. **书籍正文没有词条自动链接**，只有词条正文有。
-5. **侧边栏的 149 个词条、StoryFlow 列表的 3 张卡片、书籍资料栏都写死在 `index.html`**，换书时要改模板。正式版由数据渲染。
-6. **数据一次性加载。** `wiki_store.js` 约 1.9 MB，在书库页也会下载。
-7. **macOS、Windows 下载链接为空**；二维码依赖外部服务 api.qrserver.com，离线或被墙时不显示。
-8. **StoryFlow 节点正文只有英文**；`entity_storyflows.js` 里大部分 StoryFlow 本站没有，只有 35 个词条能显示相关 StoryFlow。
-9. **其他书籍没有封面**，用文字封面代替。
-10. **桌面侧边栏收起状态不保存**，刷新后恢复展开。
-11. `library.js` 里有一个没用到的 `sort` 图标，是早期排序菜单的残留；当前没有排序控件，排序规则固定（见 5.1、5.2）。
-12. `lucide.min.js`（约 420 KB）只作兜底，常用图标已自绘，可以去掉或按需加载。
+1. **搜索会匹配右侧提示文字。** 在书籍页输入「ha」会列出所有人物，因为提示文字「Character」里有「ha」。建议只匹配名称（和书的作者）。
+2. **「States」的中文译名不一致。** 侧边栏用 `ZH_UI` 的「超级大国」，书库筛选用数据里的「状态」。
+3. **书籍正文没有词条自动链接**，只有词条正文有。
+4. **侧边栏的 149 个词条、StoryFlow 列表的 3 张卡片、书籍资料栏都写死在 `index.html`**，换书时要改模板。正式版由数据渲染。
+5. **数据一次性加载。** `wiki_store.js` 约 1.9 MB，在书库页也会下载。
+6. **macOS、Windows 下载链接为空**；二维码依赖外部服务 api.qrserver.com，离线或被墙时不显示。
+7. **StoryFlow 节点正文只有英文**；`entity_storyflows.js` 里大部分 StoryFlow 本站没有，只有 35 个词条能显示相关 StoryFlow。
+8. **其他书籍没有封面**，用文字封面代替。
+9. **桌面侧边栏收起状态不保存**，刷新后恢复展开。
+10. `library.js` 里有一个没用到的 `sort` 图标，是早期排序菜单的残留；当前没有排序控件，排序规则固定（见 5.1、5.2）。
+11. `lucide.min.js`（约 420 KB）只作兜底，常用图标已自绘，可以去掉或按需加载。
 
 ---
 
@@ -1166,7 +1172,7 @@ EntityStoryFlow entity_id, flow_id
 | 减少动态效果 | 【必须】 | 7.4 |
 | 全部 td 动效（进场、依次出现、下拉、弹窗、骨架屏等） | 【必须】 | 7.3 |
 | 下载菜单、设备识别、二维码 | 【演示】 | 6.7 |
-| 促销卡片、A/B 文案、倒计时、埋点 | 【演示】 | 6.8 |
+| 促销弹窗、A/B 文案、倒计时、频控、埋点 | 【演示】 | 6.8 |
 | 词条悬停预览 | 【可选】 | 6.5 |
 | Tooltip 滑动 | 【可选】 | 6.9 |
 | Readify 按钮流光、Open Readify 渐变字、Logo 翻角、数字弹入 | 【可选】 | 6.6、6.7、4.3、6.8 |
@@ -1193,7 +1199,7 @@ EntityStoryFlow entity_id, flow_id
 | 14 | 图谱展开窗，桌面 |
 | 15 | 词条悬停预览，桌面 |
 | 16 | 下载菜单，桌面 |
-| 17 / 19 | 促销卡片，桌面 / 手机 |
+| 17 / 19 | 促销弹窗，桌面 / 手机 |
 | 18 | 全部书籍，中文 |
 | 20 / 21 / 22 | 书库 / 书籍概览 / 词条页，手机 |
 | 23 | 手机菜单 |

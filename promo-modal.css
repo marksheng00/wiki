@@ -1,0 +1,231 @@
+/* Promo dialog: the free-for-now offer, shown once to a reader who is
+   already engaged (see promo-modal.js for when). Replaces the floating
+   bottom card, which readers scrolled past and which covered entry text.
+
+   Desktop: the transitions.dev Modal. The scrim fades, the dialog scales
+   up from 0.96 with a short blur, and closes faster than it opens.
+   Phones: a bottom sheet that rises with the panel ease and can be
+   dragged down to close, the same as the StoryFlow sheet.
+
+   One surface, no frame inside it: the painting runs edge to edge at the
+   top, the words and one call to action sit under it. */
+
+.promo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.promo-modal[hidden] { display: none; }
+html.promo-modal-open { overflow: hidden; }
+
+.promo-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-bg);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity var(--modal-close-dur) var(--modal-ease);
+}
+.promo-modal.is-open .promo-scrim {
+  opacity: var(--dim, 1);
+  transition-duration: var(--modal-open-dur);
+}
+.promo-modal.is-dragging .promo-scrim { transition: none; }
+
+.promo-dialog {
+  position: relative;
+  width: 420px;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  outline: none;
+  border-radius: 24px;
+  background: var(--card-bg);
+  box-shadow: var(--modal-shadow);
+  font-family: var(--font-sans);
+  opacity: 0;
+  transform: scale(var(--scale-large));
+  filter: blur(var(--blur-small));
+  transition:
+    opacity var(--modal-close-dur) var(--modal-ease),
+    transform var(--modal-close-dur) var(--modal-ease),
+    filter var(--modal-close-dur) var(--modal-ease);
+}
+.promo-dialog::-webkit-scrollbar { display: none; }
+.promo-modal.is-open .promo-dialog {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  transition-duration: var(--modal-open-dur);
+}
+
+/* The painting: one per copy variant, all from the book's illustrations. */
+.promo-art {
+  aspect-ratio: 21 / 10;
+  background: #2f3a22 center / cover no-repeat;
+}
+.promo-modal[data-variant="all"] .promo-art { background-image: url('assets/brand/promo-all.jpg'); background-position: center 55%; }
+.promo-modal[data-variant="voices"] .promo-art { background-image: url('assets/brand/promo-voices.jpg'); }
+.promo-modal[data-variant="library"] .promo-art { background-image: url('assets/brand/promo-library.jpg'); }
+.promo-modal[data-variant="claude"] .promo-art { background-image: url('assets/brand/promo-claude.jpg'); }
+.promo-modal[data-variant="import"] .promo-art { background-image: url('assets/brand/promo-import.jpg'); }
+
+.promo-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-close:hover { background: rgba(0, 0, 0, 0.48); }
+.promo-close:active { transform: scale(var(--scale-large)); }
+.promo-close:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.promo-close svg { width: 16px; height: 16px; }
+
+.promo-body { padding: 20px 24px 24px; }
+
+.promo-count {
+  margin: 0 0 6px;
+  font-size: var(--text-ui);
+  line-height: 18px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.promo-count[hidden] { display: none; }
+.promo-count-label { margin-right: 6px; }
+.promo-count-time {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.promo-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.promo-sub {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* The one call to action: a full-width pill in the text colour. */
+.promo-cta {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  color: var(--bg-page);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity var(--duration-quick) var(--ease-out), transform var(--duration-micro) var(--ease-out);
+}
+.promo-cta:hover { opacity: 0.86; }
+.promo-cta:active { transform: scale(var(--scale-medium)); }
+.promo-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.promo-cta-arrow { width: 16px; height: 16px; flex: none; color: currentColor; }
+.promo-cta-arrow svg { width: 100%; height: 100%; }
+
+/* A digit that just changed pops in from below with a light blur: the
+   transitions.dev "Number pop-in" (02). Digits that did not change stay
+   still; when several change at once each rides one stagger step behind. */
+.promo-count-time {
+  --digit-dur: 500ms;
+  --digit-distance: 8px;
+  --digit-stagger: 70ms;
+  --digit-blur: 2px;
+  --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.promo-digit { display: inline-block; }
+.promo-digit.is-new {
+  animation: promo-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+  animation-delay: calc(var(--digit-stagger) * var(--digit-step, 0));
+}
+@keyframes promo-digit-pop-in {
+  from { opacity: 0; transform: translateY(var(--digit-distance)); filter: blur(var(--digit-blur)); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+.promo-grab { display: none; }
+
+/* Phones: a bottom sheet. */
+@media (max-width: 768px) {
+  .promo-modal { align-items: flex-end; padding: 0; }
+  .promo-dialog {
+    width: 100%;
+    max-height: 88dvh;
+    border-radius: 20px 20px 0 0;
+    opacity: 1;
+    filter: none;
+    transform: translateY(100%);
+    transition: transform var(--panel-close-dur) var(--panel-ease);
+  }
+  .promo-modal.is-open .promo-dialog {
+    transform: none;
+    filter: none;
+    transition-duration: var(--panel-open-dur);
+  }
+  .promo-modal.is-open .promo-scrim { transition-duration: var(--panel-open-dur); }
+  .promo-modal.is-dragging .promo-dialog { transition: none; }
+  /* The handle sits on the painting, so it is white. */
+  .promo-grab {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    touch-action: none;
+  }
+  .promo-grab::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .promo-body { padding: 20px var(--m-gutter) calc(24px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-scrim, .promo-dialog { transition: none !important; }
+  .promo-dialog { filter: none; }
+  .promo-digit.is-new { animation: none; }
+}

@@ -21,6 +21,8 @@
   <script src="./assets/vendor/force-graph.min.js" defer></script>
 
   <script>
+    // app.js rewrites the address on start; keep the query for promo-modal.js (?promo= preview).
+    window.__promoQuery = location.search;
     (function () {
       var pref = 'system';
       try { pref = localStorage.getItem('readipedia-theme') || 'system'; } catch (e) {}
@@ -37,7 +39,7 @@
   <link rel="stylesheet" href="./pro-gradient-text.css?v=1" />
   <link rel="stylesheet" href="./story.css?v=30" />
   <link rel="stylesheet" href="./library.css?v=22" />
-  <link rel="stylesheet" href="./promo-banner.css?v=11" />
+  <link rel="stylesheet" href="./promo-modal.css?v=1" />
 </head>
 <body>
 
@@ -52,21 +54,22 @@
   </svg>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <!-- Promo card: copy, countdown and close live in promo-banner.js.
-       data-end is when the offer is billed as ending; the countdown hides after it. -->
-  <aside class="promo-bar" id="promo-bar" aria-label="Announcement" hidden data-end="2026-10-31T23:59:59+08:00">
-    <div class="promo-text">
-      <p class="promo-title"><span class="promo-title-long"></span><span class="promo-title-short"></span></p>
-      <p class="promo-sub"></p>
-    </div>
-    <span class="promo-rule" aria-hidden="true"></span>
-    <div class="promo-count">
-      <span class="promo-count-label"></span>
-      <span class="promo-count-time"></span>
-    </div>
-    <a class="promo-cta t-learn" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><span class="t-learn-chevron promo-cta-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8"/><path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12"/></svg></span></a>
-    <button class="promo-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  </aside>
+  <!-- Promo dialog: copy, countdown, when it opens and how often live in promo-modal.js.
+       data-end is when the offer ends: the countdown runs to it and the dialog stops showing after it. -->
+  <div class="promo-modal" id="promo-modal" hidden data-end="2026-11-30T23:59:59+08:00">
+    <div class="promo-scrim"></div>
+    <section class="promo-dialog" role="dialog" aria-modal="true" aria-labelledby="promo-title" aria-describedby="promo-sub" tabindex="-1">
+      <div class="promo-art" aria-hidden="true"></div>
+      <div class="promo-grab" aria-hidden="true"></div>
+      <button class="promo-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="promo-body">
+        <p class="promo-count"><span class="promo-count-label"></span><span class="promo-count-time"></span></p>
+        <h2 class="promo-title" id="promo-title"></h2>
+        <p class="promo-sub" id="promo-sub"></p>
+        <a class="promo-cta t-learn" href="https://app.readifyai.com" target="_blank" rel="noopener"><span class="promo-cta-label"></span><span class="t-learn-chevron promo-cta-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8"/><path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12"/></svg></span></a>
+      </div>
+    </section>
+  </div>
 
   <!-- Site header: brand and product links on the left, search and settings on the right -->
   <header class="wiki-header site-nav">
@@ -743,6 +746,6 @@
   <script src="./data/library.js?v=4" defer></script>
   <script src="./library.js?v=27" defer></script>
   <script src="./app.js?v=151" defer></script>
-  <script src="./promo-banner.js?v=9" defer></script>
+  <script src="./promo-modal.js?v=1" defer></script>
 </body>
 </html>

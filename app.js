@@ -123,7 +123,6 @@
     'Mobile': '移动端',
     'iPhone and iPad': 'iPhone 和 iPad',
     'Phones and tablets': '手机和平板',
-    'Without Google Play': '无需 Google Play',
     'Browser': '浏览器',
     'Extension': '浏览器扩展',
     'Chrome and Edge': 'Chrome 和 Edge',
@@ -6693,8 +6692,10 @@
         link.addEventListener('click', (e) => e.preventDefault());
       }
       if (link.dataset.app === device) {
-        link.classList.add('is-device');
-        const hint = link.querySelector('.apps-item-hint');
+        // A split tile (Android: Google Play plus APK) marks the whole tile.
+        const item = link.closest('.apps-item') || link;
+        item.classList.add('is-device');
+        const hint = item.querySelector('.apps-item-hint-text, .apps-item-hint');
         if (hint) hint.textContent = 'This device';
       }
     });
@@ -6708,7 +6709,7 @@
         cta.href = READIFY_APPS[device];
         setGlowLabel(label, labels[device]);
         // Show the platform's own mark (Apple, Windows, App Store, Android).
-        const glyph = document.querySelector(`.apps-item[data-app="${device}"] .brand-glyph`);
+        const glyph = document.querySelector(`.apps-item [data-app="${device}"], .apps-item[data-app="${device}"]`)?.closest('.apps-item')?.querySelector('.brand-glyph');
         const icon = cta.querySelector('.nav-get-pro-icon');
         if (glyph && icon) {
           const mark = glyph.cloneNode(true);

@@ -6664,6 +6664,7 @@
     windows: '',
     ios: 'https://apps.apple.com/us/app/readify-ai-audio-book-reader/id6783195818',
     android: 'https://play.google.com/store/apps/details?id=com.readin.app',
+    apk: 'https://file-tk.readifyai.com/install/android/readify.apk',
     extension: 'https://chromewebstore.google.com/detail/readin-lifelike-text-to-s/nnheobpfcpicnkfpdaafonmoaiehgmkj',
     web: 'https://app.readifyai.com'
   };
@@ -6691,8 +6692,10 @@
         link.addEventListener('click', (e) => e.preventDefault());
       }
       if (link.dataset.app === device) {
-        link.classList.add('is-device');
-        const hint = link.querySelector('.apps-item-hint');
+        // A split tile (Android: Google Play plus APK) marks the whole tile.
+        const item = link.closest('.apps-item') || link;
+        item.classList.add('is-device');
+        const hint = item.querySelector('.apps-item-hint-text, .apps-item-hint');
         if (hint) hint.textContent = 'This device';
       }
     });
@@ -6706,7 +6709,7 @@
         cta.href = READIFY_APPS[device];
         setGlowLabel(label, labels[device]);
         // Show the platform's own mark (Apple, Windows, App Store, Android).
-        const glyph = document.querySelector(`.apps-item[data-app="${device}"] .brand-glyph`);
+        const glyph = document.querySelector(`.apps-item [data-app="${device}"], .apps-item[data-app="${device}"]`)?.closest('.apps-item')?.querySelector('.brand-glyph');
         const icon = cta.querySelector('.nav-get-pro-icon');
         if (glyph && icon) {
           const mark = glyph.cloneNode(true);

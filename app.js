@@ -123,6 +123,7 @@
     'Mobile': '移动端',
     'iPhone and iPad': 'iPhone 和 iPad',
     'Phones and tablets': '手机和平板',
+    'Without Google Play': '无需 Google Play',
     'Browser': '浏览器',
     'Extension': '浏览器扩展',
     'Chrome and Edge': 'Chrome 和 Edge',
@@ -6664,6 +6665,7 @@
     windows: '',
     ios: 'https://apps.apple.com/us/app/readify-ai-audio-book-reader/id6783195818',
     android: 'https://play.google.com/store/apps/details?id=com.readin.app',
+    apk: 'https://file-tk.readifyai.com/install/android/readify.apk',
     extension: 'https://chromewebstore.google.com/detail/readin-lifelike-text-to-s/nnheobpfcpicnkfpdaafonmoaiehgmkj',
     web: 'https://app.readifyai.com'
   };

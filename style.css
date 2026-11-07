@@ -3030,8 +3030,7 @@ img[data-reveal="pending"].is-swapping {
 .apps-item-link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
 .apps-item-link:focus-visible { outline: none; }
 .apps-item--split:has(.apps-item-link:focus-visible) { box-shadow: 0 0 0 2px var(--brand-blue); }
-.apps-item-alt,
-.drawer-app-alt {
+.apps-item-alt {
   position: relative;
   z-index: 1;
   color: var(--text-secondary);
@@ -3039,8 +3038,7 @@ img[data-reveal="pending"].is-swapping {
   text-underline-offset: 2px;
   transition: color var(--motion-hover);
 }
-.apps-item-alt:hover,
-.drawer-app-alt:hover { color: var(--text-primary); text-decoration: underline; }
+.apps-item-alt:hover { color: var(--text-primary); text-decoration: underline; }
 .apps-item.is-device .apps-item-hint { color: var(--brand-blue); }
 .apps-qr {
   display: flex;
@@ -3070,9 +3068,6 @@ img[data-reveal="pending"].is-swapping {
   .drawer-app-label { display: inline-flex; align-items: center; gap: 12px; }
   .drawer-app-label svg { width: 18px; height: 18px; color: var(--text-secondary); }
   .drawer-app .apps-item-badge { display: none; }
-  .drawer-app-split { position: relative; }
-  .drawer-app-split .drawer-app { padding-right: 64px; }
-  .drawer-app-alt { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
   .drawer-app.is-device .apps-item-badge {
     display: inline-flex;
     align-items: center;
